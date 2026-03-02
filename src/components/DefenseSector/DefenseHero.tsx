@@ -28,7 +28,7 @@ export default function DefenseHero() {
 
   const product = PRODUCTS[activeProduct];
 
-  const glassBg = isLight ? 'rgba(244,245,246,0.55)' : 'rgba(1,3,8,0.52)';
+  const glassBg = isLight ? 'rgba(244,245,246,0.92)' : 'rgba(1,3,8,0.88)';
   const glassBorder = isLight ? 'rgba(255,255,255,0.55)' : 'rgba(255,255,255,0.07)';
   const glassInsetHighlight = isLight ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.055)';
   const glassReflection = isLight
@@ -40,7 +40,7 @@ export default function DefenseHero() {
   return (
     <section style={{ minHeight: 'auto', marginTop: 0, background: 'transparent', position: 'relative' }}>
       <div style={{ position: 'absolute', inset: 0, background: globeTheme.panelBg, transition: 'background 0.4s ease', zIndex: 0 }} />
-      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', opacity: 0.018, backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")", backgroundRepeat: 'repeat', backgroundSize: '100px 100px', zIndex: 1 }} />
+      {/* Noise texture removed — SVG feTurbulence causes scroll jank */}
 
       <div className="dv-main-grid" style={{ display: 'grid', gridTemplateColumns: '50% 50%', borderTop: '1px dashed var(--border-dashed)', borderBottom: '1px dashed var(--border-dashed)', minHeight: '100vh', position: 'relative', zIndex: 2 }}>
 
@@ -50,10 +50,8 @@ export default function DefenseHero() {
           borderRight: '1px solid ' + glassBorder,
           position: 'relative', overflow: 'hidden', minHeight: '100vh',
           background: glassBg,
-          backdropFilter: 'blur(28px) saturate(1.4)',
-          WebkitBackdropFilter: 'blur(28px) saturate(1.4)',
           boxShadow: `inset 1px 0 0 ${glassInsetHighlight}, inset -1px 0 0 rgba(255,255,255,0.02)`,
-          transition: 'background 0.4s ease, backdrop-filter 0.4s ease',
+          transition: 'background 0.4s ease',
         }}>
           {!isLight && (
             <div key={product.id} style={{ position: 'absolute', inset: 0, backgroundImage: `url(${product.bgImage})`, backgroundSize: 'cover', backgroundPosition: 'center 30%', backgroundRepeat: 'no-repeat', opacity: 0.30, zIndex: 0, animation: 'dvBgFadeIn 0.7s ease forwards', pointerEvents: 'none' }} />
@@ -61,8 +59,7 @@ export default function DefenseHero() {
           {!isLight && (
             <div style={{ position: 'absolute', inset: 0, background: ['linear-gradient(to bottom, rgba(4,5,12,0.78) 0%, rgba(4,5,12,0.30) 30%, rgba(4,5,12,0.22) 55%, rgba(4,5,12,0.60) 82%, rgba(4,5,12,0.94) 100%)', 'linear-gradient(to right, rgba(4,5,12,0.62) 0%, rgba(4,5,12,0.18) 55%, rgba(4,5,12,0.0) 100%)', 'radial-gradient(ellipse at 0% 100%, rgba(227,27,84,0.22) 0%, transparent 52%)', 'radial-gradient(ellipse at 100% 0%, rgba(0,180,140,0.09) 0%, transparent 48%)', 'radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(4,5,12,0.55) 100%)'].join(', '), zIndex: 1, pointerEvents: 'none' }} />
           )}
-          <div style={{ position: 'absolute', inset: 0, backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")", backgroundRepeat: 'repeat', backgroundSize: '180px 180px', opacity: 0.032, zIndex: 2, pointerEvents: 'none', mixBlendMode: 'overlay' }} />
-          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'repeating-linear-gradient(to bottom, transparent 0px, transparent 3px, rgba(0,0,0,0.055) 3px, rgba(0,0,0,0.055) 4px)', zIndex: 2, pointerEvents: 'none' }} />
+          {/* Noise grain + scanlines removed — cause scroll jank on mobile */}
           <div style={{ position: 'absolute', inset: 0, background: glassReflection, pointerEvents: 'none', zIndex: 3 }} />
 
           <div style={{ flex: 1, padding: '190px clamp(2.5rem, 5vw, 4.5rem) 0 clamp(3.5rem, 7vw, 6rem)', position: 'relative', zIndex: 5 }}>

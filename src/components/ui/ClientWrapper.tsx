@@ -5,6 +5,7 @@ import MainContent from './MainContent';
 import Footer from './Footer';
 import LoadingScreen from './LoadingScreen';
 import CookieBanner from './CookieBanner';
+import SmoothScroller from './SmoothScroller';
 import type { InfoContentType } from '@/data/information-data';
 
 type TabType = 'home' | 'discover' | 'information' | 'affiliations' | 'technologies';
@@ -96,25 +97,28 @@ const handleInfoContentChange = useCallback((content: InfoContentType) => {
   return (
     <>
       {loading && <LoadingScreen duration={3000} onComplete={handleLoadingComplete} />}
-      <div className="min-h-screen theme-transition" style={{ background: 'var(--surface-primary)', color: 'var(--content-primary)' }}>
-        <Navbar
-          activeTab={activeTab}
-          setActiveTab={handleTabChange}
-          activeSubtab={activeSubtab}
-          onSubtabClick={handleSubtabClick}
-          activeInfoContent={activeInfoContent}
-          onInfoContentChange={handleInfoContentChange}
-        />
-        <main>
-          <MainContent
-            activeTab={activeTab}
-            activeSubtab={activeSubtab}
-            activeInfoContent={activeInfoContent}
-            onInfoContentChange={handleInfoContentChange}
-          />
-        </main>
-        <Footer onNavigate={handleFooterNavigate} />
-      </div>
+      {/* Navbar stays outside SmoothScroller so position:fixed isn't broken by transforms */}
+      <Navbar
+        activeTab={activeTab}
+        setActiveTab={handleTabChange}
+        activeSubtab={activeSubtab}
+        onSubtabClick={handleSubtabClick}
+        activeInfoContent={activeInfoContent}
+        onInfoContentChange={handleInfoContentChange}
+      />
+      <SmoothScroller>
+        <div className="min-h-screen theme-transition" style={{ background: 'var(--surface-primary)', color: 'var(--content-primary)' }}>
+          <main>
+            <MainContent
+              activeTab={activeTab}
+              activeSubtab={activeSubtab}
+              activeInfoContent={activeInfoContent}
+              onInfoContentChange={handleInfoContentChange}
+            />
+          </main>
+          <Footer onNavigate={handleFooterNavigate} />
+        </div>
+      </SmoothScroller>
       <CookieBanner visible={!loading} />
     </>
   );

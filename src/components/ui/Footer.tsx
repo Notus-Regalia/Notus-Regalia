@@ -387,7 +387,7 @@ const Footer = ({ onNavigate }: FooterProps) => {
         .nr-footer {
           /* Dark-mode tokens */
           --f-bg:              linear-gradient(160deg, #0a0a0f 0%, #0d0d14 60%, #080810 100%);
-          --f-glass-bg:        rgba(10,10,20,0.85);
+          --f-glass-bg:        rgba(10,10,20,0.96);
           --f-border:          rgba(255,255,255,0.22);
           --f-border-subtle:   rgba(255,255,255,0.06);
           --f-text-primary:    #f1f5f9;
@@ -417,10 +417,8 @@ const Footer = ({ onNavigate }: FooterProps) => {
           z-index: 10;
           color: var(--f-text-primary);
 
-          /* Glass surface */
+          /* Glass surface — no backdrop-filter for scroll perf */
           background: var(--f-glass-bg);
-          backdrop-filter: blur(24px);
-          -webkit-backdrop-filter: blur(24px);
           box-shadow:
             0 -8px 32px rgba(0,0,0,0.3),
             0 -12px 48px rgba(0,0,0,0.18),
@@ -837,8 +835,7 @@ const Footer = ({ onNavigate }: FooterProps) => {
           display: inline-flex; align-items: center; justify-content: center;
           width: 4.5rem; height: 4.5rem; border-radius: 0.75rem;
           background: var(--f-glass-box-bg);
-          border: 1px solid var(--f-border-subtle);
-          backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+          border: 1px dashed var(--f-border-subtle);
           color: var(--f-glass-box-color);
           transition: background 180ms ease, box-shadow 180ms ease, transform 180ms ease, color 180ms ease;
         }

@@ -10,6 +10,8 @@ import StripRow from './StripRow';
 import DefenseHero from './DefenseHero';
 import DefenseContent from './DefenseContent';
 import DefenseLoadingScreen from './DefenseLoadingScreen';
+import SmoothScroller from '@/components/ui/SmoothScroller';
+import { ScrollSmoother } from 'gsap/ScrollSmoother';
 
 export default function DefenseSitePage() {
   const { theme, toggleTheme, isDark } = useTheme();
@@ -35,54 +37,14 @@ export default function DefenseSitePage() {
   const scrollAnimRafRef = useRef<number | null>(null);
   const spyDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Smooth inertia scroll helper ──
+  // ── Smooth scroll helper (delegates to GSAP ScrollSmoother) ──
   const smoothScrollTo = useCallback((targetY: number, duration = 1100) => {
-    // Cancel any in-flight scroll animation
-    if (scrollAnimRafRef.current !== null) {
-      cancelAnimationFrame(scrollAnimRafRef.current);
-      scrollAnimRafRef.current = null;
+    const sm = ScrollSmoother.get();
+    if (sm) {
+      sm.scrollTo(targetY, true, `top top`);
+    } else {
+      window.scrollTo({ top: targetY, behavior: 'smooth' });
     }
-    if (scrollTimeoutRef.current) {
-      clearTimeout(scrollTimeoutRef.current);
-      scrollTimeoutRef.current = null;
-    }
-
-    // Disable CSS scroll-behavior:smooth — it fights our rAF animation
-    const htmlEl = document.documentElement;
-    htmlEl.style.scrollBehavior = 'auto';
-
-    const startY = window.scrollY;
-    const diff = targetY - startY;
-    if (Math.abs(diff) < 1) {
-      htmlEl.style.scrollBehavior = '';
-      isProgrammaticScrollRef.current = false;
-      return;
-    }
-    const startTime = performance.now();
-
-    // easeInOutQuart for weighted / inertia feel
-    const ease = (t: number) => {
-      return t < 0.5
-        ? 8 * t * t * t * t
-        : 1 - Math.pow(-2 * t + 2, 4) / 2;
-    };
-
-    const step = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      window.scrollTo(0, startY + diff * ease(progress));
-      if (progress < 1) {
-        scrollAnimRafRef.current = requestAnimationFrame(step);
-      } else {
-        scrollAnimRafRef.current = null;
-        // Restore CSS scroll-behavior and release scroll-spy guard after buffer
-        htmlEl.style.scrollBehavior = '';
-        scrollTimeoutRef.current = setTimeout(() => {
-          isProgrammaticScrollRef.current = false;
-        }, 500);
-      }
-    };
-    scrollAnimRafRef.current = requestAnimationFrame(step);
   }, []);
 
   // ── Responsive ──
@@ -192,9 +154,14 @@ export default function DefenseSitePage() {
       setActiveSubtab(sub.id);
       const el = document.getElementById(sub.sectionId);
       if (el) {
+        const sm = ScrollSmoother.get();
         const navH = stripOpen ? 134 : 84;
-        const targetY = el.getBoundingClientRect().top + window.scrollY - navH;
-        smoothScrollTo(targetY, 1100);
+        if (sm) {
+          sm.scrollTo(el, true, `top ${navH}px`);
+        } else {
+          const targetY = el.getBoundingClientRect().top + window.scrollY - navH;
+          window.scrollTo({ top: targetY, behavior: 'smooth' });
+        }
       } else {
         isProgrammaticScrollRef.current = false;
       }
@@ -304,9 +271,14 @@ export default function DefenseSitePage() {
       requestAnimationFrame(() => {
         const el = document.getElementById(sub.sectionId!);
         if (el) {
+          const sm = ScrollSmoother.get();
           const navH = stripOpen ? 134 : 84;
-          const targetY = el.getBoundingClientRect().top + window.scrollY - navH;
-          smoothScrollTo(targetY, 1100);
+          if (sm) {
+            sm.scrollTo(el, true, `top ${navH}px`);
+          } else {
+            const targetY = el.getBoundingClientRect().top + window.scrollY - navH;
+            window.scrollTo({ top: targetY, behavior: 'smooth' });
+          }
         } else {
           isProgrammaticScrollRef.current = false;
         }
@@ -570,29 +542,31 @@ export default function DefenseSitePage() {
           </div>
         </div>
 
-        {/* ══ MAIN CONTENT ══ */}
-        <main style={{ paddingTop: stripOpen ? '134px' : '84px', transition: 'padding-top 0.38s cubic-bezier(0.4, 0, 0.2, 1)' }}>
-          {displayedTab === 'home' ? (
-            <div className={`relative z-10 transition-all duration-500 ${isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
-              <div id="defense-section-overview" style={{ scrollMarginTop: stripOpen ? '134px' : '84px' }}>
-                <DefenseHero />
+        {/* ══ MAIN CONTENT (inside ScrollSmoother) ══ */}
+        <SmoothScroller>
+          <main style={{ paddingTop: stripOpen ? '134px' : '84px', transition: 'padding-top 0.38s cubic-bezier(0.4, 0, 0.2, 1)' }}>
+            {displayedTab === 'home' ? (
+              <div className={`relative z-10 transition-all duration-500 ${isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
+                <div id="defense-section-overview" style={{ scrollMarginTop: stripOpen ? '134px' : '84px' }}>
+                  <DefenseHero />
+                </div>
+                <div id="defense-section-features" style={{ scrollMarginTop: stripOpen ? '134px' : '84px' }}>
+                  <DefenseContent tabId="home" subtabId="features" />
+                </div>
+                <div id="defense-section-portfolio" style={{ scrollMarginTop: stripOpen ? '134px' : '84px' }}>
+                  <DefenseContent tabId="home" subtabId="systems-portfolio" />
+                </div>
               </div>
-              <div id="defense-section-features" style={{ scrollMarginTop: stripOpen ? '134px' : '84px' }}>
-                <DefenseContent tabId="home" subtabId="features" />
+            ) : (
+              <div className={`relative z-10 transition-all duration-300 ${isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
+                <DefenseContent tabId={displayedTab} subtabId={displayedSubtab} />
               </div>
-              <div id="defense-section-portfolio" style={{ scrollMarginTop: stripOpen ? '134px' : '84px' }}>
-                <DefenseContent tabId="home" subtabId="systems-portfolio" />
-              </div>
-            </div>
-          ) : (
-            <div className={`relative z-10 transition-all duration-300 ${isTransitioning ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'}`}>
-              <DefenseContent tabId={displayedTab} subtabId={displayedSubtab} />
-            </div>
-          )}
-        </main>
+            )}
+          </main>
 
-        {/* ══ FOOTER — same component as main site ══ */}
-        <Footer onNavigate={handleFooterNavigate} />
+          {/* ══ FOOTER — same component as main site ══ */}
+          <Footer onNavigate={handleFooterNavigate} />
+        </SmoothScroller>
       </div>
 
       {/* ══ SEARCH MODAL ══ */}

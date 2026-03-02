@@ -44,7 +44,7 @@ export const DEFENSE_NAVBAR_CSS = `
 .dv-carousel-grid {
   display: grid; grid-template-columns: repeat(2, 1fr); width: 100%;
   border-top: 1px solid rgba(255,255,255,0.07);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  background: rgba(0,0,0,0.45);
 }
 .dv-carousel-cell {
   position: relative; padding: 36px 32px 40px; min-height: 180px;
@@ -61,7 +61,7 @@ export const DEFENSE_NAVBAR_CSS = `
 .dv-carousel-cell:not(.active):hover { background: rgba(255,255,255,0.025); }
 
 /* ── Hero light mode ── */
-:root.light .dv-carousel-grid { border-top-color: rgba(0,0,0,0.09); }
+:root.light .dv-carousel-grid { border-top-color: rgba(0,0,0,0.09); background: rgba(255,255,255,0.55); }
 :root.light .dv-carousel-cell { border-right-color: rgba(0,0,0,0.09); }
 :root.light .dv-carousel-cell.active { background: rgba(227,27,84,0.05); }
 :root.light .dv-carousel-cell:not(.active):hover { background: rgba(0,0,0,0.035); }

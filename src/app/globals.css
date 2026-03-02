@@ -29,7 +29,7 @@
   /* Borders */
   --border-color: rgba(255, 255, 255, 0.1);
   --border-subtle: rgba(255, 255, 255, 0.05);
-  --border-dashed: rgba(255, 255, 255, 0.2);
+  --border-dashed: rgba(255, 255, 255, 0.06);
 
   /* Glass */
   --glass-bg: rgba(15, 15, 15, 0.75);
@@ -104,7 +104,7 @@
   /* Borders */
   --border-color: rgba(0, 0, 0, 0.1);
   --border-subtle: rgba(0, 0, 0, 0.05);
-  --border-dashed: rgba(0, 0, 0, 0.15);
+  --border-dashed: rgba(0, 0, 0, 0.045);
 
   /* Glass */
   --glass-bg: rgba(255, 255, 255, 0.85);
@@ -167,7 +167,18 @@
 }
 
 html {
+  /* GSAP ScrollSmoother handles smoothing on desktop;
+     on mobile (where GSAP is disabled) fall back to native smooth scroll */
   scroll-behavior: smooth;
+}
+
+/* Promote #smooth-content to its own GPU layer so dashed borders
+   are rasterised once and the texture is composited each frame
+   instead of being re-rasterised (which causes sub-pixel flicker). */
+#smooth-content {
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 body {

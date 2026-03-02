@@ -140,13 +140,11 @@ const TheCompany = memo(({ onLearnMore }: { onLearnMore?: (page: string) => void
             <p
               className={styles.aboutHeaderDesc}
               style={{
-                whiteSpace: 'nowrap',
                 display: 'block',
                 margin: '0 auto',
                 textAlign: 'center',
-                maxWidth: 'none',
-                width: 'auto',
-                fontSize: '1.2rem',
+                maxWidth: '90vw',
+                fontSize: 'clamp(0.85rem, 2.5vw, 1.2rem)',
               }}
             >
               We build with intention — exploring the intersection of technology, design, and human experience.

@@ -73,7 +73,8 @@
 }
 
 /* Prevent horizontal scroll on mobile — robust for iOS Safari */
-html,
+/* Note: overflow-x:hidden on <html> is moved to a media query to avoid
+   conflicting with GSAP ScrollSmoother's transform-based approach.       */
 body {
   overflow-x: hidden;
   width: 100%;
