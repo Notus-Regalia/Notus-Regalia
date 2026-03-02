@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import type { GlobeTheme } from '@/hooks/defense-themes';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import {
   type CountryInfo,
   type BeaconTooltip,
@@ -33,8 +34,45 @@ const GlobeD3 = ({ onCountrySelect, theme, deselectSignal, focusSignal }: { onCo
   const d3ModuleRef = useRef<any>(null);
   const projectionRef = useRef<any>(null);
   const [baseTooltip, setBaseTooltip] = useState<{ base: MilBase; x: number; y: number } | null>(null);
+  const isVisibleRef = useRef(true);   // IntersectionObserver: is globe on-screen?
+  const isScrollingRef = useRef(false); // true while user is actively scrolling
 
   useEffect(() => { themeRef.current = theme; }, [theme]);
+
+  // ── Pause animation when globe is scrolled off-screen ──
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => { isVisibleRef.current = entry.isIntersecting; },
+      { threshold: 0 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // ── Detect active scrolling to freeze animation ──
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    const onStart = () => {
+      isScrollingRef.current = true;
+      clearTimeout(timer);
+    };
+    const onStop = () => {
+      // Small delay before resuming so the compositor settles
+      timer = setTimeout(() => { isScrollingRef.current = false; }, 120);
+    };
+    // ScrollTrigger events work regardless of normalizeScroll
+    ScrollTrigger.addEventListener('scrollStart', onStart);
+    ScrollTrigger.addEventListener('scrollEnd', onStop);
+    // Fallback: also listen for native scroll in case GSAP isn't active
+    window.addEventListener('scroll', () => { onStart(); clearTimeout(timer); timer = setTimeout(onStop, 200); }, { passive: true });
+    return () => {
+      ScrollTrigger.removeEventListener('scrollStart', onStart);
+      ScrollTrigger.removeEventListener('scrollEnd', onStop);
+      clearTimeout(timer);
+    };
+  }, []);
 
   useEffect(() => {
     if (deselectSignal === 0) return;
@@ -1157,6 +1195,14 @@ const GlobeD3 = ({ onCountrySelect, theme, deselectSignal, focusSignal }: { onCo
       const animate = () => {
         if (!mounted) return;
         animFrame = requestAnimationFrame(animate);
+
+        // Skip all work when globe is scrolled off-screen
+        if (!isVisibleRef.current) { lastTime = performance.now(); return; }
+
+        // Completely freeze during scroll — let the browser just composite
+        // the cached GPU layer without any SVG mutation / re-rasterization
+        if (isScrollingRef.current) { lastTime = performance.now(); return; }
+
         const now = performance.now();
         const dt = now - lastTime; lastTime = now;
         frameCount++;
@@ -1351,14 +1397,14 @@ const GlobeD3 = ({ onCountrySelect, theme, deselectSignal, focusSignal }: { onCo
   }, []);
 
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'relative' }}>
+    <div ref={containerRef} style={{ width: '100%', height: '100%', position: 'relative', contain: 'layout style paint', willChange: 'transform' }}>
       {isLoading && (
         <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 10 }}>
           <div style={{ width: 32, height: 32, border: '1.5px solid rgba(227,27,84,0.2)', borderTop: '1.5px solid #E31B54', borderRadius: '50%', animation: 'dvSpin 1s linear infinite' }} />
           <span style={{ fontFamily: 'ui-monospace,Menlo,monospace', fontSize: '0.55rem', color: 'rgba(227,27,84,0.5)', letterSpacing: '0.2em', textTransform: 'uppercase' }}>LOADING GEO DATA...</span>
         </div>
       )}
-      <svg ref={svgRef} style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none', willChange: 'transform' }} />
+      <svg ref={svgRef} style={{ width: '100%', height: '100%', display: 'block', touchAction: 'none' }} />
 
       {/* Capital city tooltip */}
       {tooltip && (() => {
