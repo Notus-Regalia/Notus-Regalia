@@ -1,38 +1,71 @@
 "use client";
-import { memo, useState, useEffect, useRef } from 'react';
+import { memo, useState, useEffect, useRef, useCallback } from 'react';
 import Overview from './OverviewGrids';
 import DiscoverHeader from './DiscoverHeader';
 import TheOrganization from './TheOrganization';
 import TheCompany from './TheCompany';
 import StrategicCapital from './StrategicCapital';
 import DetailView from './details';
+import { ScrollSmoother } from 'gsap/ScrollSmoother';
+
+/* ── Transition timings (ms) ── */
+const FADE_OUT = 280;
+const FADE_IN  = 350;
 
 const Discover = () => {
   const [detailPage, setDetailPage] = useState<string | null>(null);
   const returnSectionRef = useRef<string | null>(null);
 
-  const openDetail = (page: string, sectionId?: string) => {
-    returnSectionRef.current = sectionId ?? null;
-    setDetailPage(page);
-  };
+  /* Phase: 'idle' → 'fade-out' → swap → 'fade-in' → 'idle' */
+  const [phase, setPhase] = useState<'idle' | 'fade-out' | 'fade-in'>('idle');
+  const pendingRef = useRef<string | null | undefined>(undefined); // queued value for detailPage
 
-  const closeDetail = () => {
-    const sectionId = returnSectionRef.current;
-    setDetailPage(null);
-    if (sectionId) {
+  /* ── Scroll helper (works with/without ScrollSmoother) ── */
+  const scrollToTop = useCallback(() => {
+    const sm = typeof window !== 'undefined' ? ScrollSmoother.get?.() : null;
+    if (sm) { sm.scrollTo(0, false); }
+    else { window.scrollTo({ top: 0 }); }
+  }, []);
+
+  /* ── Transition engine ── */
+  const runTransition = useCallback((nextPage: string | null) => {
+    if (phase !== 'idle') return; // ignore during in-flight transition
+    pendingRef.current = nextPage;
+    setPhase('fade-out');
+
+    setTimeout(() => {
+      // Swap content
+      setDetailPage(nextPage);
+
+      // Jump to top instantly (before fade-in so user doesn't see scroll)
+      scrollToTop();
+
+      // Start fade-in on next frame so the DOM has the new content
       requestAnimationFrame(() => {
-        setTimeout(() => {
-          const el = document.getElementById(sectionId);
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 50);
-      });
-    }
-  };
+        setPhase('fade-in');
 
-  // Scroll to top when detail page opens, and dispatch events for navbar
+        // After fade-in, cleanup
+        setTimeout(() => {
+          setPhase('idle');
+          pendingRef.current = undefined;
+        }, FADE_IN);
+      });
+    }, FADE_OUT);
+  }, [phase, scrollToTop]);
+
+  /* ── Public actions ── */
+  const openDetail = useCallback((page: string, sectionId?: string) => {
+    returnSectionRef.current = sectionId ?? null;
+    runTransition(page);
+  }, [runTransition]);
+
+  const closeDetail = useCallback(() => {
+    runTransition(null);
+  }, [runTransition]);
+
+  // Dispatch navbar events when detail state changes
   useEffect(() => {
     if (detailPage) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
       window.dispatchEvent(new CustomEvent('discover-detail', { detail: { open: true } }));
     } else {
       window.dispatchEvent(new CustomEvent('discover-detail', { detail: { open: false } }));
@@ -44,7 +77,7 @@ const Discover = () => {
     const handler = () => closeDetail();
     window.addEventListener('discover-detail-back', handler);
     return () => window.removeEventListener('discover-detail-back', handler);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [closeDetail]);
 
   // Reset when the Discover nav tab is re-clicked
   useEffect(() => {
@@ -54,14 +87,33 @@ const Discover = () => {
     };
     window.addEventListener('tab-reset', handler);
     return () => window.removeEventListener('tab-reset', handler);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [closeDetail]);
+
+  /* ── Transition style ── */
+  const wrapStyle: React.CSSProperties = {
+    opacity: phase === 'fade-out' ? 0 : 1,
+    transform: phase === 'fade-out'
+      ? 'translateY(12px)'
+      : phase === 'fade-in'
+        ? 'translateY(0)'
+        : 'translateY(0)',
+    transition: phase === 'fade-out'
+      ? `opacity ${FADE_OUT}ms ease, transform ${FADE_OUT}ms ease`
+      : phase === 'fade-in'
+        ? `opacity ${FADE_IN}ms ease, transform ${FADE_IN}ms ease`
+        : 'none',
+  };
 
   if (detailPage) {
-    return <DetailView page={detailPage} />;
+    return (
+      <div style={wrapStyle}>
+        <DetailView page={detailPage} />
+      </div>
+    );
   }
 
   return (
-    <div style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+    <div style={{ paddingTop: 'env(safe-area-inset-top)', ...wrapStyle }}>
       {/* Discover Header */}
       <DiscoverHeader />
 

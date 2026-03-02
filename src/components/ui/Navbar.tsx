@@ -4,6 +4,32 @@ import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import SearchModal from './SearchModal';
 import ThemeToggle from './ThemeToggle';
 import { type InfoContentType } from '@/data/information-data';
+import { ScrollSmoother } from 'gsap/ScrollSmoother';
+
+/* ── GSAP-aware scroll helpers ────────────────────────────────── */
+const gsapScrollTo = (target: HTMLElement | number, smooth = true) => {
+  const sm = typeof window !== 'undefined' ? ScrollSmoother.get?.() : null;
+  if (sm) {
+    if (typeof target === 'number') {
+      sm.scrollTo(target, smooth);
+    } else {
+      // offset = navbar + strip height
+      const nav = document.querySelector('.glass-navbar') as HTMLElement | null;
+      const navH = nav?.offsetHeight ?? 80;
+      sm.scrollTo(target, smooth, `top ${navH + 8}px`);
+    }
+  } else {
+    if (typeof target === 'number') {
+      window.scrollTo({ top: target, behavior: smooth ? 'smooth' : 'instant' });
+    } else {
+      const nav = document.querySelector('.glass-navbar') as HTMLElement | null;
+      const navH = nav?.offsetHeight ?? 80;
+      const y = target.getBoundingClientRect().top + window.scrollY - navH - 8;
+      window.scrollTo({ top: Math.max(0, y), behavior: smooth ? 'smooth' : 'instant' });
+    }
+  }
+};
+const gsapScrollToTop = (smooth = true) => gsapScrollTo(0, smooth);
 
 interface NavbarProps {
   activeTab: string;
@@ -495,6 +521,24 @@ const NAVBAR_CSS = `
   animation-delay: calc(var(--si, 0) * 0.035s + 0.04s);
 }
 
+/* ── Crossfade layers inside the discover strip when toggling detail/subtabs ── */
+.strip-crossfade-layer {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: stretch;
+  transition: opacity 0.28s ease;
+  pointer-events: none;
+}
+.strip-crossfade-layer.strip-layer-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.strip-crossfade-layer.strip-layer-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* ── Collapse chevron at the far right of strip ── */
 .strip-collapse {
   display: inline-flex; align-items: center; justify-content: center;
@@ -805,6 +849,126 @@ const StripRow = memo(({
 StripRow.displayName = 'StripRow';
 
 // ─────────────────────────────────────────────────────────────
+//  DiscoverStripContent — subtab buttons + indicator for use
+//  inside the crossfade discover strip (no outer wrapper)
+// ─────────────────────────────────────────────────────────────
+const DISCOVER_SUBTABS = NAV_ITEMS.find(i => i.id === 'discover')!.subtabs!;
+
+interface DiscoverStripContentProps {
+  activeSubtabId: string | null;
+  onSubtabClick: (sub: SubtabItem) => void;
+  onCollapse: () => void;
+  isMobile?: boolean;
+}
+
+const DiscoverStripContent = memo(({
+  activeSubtabId, onSubtabClick, onCollapse, isMobile,
+}: DiscoverStripContentProps) => {
+  const btnRefs  = useRef<(HTMLButtonElement | null)[]>([]);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+
+  const [indStyle, setIndStyle] = useState<{ left: number; width: number } | null>(null);
+  const [animate, setAnimate]   = useState(false);
+  const hasPlacedRef            = useRef(false);
+  const [atEnd, setAtEnd]       = useState(false);
+
+  const updateScrollState = useCallback(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const maxScroll = track.scrollWidth - track.clientWidth;
+    setAtEnd(maxScroll > 0 && track.scrollLeft >= maxScroll - 2);
+  }, []);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || !isMobile) return;
+    track.addEventListener('scroll', updateScrollState, { passive: true });
+    updateScrollState();
+    return () => track.removeEventListener('scroll', updateScrollState);
+  }, [isMobile, updateScrollState]);
+
+  const place = useCallback((shouldAnimate: boolean) => {
+    const idx = DISCOVER_SUBTABS.findIndex(s => s.id === activeSubtabId);
+    const btn = btnRefs.current[idx];
+    const track = trackRef.current;
+    if (!btn || !track) return;
+    const tRect = track.getBoundingClientRect();
+    const bRect = btn.getBoundingClientRect();
+    setIndStyle({ left: bRect.left - tRect.left + track.scrollLeft, width: bRect.width });
+    if (shouldAnimate) setAnimate(true);
+    hasPlacedRef.current = true;
+  }, [activeSubtabId]);
+
+  useEffect(() => {
+    place(hasPlacedRef.current);
+  }, [activeSubtabId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Re-place on mount
+  useEffect(() => {
+    const t = setTimeout(() => place(false), 40);
+    return () => clearTimeout(t);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const indicatorCSSStyle: React.CSSProperties = {
+    left: indStyle?.left ?? 0,
+    width: indStyle?.width ?? 0,
+    opacity: indStyle ? 1 : 0,
+    transition: animate
+      ? 'left 0.32s cubic-bezier(0.4, 0, 0.2, 1), width 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease'
+      : 'none',
+  };
+
+  const handleArrowClick = useCallback(() => {
+    if (isMobile && trackRef.current) {
+      const track = trackRef.current;
+      if (atEnd) {
+        track.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        const maxScroll = track.scrollWidth - track.clientWidth;
+        const newLeft = Math.min(track.scrollLeft + track.clientWidth * 0.65, maxScroll);
+        track.scrollTo({ left: newLeft, behavior: 'smooth' });
+      }
+    } else {
+      onCollapse();
+    }
+  }, [isMobile, atEnd, onCollapse]);
+
+  const arrowIcon = isMobile
+    ? (atEnd ? 'bi-chevron-left' : 'bi-chevron-right')
+    : 'bi-chevron-up';
+
+  return (
+    <>
+      <div className="strip-tabs-track" ref={trackRef}>
+        <div className="strip-indicator" style={indicatorCSSStyle} aria-hidden>
+          <div className="strip-indicator-bg" />
+          <div className="strip-indicator-line" />
+        </div>
+        {DISCOVER_SUBTABS.map((sub, idx) => (
+          <button
+            key={sub.id}
+            ref={el => { btnRefs.current[idx] = el; }}
+            className={`strip-tab${activeSubtabId === sub.id ? ' strip-tab-active' : ''}`}
+            style={{ '--si': idx } as React.CSSProperties}
+            onClick={() => onSubtabClick(sub)}
+          >
+            {sub.label}
+          </button>
+        ))}
+      </div>
+      <button
+        className="strip-collapse"
+        onClick={handleArrowClick}
+        aria-label={isMobile ? 'Scroll Discover sections' : 'Hide Discover sections'}
+      >
+        <i className={`bi ${arrowIcon}`} />
+      </button>
+    </>
+  );
+});
+DiscoverStripContent.displayName = 'DiscoverStripContent';
+
+// ─────────────────────────────────────────────────────────────
 //  Main component
 // ─────────────────────────────────────────────────────────────
 const Navbar = ({
@@ -837,10 +1001,16 @@ const Navbar = ({
     const handler = (e: Event) => {
       const open = (e as CustomEvent).detail?.open ?? false;
       setDiscoverDetailOpen(open);
+
+      // Returning from a detail page → reset strip to "Overview"
+      if (!open) {
+        setScrollSpySubtab('discover-overview');
+        onSubtabClick?.('discover', 'discover-overview');
+      }
     };
     window.addEventListener('discover-detail', handler);
     return () => window.removeEventListener('discover-detail', handler);
-  }, []);
+  }, [onSubtabClick]);
 
   // ── Collapse / show nav ──
   const handleCollapseNav = useCallback(() => {
@@ -895,7 +1065,7 @@ const Navbar = ({
     setScrollSpySubtab(activeSubtab ?? item.subtabs[0].id);
   }, [activeTab, activeSubtab]);
 
-  // Scroll-spy
+  // Scroll-spy — use ScrollTrigger's scroll position for reliability with ScrollSmoother
   useEffect(() => {
     const item = NAV_ITEMS.find(i => i.id === activeTab);
     if (!item?.subtabs?.length) return;
@@ -904,7 +1074,9 @@ const Navbar = ({
     if (!sectionSubtabs.length) return;
 
     const computeActive = () => {
-      const scrollY = window.scrollY + 120;
+      const nav = document.querySelector('.glass-navbar') as HTMLElement | null;
+      const navH = nav?.offsetHeight ?? 80;
+      const scrollY = window.scrollY + navH + 40;
       let active = sectionSubtabs[0].id;
       for (const sub of sectionSubtabs) {
         const el = document.getElementById(sub.sectionId!);
@@ -922,7 +1094,9 @@ const Navbar = ({
 
     setScrollSpySubtab(computeActive());
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+    };
   }, [activeTab]);
 
   useEffect(() => () => {
@@ -932,14 +1106,14 @@ const Navbar = ({
   // ── Tab label click ──
   const handleTabClick = useCallback((tabId: string) => {
     setActiveTab(tabId);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    gsapScrollToTop();
   }, [setActiveTab]);
 
   // ── Arrow click ──
   const handleArrowToggle = useCallback((tabId: string) => {
     if (tabId !== activeTab) {
       setActiveTab(tabId);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      gsapScrollToTop();
       return;
     }
     setStripOpen(prev => {
@@ -951,7 +1125,13 @@ const Navbar = ({
 
   // ── Subtab click inside the strip ──
   const handleSubtabClick = useCallback((parentTabId: string, sub: SubtabItem) => {
-    setActiveTab(parentTabId);
+    // Only switch tabs when we're not already on this tab.
+    // Calling setActiveTab when already active triggers the "tab-reset" path
+    // which scrolls to top and runs transition animations, stomping the
+    // section-scroll we're about to perform.
+    if (parentTabId !== activeTab) {
+      setActiveTab(parentTabId);
+    }
     onSubtabClick?.(parentTabId, sub.id);
     if (sub.sectionId) {
       setScrollSpySubtab(sub.id);
@@ -960,18 +1140,26 @@ const Navbar = ({
       programmaticScrollTimer.current = setTimeout(() => {
         isProgrammaticScrollRef.current = false;
       }, 1200);
-      requestAnimationFrame(() =>
-        document.getElementById(sub.sectionId!)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      );
+
+      const scrollToSection = () => {
+        const el = document.getElementById(sub.sectionId!);
+        if (el) { gsapScrollTo(el); return; }
+        // Element not in DOM yet (tab switch still rendering) — retry once
+        setTimeout(() => {
+          const el2 = document.getElementById(sub.sectionId!);
+          if (el2) gsapScrollTo(el2);
+        }, 80);
+      };
+      requestAnimationFrame(scrollToSection);
     } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      gsapScrollToTop();
     }
-  }, [setActiveTab, onSubtabClick]);
+  }, [activeTab, setActiveTab, onSubtabClick]);
 
   // ── Info tab subtab click — sub.id is the InfoContentType value directly ──
   const handleInfoSubtabClick = useCallback((sub: SubtabItem) => {
     onInfoContentChange?.(sub.id as InfoContentType);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    gsapScrollToTop();
   }, [onInfoContentChange]);
 
   // ── Search ──
@@ -996,12 +1184,10 @@ const Navbar = ({
       // Give time for the tab to render, then scroll
       setTimeout(() => {
         const el = document.getElementById(sub.sectionId!);
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        if (el) gsapScrollTo(el);
       }, 450);
     } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      gsapScrollToTop();
     }
   }, [setActiveTab, onSubtabClick, onInfoContentChange]);
 
@@ -1012,24 +1198,25 @@ const Navbar = ({
 
   const handleMobileTabClick = useCallback((tabId: string) => {
     setActiveTab(tabId); setMobileOpen(false); setMobileExpandedTab(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    gsapScrollToTop();
   }, [setActiveTab]);
 
   const handleMobileSubtabClick = useCallback((parentTabId: string, sub: SubtabItem) => {
     setActiveTab(parentTabId); onSubtabClick?.(parentTabId, sub.id);
     setMobileOpen(false); setMobileExpandedTab(null);
     if (sub.sectionId) {
-      requestAnimationFrame(() =>
-        document.getElementById(sub.sectionId!)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      );
-    } else window.scrollTo({ top: 0, behavior: 'smooth' });
+      requestAnimationFrame(() => {
+        const el = document.getElementById(sub.sectionId!);
+        if (el) gsapScrollTo(el);
+      });
+    } else gsapScrollToTop();
   }, [setActiveTab, onSubtabClick]);
 
   const handleMobileInfoSubtabClick = useCallback((sub: SubtabItem) => {
     setActiveTab('information');
     onInfoContentChange?.(sub.id as InfoContentType);
     setMobileOpen(false); setMobileExpandedTab(null);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    gsapScrollToTop();
   }, [setActiveTab, onInfoContentChange]);
 
   const handleMobileSearch = useCallback(() => { setMobileOpen(false); setSearchOpen(true); }, []);
@@ -1188,37 +1375,48 @@ const Navbar = ({
         </div>
 
         {/* ══ SUBTAB STRIP — active tab only ══ */}
-        {/* When discover detail page is active, show "Return to Previous Page" strip */}
-        {activeTab === 'discover' && discoverDetailOpen && stripOpen && (
+        {/* Discover tab: single strip with crossfading inner layers */}
+        {activeTab === 'discover' && stripOpen && (
           <div className="subtab-strip-outer strip-visible">
             <div className="subtab-strip-clip">
-              <div className="subtab-strip-inner">
-                <div className="strip-tabs-track">
+              <div className="subtab-strip-inner" style={{ position: 'relative' }}>
+                {/* Layer 1: "Return to Previous Page" — visible when detail open */}
+                <div className={`strip-crossfade-layer ${discoverDetailOpen ? 'strip-layer-visible' : 'strip-layer-hidden'}`}>
+                  <div className="strip-tabs-track">
+                    <button
+                      className="strip-tab strip-tab-active"
+                      onClick={() => window.dispatchEvent(new CustomEvent('discover-detail-back'))}
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                    >
+                      <i className="bi bi-arrow-left" style={{ fontSize: '0.7rem' }} />
+                      Return to Previous Page
+                    </button>
+                  </div>
                   <button
-                    className="strip-tab strip-tab-active"
-                    onClick={() => window.dispatchEvent(new CustomEvent('discover-detail-back'))}
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                    className="strip-collapse"
+                    onClick={() => { manualOpenRef.current = false; setStripOpen(false); }}
+                    aria-label="Hide strip"
                   >
-                    <i className="bi bi-arrow-left" style={{ fontSize: '0.7rem' }} />
-                    Return to Previous Page
+                    <i className="bi bi-chevron-up" />
                   </button>
                 </div>
-                <button
-                  className="strip-collapse"
-                  onClick={() => { manualOpenRef.current = false; setStripOpen(false); }}
-                  aria-label="Hide strip"
-                >
-                  <i className="bi bi-chevron-up" />
-                </button>
+                {/* Layer 2: Normal subtabs — visible when NOT in detail */}
+                <div className={`strip-crossfade-layer ${!discoverDetailOpen ? 'strip-layer-visible' : 'strip-layer-hidden'}`}>
+                  <DiscoverStripContent
+                    activeSubtabId={(activeSubtab ?? scrollSpySubtab) ?? null}
+                    onSubtabClick={(sub) => handleSubtabClick('discover', sub)}
+                    onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
+                    isMobile={isMobile}
+                  />
+                </div>
               </div>
             </div>
           </div>
         )}
-        {/* Normal strips — hidden when discover detail is active */}
-        {NAV_ITEMS.filter(item => item.subtabs?.length).map((item) => {
+        {/* Other tabs: normal StripRow strips */}
+        {NAV_ITEMS.filter(item => item.subtabs?.length && item.id !== 'discover').map((item) => {
           const isActiveItem   = item.id === activeTab;
-          const isDiscoverWithDetail = item.id === 'discover' && discoverDetailOpen;
-          const isVisible      = isActiveItem && stripOpen && !isDiscoverWithDetail;
+          const isVisible      = isActiveItem && stripOpen;
           const isInfoTab      = item.id === 'information';
           const activeSubtabId = isInfoTab
             ? (activeInfoContent as string | undefined)

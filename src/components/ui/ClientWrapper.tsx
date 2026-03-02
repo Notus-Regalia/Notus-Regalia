@@ -7,6 +7,13 @@ import LoadingScreen from './LoadingScreen';
 import CookieBanner from './CookieBanner';
 import SmoothScroller from './SmoothScroller';
 import type { InfoContentType } from '@/data/information-data';
+import { ScrollSmoother } from 'gsap/ScrollSmoother';
+
+const gsapScrollToTop = (smooth = true) => {
+  const sm = typeof window !== 'undefined' ? ScrollSmoother.get?.() : null;
+  if (sm) sm.scrollTo(0, smooth);
+  else window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'instant' });
+};
 
 type TabType = 'home' | 'discover' | 'information' | 'affiliations' | 'technologies';
 const VALID_TABS: TabType[] = ['home', 'discover', 'information', 'affiliations', 'technologies'];
@@ -60,7 +67,7 @@ const ClientWrapper = () => {
     if (tab === activeTab) {
       // Re-clicking the active tab resets it (closes detail views, scrolls to top)
       window.dispatchEvent(new CustomEvent('tab-reset', { detail: { tab } }));
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      gsapScrollToTop();
       return;
     }
     setActiveTab(tab);
@@ -91,7 +98,7 @@ const handleInfoContentChange = useCallback((content: InfoContentType) => {
     else url.searchParams.set('tab', tabId);
     window.history.pushState({ tab: tabId }, '', url);
     if (infoContent) setActiveInfoContent(infoContent as InfoContentType);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    gsapScrollToTop();
   }, [isValidTab]);
 
   return (
