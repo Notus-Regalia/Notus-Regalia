@@ -55,7 +55,13 @@ const ClientWrapper = () => {
   }, [isValidTab]);
 
   const handleTabChange = useCallback((tab: string) => {
-    if (!isValidTab(tab) || tab === activeTab) return;
+    if (!isValidTab(tab)) return;
+    if (tab === activeTab) {
+      // Re-clicking the active tab resets it (closes detail views, scrolls to top)
+      window.dispatchEvent(new CustomEvent('tab-reset', { detail: { tab } }));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     setActiveTab(tab);
     setActiveSubtab(DEFAULT_SUBTABS[tab as TabType]);
     const url = new URL(window.location.href);

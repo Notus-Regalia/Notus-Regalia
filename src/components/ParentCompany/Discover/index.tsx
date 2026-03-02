@@ -5,7 +5,7 @@ import DiscoverHeader from './DiscoverHeader';
 import TheOrganization from './TheOrganization';
 import TheCompany from './TheCompany';
 import StrategicCapital from './StrategicCapital';
-import DetailView from './DetailView';
+import DetailView from './details';
 
 const Discover = () => {
   const [detailPage, setDetailPage] = useState<string | null>(null);
@@ -46,8 +46,18 @@ const Discover = () => {
     return () => window.removeEventListener('discover-detail-back', handler);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Reset when the Discover nav tab is re-clicked
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { tab } = (e as CustomEvent).detail;
+      if (tab === 'discover') closeDetail();
+    };
+    window.addEventListener('tab-reset', handler);
+    return () => window.removeEventListener('tab-reset', handler);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   if (detailPage) {
-    return <DetailView page={detailPage} onBack={closeDetail} />;
+    return <DetailView page={detailPage} />;
   }
 
   return (
