@@ -1,9 +1,6 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from "react";
 
-/* ─────────────────────────────────────────────────────────────
-   SHARED HELPERS
-───────────────────────────────────────────────────────────── */
 function useGlitch(intervalMs = 4000) {
   const [glitch, setGlitch] = useState(false);
   useEffect(() => {
@@ -26,9 +23,6 @@ function useClock() {
   return time;
 }
 
-/* ─────────────────────────────────────────────────────────────
-   SOFTWARE 1 — COMMAND & CONTROL
-───────────────────────────────────────────────────────────── */
 const C2_NODES = [
   { id: "A-1", label: "Sector Alpha",    status: "Active",    load: 42, color: "#00ffaa" },
   { id: "B-2", label: "Neural Bridge",   status: "Syncing",   load: 88, color: "#E31B54" },
@@ -98,9 +92,6 @@ function CommandControl() {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
-   SOFTWARE 2 — INTELLIGENCE HUB
-───────────────────────────────────────────────────────────── */
 const INTEL_METRICS = [
   { label: "Threat Index",    value: 23, max: 100, color: "#00ffaa" },
   { label: "Signal Strength", value: 76, max: 100, color: "#E31B54" },
@@ -211,9 +202,6 @@ function IntelDashboard() {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
-   SOFTWARE 3 — OPERATIONS BOARD
-───────────────────────────────────────────────────────────── */
 const OPS_COLS = [
   {
     id: "queue", label: "Queued", color: "rgba(255,255,255,0.22)",
@@ -240,7 +228,7 @@ const OPS_COLS = [
   },
 ];
 
-const P_COLOR: Record<string, string> = {
+const P_COLOR = {
   CRIT: "#E31B54", HIGH: "#f59e0b", MED: "#60a5fa", LOW: "rgba(255,255,255,0.3)",
 };
 
@@ -284,9 +272,6 @@ function OpsTracker() {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
-   SOFTWARE 4 — TREASURY LEDGER
-───────────────────────────────────────────────────────────── */
 const LEDGER_ROWS = [
   { ref: "TXN-0041", desc: "Alliance fund deposit",     type: "CREDIT", amt: "+12,400", ts: "2026-01-14" },
   { ref: "TXN-0040", desc: "Ops equipment allocation",  type: "DEBIT",  amt: "-3,800",  ts: "2026-01-13" },
@@ -305,7 +290,7 @@ const ALLOC = [
 ];
 
 function TreasuryLedger() {
-  const [hoveredAlloc, setHoveredAlloc] = useState<string | null>(null);
+  const [hoveredAlloc, setHoveredAlloc] = useState(null);
 
   let acc = 0;
   const segments = ALLOC.map((a) => {
@@ -416,9 +401,6 @@ function TreasuryLedger() {
   );
 }
 
-/* ─────────────────────────────────────────────────────────────
-   CAROUSEL WRAPPER
-───────────────────────────────────────────────────────────── */
 const SOFTWARES = [
   {
     id: "c2",       tag: "01", name: "Command & Control", industry: "Defense",
@@ -449,9 +431,9 @@ const SOFTWARES = [
 export default function SoftwareDemo() {
   const [active, setActive]       = useState(0);
   const [transitioning, setTrans] = useState(false);
-  const [direction, setDir]       = useState<"next" | "prev">("next");
+  const [direction, setDir]       = useState("next");
   const [revealed, setRevealed]   = useState(false);
-  const sectionRef                = useRef<HTMLDivElement>(null);
+  const sectionRef                = useRef(null);
 
   useEffect(() => {
     const el = sectionRef.current;
@@ -464,7 +446,7 @@ export default function SoftwareDemo() {
     return () => obs.disconnect();
   }, []);
 
-  const goto = useCallback((i: number) => {
+  const goto = useCallback((i) => {
     if (i === active || transitioning) return;
     setDir(i > active ? "next" : "prev");
     setTrans(true);
@@ -509,7 +491,6 @@ export default function SoftwareDemo() {
         @media(min-width:1536px){.sdemo-inner{padding:7rem 12rem 8rem;}}
         @media(min-width:1920px){.sdemo-inner{padding:7rem 16rem 8rem;}}
 
-        /* ── Header ── */
         .sdemo-header { display:flex; flex-direction:column; gap:2rem; margin-bottom:3.5rem; }
         @media(min-width:768px){ .sdemo-header { flex-direction:row; align-items:flex-end; justify-content:space-between; } }
         .sdemo-eyebrow {
@@ -536,7 +517,6 @@ export default function SoftwareDemo() {
         .sdemo-header-desc { font-size:0.88rem; line-height:1.75; color:rgba(255,255,255,0.4); font-family:'Inter',ui-sans-serif,system-ui,sans-serif; }
         :root.light .sdemo-header-desc { color:rgba(0,0,0,0.45); }
 
-        /* ── Tabs ── */
         .sdemo-tabs {
           display:flex; border:1px dashed rgba(255,255,255,0.1);
           border-radius:2px; margin-bottom:2rem;
@@ -581,7 +561,6 @@ export default function SoftwareDemo() {
         .sdemo-tab:hover .sdemo-tab-industry { color:rgba(255,255,255,0.35); }
         :root.light .sdemo-tab:hover .sdemo-tab-industry { color:rgba(0,0,0,0.45); }
 
-        /* ── Meta row ── */
         .sdemo-meta { display:flex; align-items:center; justify-content:space-between; gap:1.5rem; margin-bottom:1.5rem; flex-wrap:wrap; }
         .sdemo-tagline { font-size:clamp(1rem,2vw,1.3rem); font-weight:700; letter-spacing:-0.02em; color:rgba(255,255,255,0.9); margin-bottom:0.2rem; }
         :root.light .sdemo-tagline { color:rgba(0,0,0,0.9); }
@@ -602,14 +581,14 @@ export default function SoftwareDemo() {
         .sdemo-counter { font-size:0.62rem; letter-spacing:0.14em; color:rgba(255,255,255,0.25); padding:0 0.25rem; }
         :root.light .sdemo-counter { color:rgba(0,0,0,0.3); }
 
-        /* ── Viewport ── */
+        /* ── Viewport — expanded height ── */
         .sdemo-viewport {
           position:relative; border:1px solid rgba(255,255,255,0.08);
           border-radius:10px; overflow:hidden; background:#050510;
-          height:520px;
+          height:680px;
         }
         :root.light .sdemo-viewport { border:1px solid rgba(0,0,0,0.12); background:#eceef3; }
-        @media(max-width:640px){ .sdemo-viewport { height:460px; } }
+        @media(max-width:640px){ .sdemo-viewport { height:560px; } }
 
         .sdemo-slide {
           position:absolute; inset:0;
@@ -619,7 +598,6 @@ export default function SoftwareDemo() {
         .sdemo-slide-out-next{ opacity:0; transform:translateX(-28px); }
         .sdemo-slide-out-prev{ opacity:0; transform:translateX(28px); }
 
-        /* ── Dots ── */
         .sdemo-dots { display:flex; justify-content:center; gap:0.5rem; margin-top:1.25rem; }
         .sdemo-dot {
           width:6px; height:6px; border-radius:999px;
@@ -630,9 +608,6 @@ export default function SoftwareDemo() {
         :root.light .sdemo-dot { background:rgba(0,0,0,0.15); }
         :root.light .sdemo-dot.active { background:#E31B54; }
 
-        /* ══════════════════════════════════════
-           SHARED PANEL
-        ══════════════════════════════════════ */
         .sw-panel {
           position:absolute; inset:0; display:flex; overflow:hidden;
           font-family:ui-monospace,'Geist Mono',monospace; color:#fff;
@@ -649,7 +624,6 @@ export default function SoftwareDemo() {
         }
         @keyframes scan { from{top:0} to{top:100%} }
 
-        /* ── C2 ── */
         .c2-panel { background:radial-gradient(ellipse at 50% 0%,#0a0010 0%,#030308 100%); }
         :root.light .c2-panel { background:#eceef3; }
         .c2-sidebar {
@@ -690,7 +664,6 @@ export default function SoftwareDemo() {
         .c2-divider { width:100%; height:1px; background:rgba(255,255,255,0.07); margin:0.6rem 0; }
         :root.light .c2-divider { background:rgba(0,0,0,0.09); }
 
-        /* ── Intel ── */
         .intel-panel { flex-direction:column; background:#030308; }
         :root.light .intel-panel { background:#eceef3; }
         .intel-metrics { display:flex; border-bottom:1px solid rgba(255,255,255,0.07); flex-shrink:0; }
@@ -721,7 +694,6 @@ export default function SoftwareDemo() {
         .intel-feed-row:last-child { border-bottom:none; }
         :root.light .intel-feed-row { border-bottom:1px solid rgba(0,0,0,0.06); }
 
-        /* ── Ops ── */
         .ops-panel { flex-direction:column; background:#030308; }
         :root.light .ops-panel { background:#eceef3; }
         .ops-topbar {
@@ -764,7 +736,6 @@ export default function SoftwareDemo() {
           border:1px solid; border-radius:3px; padding:1px 5px;
         }
 
-        /* ── Treasury ── */
         .treasury-panel { background:#030308; }
         :root.light .treasury-panel { background:#eceef3; }
         .treasury-left {
@@ -802,7 +773,6 @@ export default function SoftwareDemo() {
       <div className={`sdemo-root${revealed ? " revealed" : ""}`} ref={sectionRef}>
         <div className="sdemo-inner">
 
-          {/* Header */}
           <div className="sdemo-header">
             <div>
               <div className="sdemo-eyebrow">
@@ -817,7 +787,6 @@ export default function SoftwareDemo() {
             </p>
           </div>
 
-          {/* Tabs */}
           <div className="sdemo-tabs" role="tablist">
             {SOFTWARES.map((s, i) => (
               <button
@@ -834,7 +803,6 @@ export default function SoftwareDemo() {
             ))}
           </div>
 
-          {/* Meta */}
           <div className="sdemo-meta">
             <div>
               <div className="sdemo-tagline">{sw.tagline}</div>
@@ -855,14 +823,12 @@ export default function SoftwareDemo() {
             </div>
           </div>
 
-          {/* Viewport */}
           <div className="sdemo-viewport">
             <div className={`sdemo-slide ${transitioning ? (direction === "next" ? "sdemo-slide-out-next" : "sdemo-slide-out-prev") : "sdemo-slide-idle"}`}>
               <ActiveComp />
             </div>
           </div>
 
-          {/* Dots */}
           <div className="sdemo-dots">
             {SOFTWARES.map((_, i) => (
               <button
