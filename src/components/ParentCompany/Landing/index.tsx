@@ -4,7 +4,8 @@ import HeroSection from './HeroSection';
 import AboutSection from './IndustrySection';
 import StatsSection from './StatsSection';
 import SoftwareDemo from './SoftwareDemo';
-import FeaturesSection from './CardSection';
+import FrameworkSection from './FrameworkSection';
+import FeaturesSection from './StackingCardSection';
 import ManifestoSection from './ManifestoSection';
 
 const Landing = () => {
@@ -18,6 +19,9 @@ const Landing = () => {
 
       {/* Command & Control Demo */}
       <SoftwareDemo />
+
+      {/* Intelligence Stack — isometric C2 architecture */}
+      <FrameworkSection />
 
       {/* About / Mission */}
       <AboutSection />
