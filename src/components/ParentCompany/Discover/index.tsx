@@ -7,6 +7,7 @@ import TheCompany from './TheCompany';
 import StrategicCapital from './StrategicCapital';
 import DetailView from './details';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
+import { useReveal } from '@/hooks/useScrollReveal';
 
 /* ── Transition timings (ms) ── */
 const FADE_OUT = 280;
@@ -104,6 +105,12 @@ const Discover = () => {
         : 'none',
   };
 
+  /* ── Scroll-triggered entrance animations ── */
+  const overviewReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800 });
+  const companyReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
+  const orgReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
+  const capitalReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
+
   if (detailPage) {
     return (
       <div style={wrapStyle}>
@@ -118,22 +125,22 @@ const Discover = () => {
       <DiscoverHeader />
 
       {/* Overview Section */}
-      <div id="section-overview">
+      <div id="section-overview" ref={overviewReveal.ref} style={overviewReveal.style}>
         <Overview onLearnMore={() => openDetail('overview', 'section-overview')} />
       </div>
 
       {/* About panel: company / direction / governance / reachout */}
-      <div id="section-TheCompany">
+      <div id="section-TheCompany" ref={companyReveal.ref} style={companyReveal.style}>
         <TheCompany onLearnMore={(page) => openDetail(page, 'section-TheCompany')} />
       </div>
 
       {/* Teams */}
-      <div id="section-TheOrganization">
+      <div id="section-TheOrganization" ref={orgReveal.ref} style={orgReveal.style}>
         <TheOrganization />
       </div>
 
       {/* StrategicCapital */}
-      <div id="section-StrategicCapital">
+      <div id="section-StrategicCapital" ref={capitalReveal.ref} style={capitalReveal.style}>
         <StrategicCapital />
       </div>
     </div>

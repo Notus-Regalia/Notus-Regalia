@@ -432,9 +432,10 @@ const NAVBAR_CSS = `
   pointer-events: none;
   border-top: 1px solid transparent;
   transition:
-    grid-template-rows 0.38s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 0.28s ease,
+    grid-template-rows 0.44s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1),
     border-top-color 0.3s ease;
+  will-change: grid-template-rows, opacity;
 }
 .subtab-strip-outer.strip-visible {
   grid-template-rows: 1fr;
@@ -448,6 +449,14 @@ const NAVBAR_CSS = `
   align-items: stretch;
   height: 50px;
   overflow: hidden;
+  transform: translateY(-6px);
+  opacity: 0;
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1) 0.06s,
+             opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1) 0.06s;
+}
+.subtab-strip-outer.strip-visible .subtab-strip-inner {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 /* ── Tab buttons track (relative container for the sliding indicator) ── */
@@ -517,8 +526,8 @@ const NAVBAR_CSS = `
 
 /* Staggered entrance animation for strip tabs — only on initial open */
 .subtab-strip-outer.strip-entering .strip-tab {
-  animation: slimTabIn 0.22s cubic-bezier(0.34,1.18,0.64,1) both;
-  animation-delay: calc(var(--si, 0) * 0.035s + 0.04s);
+  animation: slimTabIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--si, 0) * 0.045s + 0.06s);
 }
 
 /* ── Crossfade layers inside the discover strip when toggling detail/subtabs ── */
@@ -1104,16 +1113,17 @@ const Navbar = ({
   }, []);
 
   // ── Tab label click ──
+  // Main-tab switches just fade; instant scroll-to-top happens while content is invisible
   const handleTabClick = useCallback((tabId: string) => {
     setActiveTab(tabId);
-    gsapScrollToTop();
+    setTimeout(() => gsapScrollToTop(false), 150);
   }, [setActiveTab]);
 
   // ── Arrow click ──
   const handleArrowToggle = useCallback((tabId: string) => {
     if (tabId !== activeTab) {
       setActiveTab(tabId);
-      gsapScrollToTop();
+      setTimeout(() => gsapScrollToTop(false), 150);
       return;
     }
     setStripOpen(prev => {
@@ -1198,7 +1208,7 @@ const Navbar = ({
 
   const handleMobileTabClick = useCallback((tabId: string) => {
     setActiveTab(tabId); setMobileOpen(false); setMobileExpandedTab(null);
-    gsapScrollToTop();
+    setTimeout(() => gsapScrollToTop(false), 150);
   }, [setActiveTab]);
 
   const handleMobileSubtabClick = useCallback((parentTabId: string, sub: SubtabItem) => {
@@ -1376,10 +1386,9 @@ const Navbar = ({
 
         {/* ══ SUBTAB STRIP — active tab only ══ */}
         {/* Discover tab: single strip with crossfading inner layers */}
-        {activeTab === 'discover' && stripOpen && (
-          <div className="subtab-strip-outer strip-visible">
-            <div className="subtab-strip-clip">
-              <div className="subtab-strip-inner" style={{ position: 'relative' }}>
+        <div className={`subtab-strip-outer${activeTab === 'discover' && stripOpen ? ' strip-visible' : ''}`}>
+          <div className="subtab-strip-clip">
+            <div className="subtab-strip-inner" style={{ position: 'relative' }}>
                 {/* Layer 1: "Return to Previous Page" — visible when detail open */}
                 <div className={`strip-crossfade-layer ${discoverDetailOpen ? 'strip-layer-visible' : 'strip-layer-hidden'}`}>
                   <div className="strip-tabs-track">
@@ -1412,7 +1421,6 @@ const Navbar = ({
               </div>
             </div>
           </div>
-        )}
         {/* Other tabs: normal StripRow strips */}
         {NAV_ITEMS.filter(item => item.subtabs?.length && item.id !== 'discover').map((item) => {
           const isActiveItem   = item.id === activeTab;

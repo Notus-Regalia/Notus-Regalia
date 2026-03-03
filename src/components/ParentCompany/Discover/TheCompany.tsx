@@ -5,6 +5,7 @@ import { useAboutNavigation } from "@/hooks/useAboutNavigation";
 import { useAboutMouseTracking } from "@/hooks/useAboutMouseTracking";
 import GridNavButton from "@/components/ui/GridNavButton";
 import styles from "@/styles/About.module.css";
+import { useReveal } from "@/hooks/useScrollReveal";
 
 type AboutContentType = "company" | "philosophy" | "ecosystem" | "direction" | "governance" | "ethics";
 
@@ -85,6 +86,10 @@ const TheCompany = memo(({ onLearnMore }: { onLearnMore?: (page: string) => void
 
   const { handleMouseMove } = useAboutMouseTracking();
 
+  /* ── Scroll-triggered reveals ── */
+  const headerReveal = useReveal('fade-up', { threshold: 0.1, duration: 800 });
+  const panelReveal = useReveal('fade-up', { threshold: 0.08, duration: 800, cssDelay: 120 });
+
   const activeContentData = ABOUT_PANEL_CONTENT[activeContent];
   const currentSubsectionKey = displaySubsection[activeContent];
   const currentSubsection =
@@ -107,7 +112,7 @@ const TheCompany = memo(({ onLearnMore }: { onLearnMore?: (page: string) => void
       data-nosnippet="true"
       data-hydrated={hydrated ? "true" : undefined}
       style={{
-        borderTop: '1px dashed var(--border-dashed)',
+        borderTop: '1px dashed rgba(255,255,255,0.12)',
         opacity: hydrated ? 1 : 0,
         transition: hydrated ? 'opacity 0.25s ease' : 'none',
         pointerEvents: hydrated ? 'auto' : 'none',
@@ -119,6 +124,7 @@ const TheCompany = memo(({ onLearnMore }: { onLearnMore?: (page: string) => void
 
           {/* ── About Us Header ── */}
           <div
+            ref={headerReveal.ref}
             style={{
               width: '100%',
               maxWidth: '100%',
@@ -129,6 +135,7 @@ const TheCompany = memo(({ onLearnMore }: { onLearnMore?: (page: string) => void
               paddingTop: '6rem',
               paddingBottom: '4rem',
               background: 'transparent',
+              ...headerReveal.style,
             }}
           >
             <div className={styles.eyebrow}>
@@ -154,7 +161,7 @@ const TheCompany = memo(({ onLearnMore }: { onLearnMore?: (page: string) => void
           </div>
 
           {/* ── Panel ── */}
-          <div style={{ marginTop: "3rem", position: 'relative' }}>
+          <div ref={panelReveal.ref} style={{ marginTop: "3rem", position: 'relative', ...panelReveal.style }}>
 
           {/* Mobile scroll hint tooltip */}
           <div className={styles.scrollHint} aria-hidden="true">

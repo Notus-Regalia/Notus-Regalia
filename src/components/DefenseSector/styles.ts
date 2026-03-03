@@ -274,11 +274,18 @@ export const DEFENSE_NAVBAR_CSS = `
 .subtab-strip-outer {
   display: grid; grid-template-rows: 0fr; opacity: 0; pointer-events: none;
   border-top: 1px solid transparent;
-  transition: grid-template-rows 0.38s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.28s ease, border-top-color 0.3s ease;
+  transition: grid-template-rows 0.44s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1), border-top-color 0.3s ease;
+  will-change: grid-template-rows, opacity;
 }
 .subtab-strip-outer.strip-visible { grid-template-rows: 1fr; opacity: 1; border-top-color: var(--border-color); pointer-events: auto; }
 .subtab-strip-clip { overflow: hidden; min-height: 0; }
-.subtab-strip-inner { display: flex; align-items: stretch; height: 50px; overflow: hidden; }
+.subtab-strip-inner {
+  display: flex; align-items: stretch; height: 50px; overflow: hidden;
+  transform: translateY(-6px); opacity: 0;
+  transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1) 0.06s,
+             opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1) 0.06s;
+}
+.subtab-strip-outer.strip-visible .subtab-strip-inner { transform: translateY(0); opacity: 1; }
 
 .strip-tabs-track {
   position: relative; display: flex; align-items: stretch; flex: 1; min-width: 0;
@@ -316,8 +323,8 @@ export const DEFENSE_NAVBAR_CSS = `
 :root.light .strip-indicator-line { display: none; }
 
 .subtab-strip-outer.strip-entering .strip-tab {
-  animation: slimTabIn 0.22s cubic-bezier(0.34,1.18,0.64,1) both;
-  animation-delay: calc(var(--si, 0) * 0.035s + 0.04s);
+  animation: slimTabIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--si, 0) * 0.045s + 0.06s);
 }
 
 .strip-collapse {

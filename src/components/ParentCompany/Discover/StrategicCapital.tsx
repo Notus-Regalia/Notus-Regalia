@@ -8,6 +8,7 @@ import {
   CAPITAL_STATS,
   INVESTOR_TYPE_COLORS,
 } from '@/data/Discover-data';
+import { useReveal } from '@/hooks/useScrollReveal';
 
 function springPress(el: Element) {
   el.classList.remove('sc-tab-pressed');
@@ -414,6 +415,10 @@ const StrategicCapital = () => {
   const handleExpand = useCallback((inv: Investor) => setActiveInvestor(inv), []);
   const handleClose  = useCallback(() => setActiveInvestor(null), []);
 
+  /* ── Scroll-triggered reveals ── */
+  const heroReveal = useReveal('fade-up', { threshold: 0.1, duration: 800 });
+  const bodyReveal = useReveal('fade-up', { threshold: 0.05, duration: 800, cssDelay: 120 });
+
   return (
     <>
       <style>{`
@@ -503,6 +508,7 @@ const StrategicCapital = () => {
         .sc-root {
           position: relative; background: var(--gradient-section); color: var(--content-primary);
           border-top: 1px dashed var(--border-dashed); border-bottom: 1px dashed var(--border-dashed);
+          contain: layout style paint;
         }
         .sc-root::before {
           content: ''; position: absolute; inset: 0; pointer-events: none;
@@ -512,6 +518,7 @@ const StrategicCapital = () => {
           background-size: 32px 32px;
           mask-image: linear-gradient(to bottom, transparent, black 4%, black 96%, transparent);
           -webkit-mask-image: linear-gradient(to bottom, transparent, black 4%, black 96%, transparent);
+          will-change: transform;
         }
 
         /* ── Hero ── */
@@ -688,6 +695,7 @@ const StrategicCapital = () => {
           border: 1px solid var(--border-color, rgba(255,255,255,.08));
           padding: 1px; animation: sc-card-in .5s cubic-bezier(.22,1,.36,1) both;
           transition: transform .3s ease, box-shadow .3s ease; overflow: hidden; cursor: pointer;
+          contain: layout style paint; will-change: transform;
         }
         .ic-outer:hover { transform: translateY(-4px); box-shadow: 0 20px 50px rgba(0,0,0,.5); }
         .ic-gradient-border {
@@ -714,7 +722,7 @@ const StrategicCapital = () => {
         .ic-phase-badge {
           position: absolute; top: .75rem; left: .75rem; z-index: 3;
           font-family: ui-monospace, Menlo, monospace; font-size: .5rem; letter-spacing: .16em; text-transform: uppercase;
-          color: rgba(255,255,255,1); background: rgba(0,0,0,0.72); backdrop-filter: blur(8px);
+          color: rgba(255,255,255,1); background: rgba(0,0,0,0.82);
           border: 1px solid rgba(255,255,255,0.22); padding: 4px 9px; border-radius: 4px;
         }
         :root.light .ic-phase-badge { color: #0f172a; background: rgba(255,255,255,0.92); border: 1px solid rgba(0,0,0,0.15); }
@@ -1007,7 +1015,7 @@ const StrategicCapital = () => {
 
       <div style={{ paddingBottom: '8rem' }}>
         <section id="section-strategic-capital" className="sc-root">
-          <div className="sc-hero">
+          <div className="sc-hero" ref={heroReveal.ref} style={heroReveal.style}>
             <div className="sc-hero-left">
               <div className="sc-eyebrow">
                 <span className="sc-eyebrow-dot" />Capital Structure
@@ -1033,7 +1041,7 @@ const StrategicCapital = () => {
             </div>
           </div>
 
-          <div className="sc-body">
+          <div className="sc-body" ref={bodyReveal.ref} style={bodyReveal.style}>
             {CAPITAL_PHASES.map((phase, pi) => (
               <div key={phase.id} className="sc-phase-block" style={{ animationDelay: `${pi * 120}ms` }}>
                 <div className="sc-phase-header">

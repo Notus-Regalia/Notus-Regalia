@@ -3,6 +3,7 @@ import React, { memo, useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 import { FOUNDERS, DYNASTY_STATS, type Founder } from '@/data/Discover-data';
+import { useReveal } from '@/hooks/useScrollReveal';
 
 const LINKEDIN_PATH = 'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z';
 
@@ -171,7 +172,7 @@ function FounderModal({ founder, onClose }: { founder: Founder; onClose: () => v
 /* ─────────────────────────────────────────
    FOUNDER CARD
 ───────────────────────────────────────── */
-const FounderCard = memo(({ founder, index, onExpand }: { founder: Founder; index: number; onExpand: (f: Founder) => void }) => {
+const FounderCard = memo(({ founder, index, onExpand, revealed }: { founder: Founder; index: number; onExpand: (f: Founder) => void; revealed?: boolean }) => {
   const ref = useRef<HTMLDivElement>(null);
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const el = ref.current;
@@ -182,7 +183,7 @@ const FounderCard = memo(({ founder, index, onExpand }: { founder: Founder; inde
   };
 
   return (
-    <div ref={ref} className="fc-outer" style={{ animationDelay: `${index * 80}ms` }} onMouseMove={handleMouseMove} onClick={() => {
+    <div ref={ref} className={`fc-outer${revealed ? ' fc-revealed' : ''}`} onMouseMove={handleMouseMove} onClick={() => {
       if (ref.current) ref.current.classList.add('fc-expanding');
       onExpand(founder);
     }} tabIndex={0} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') onExpand(founder); }}>
@@ -234,6 +235,34 @@ const TheOrganization = () => {
   const [activeFounder, setActiveFounder] = useState<Founder | null>(null);
   const handleExpand = useCallback((f: Founder) => {
     setActiveFounder(f);
+  }, []);
+
+  /* ── Scroll-triggered reveals ── */
+  const heroReveal = useReveal('fade-up', { threshold: 0.1, duration: 800 });
+  const foundersReveal = useReveal('fade-up', { threshold: 0.1, duration: 800, cssDelay: 120 });
+
+  /* ── Sequential founder card reveal ── */
+  const foundersGridRef = useRef<HTMLDivElement>(null);
+  const [founderRevealCount, setFounderRevealCount] = useState(0);
+  const founderStaggerMs = 150;
+
+  useEffect(() => {
+    const grid = foundersGridRef.current;
+    if (!grid) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          const total = FOUNDERS.length;
+          for (let i = 0; i < total; i++) {
+            setTimeout(() => setFounderRevealCount((prev) => Math.max(prev, i + 1)), i * founderStaggerMs);
+          }
+          observer.unobserve(grid);
+        }
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -30px 0px' },
+    );
+    observer.observe(grid);
+    return () => observer.disconnect();
   }, []);
 
   const handleClose = useCallback(() => {
@@ -318,7 +347,7 @@ const TheOrganization = () => {
         .teams-root{
           position:relative;background:var(--gradient-section);color:var(--content-primary);
           border-top:1px dashed var(--border-dashed);border-bottom:1px dashed var(--border-dashed);
-          overflow:hidden;
+          overflow:hidden;contain:layout style paint;
         }
         .teams-root::before{
           content:'';position:absolute;inset:0;pointer-events:none;
@@ -326,6 +355,7 @@ const TheOrganization = () => {
           background-size:32px 32px;
           mask-image:linear-gradient(to bottom,transparent,black 4%,black 96%,transparent);
           -webkit-mask-image:linear-gradient(to bottom,transparent,black 4%,black 96%,transparent);
+          will-change:transform;
         }
         .teams-hero{ display:grid;grid-template-columns:1fr;gap:3rem;padding:5rem 2rem 4rem;position:relative;z-index:1; }
         @media(min-width:640px){.teams-hero{padding-left:4rem;padding-right:4rem;}}
@@ -362,10 +392,11 @@ const TheOrganization = () => {
         .founders-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.75rem;}
         @media(max-width:767px){.founders-grid{grid-template-columns:repeat(2,1fr);gap:1.25rem;}}
 
-        .fc-outer{ position:relative;border-radius:.75rem;border:1px solid var(--border-color,rgba(255,255,255,.08));padding:1px;backdrop-filter:blur(4px);animation:card-in .5s cubic-bezier(.22,1,.36,1) both;transition:transform .3s ease,box-shadow .3s ease;overflow:hidden;cursor:pointer; }
-        .fc-outer:hover{transform:translateY(-4px);box-shadow:0 20px 50px rgba(0,0,0,.5);}
+        .fc-outer{ position:relative;border-radius:.75rem;border:1px solid var(--border-color,rgba(255,255,255,.08));padding:1px;opacity:0;transform:translateY(24px) scale(0.97);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1),box-shadow .3s ease;overflow:hidden;cursor:pointer;contain:layout style paint;will-change:transform,opacity; }
+        .fc-outer.fc-revealed{ opacity:1;transform:translateY(0) scale(1); }
+        .fc-outer.fc-revealed:hover{transform:translateY(-4px) scale(1);box-shadow:0 20px 50px rgba(0,0,0,.5);}
         :root.light .fc-outer{border:1.5px solid rgba(0,0,0,.14);}
-        :root.light .fc-outer:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(0,0,0,.10);}
+        :root.light .fc-outer.fc-revealed:hover{transform:translateY(-3px) scale(1);box-shadow:0 6px 18px rgba(0,0,0,.10);}
         .fc-gradient-border{ position:absolute;inset:0;border-radius:.75rem;padding:1px;opacity:0;transition:opacity .4s ease;pointer-events:none;z-index:1;background:radial-gradient(400px circle at var(--mx,50%) var(--my,50%),rgba(0,255,166,.8),rgba(255,215,0,.6),rgba(236,72,153,.6),rgba(147,51,234,.6),rgba(59,130,246,.5),transparent 70%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude; }
         .fc-outer:hover .fc-gradient-border{opacity:1;}
         .fc-inner{ position:relative;z-index:2;display:flex;flex-direction:column;border-radius:calc(.75rem - 1px);overflow:hidden;background:var(--gradient-card,#0f0f1a);border:.75px solid var(--border-subtle,rgba(255,255,255,.05));height:100%; }
@@ -376,14 +407,14 @@ const TheOrganization = () => {
         .fc-outer:hover .fc-portrait-img{ filter:grayscale(0%) brightness(1); }
         .fc-dot-grid{ position:absolute;inset:0;background-image:radial-gradient(circle,rgba(227,27,84,.12) 1px,transparent 1px);background-size:22px 22px; }
         .fc-bottom-fade{ position:absolute;bottom:0;left:0;right:0;height:50%;background:linear-gradient(to top,var(--gradient-card,#0f0f1a) 10%,transparent);z-index:1;pointer-events:none; }
-        .fc-id{ position:absolute;top:.75rem;left:.75rem;font-family:ui-monospace,Menlo,monospace;font-size:.5rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.55);background:rgba(0,0,0,.55);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.12);padding:4px 9px;border-radius:4px;z-index:2; }
+        .fc-id{ position:absolute;top:.75rem;left:.75rem;font-family:ui-monospace,Menlo,monospace;font-size:.5rem;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.55);background:rgba(0,0,0,.7);border:1px solid rgba(255,255,255,.12);padding:4px 9px;border-radius:4px;z-index:2; }
         .fc-info{ padding:1.75rem 1.5rem 1.25rem;display:flex;flex-direction:column;gap:.65rem;border-top:1px solid rgba(255,255,255,.05);background:transparent; }
         :root.light .fc-info{border-top:1px solid rgba(0,0,0,.07);}
         .fc-name{ font-size:1.2rem;font-weight:700;color:var(--content-primary);letter-spacing:-.02em;line-height:1.2;margin:0;transition:transform .3s; }
         .fc-outer:hover .fc-name{transform:translateY(-1px);}
-        .fc-title{ font-size:.75rem;color:#E31B54;font-weight:700;font-family:ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.12em;margin:0;transition:transform .3s; }
+        .fc-title{ font-size:.75rem;color:#E31B54;font-weight:700;font-family:ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.05em;margin:0;transition:transform .3s; }
         .fc-outer:hover .fc-title{transform:translateY(-1px);}
-        .fc-role{ font-size:.7rem;font-family:ui-monospace,Menlo,monospace;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.22);transition:transform .3s; }
+        .fc-role{ font-size:.7rem;font-family:ui-monospace,Menlo,monospace;text-transform:uppercase;color:rgba(255,255,255,.22);transition:transform .3s; }
         :root.light .fc-role{color:rgba(0,0,0,.4);}
         .fc-outer:hover .fc-role{transform:translateY(-1px);}
         .fc-footer{ display:flex;align-items:center;gap:.75rem;padding:1rem 1.25rem 1.25rem;border-top:1px solid rgba(255,255,255,.04);transition:border-color .3s;margin-top:auto; }
@@ -398,7 +429,7 @@ const TheOrganization = () => {
           .fc-portrait{aspect-ratio:2/3;}
           .fc-info{padding:1rem 0.85rem 0.75rem;gap:.4rem;}
           .fc-name{font-size:0.9rem;}
-          .fc-title{font-size:.6rem;letter-spacing:.08em;}
+          .fc-title{font-size:.6rem;letter-spacing:.04em;}
           .fc-role{font-size:.55rem;}
           .fc-id{font-size:.42rem;padding:3px 6px;top:.5rem;left:.5rem;}
           .fc-footer{padding:0.6rem 0.75rem 0.75rem;gap:.5rem;}
@@ -529,7 +560,7 @@ const TheOrganization = () => {
 
       <div style={{ paddingBottom: '8rem' }}>
         <section id="section-teams" className="teams-root">
-          <div className="teams-hero">
+          <div className="teams-hero" ref={heroReveal.ref} style={heroReveal.style}>
             <div className="teams-hero-left">
               <div className="teams-eyebrow"><span className="teams-eyebrow-dot" />Governance Structure</div>
               <h2 className="teams-heading">The Organization</h2>
@@ -548,14 +579,14 @@ const TheOrganization = () => {
             </div>
           </div>
 
-          <div className="founders-section">
+          <div className="founders-section" ref={foundersReveal.ref} style={foundersReveal.style}>
             <div className="founders-label-row">
               <span className="founders-label">The Four Founders</span>
               <div className="founders-label-line" />
             </div>
-            <div className="founders-grid">
+            <div className="founders-grid" ref={foundersGridRef}>
               {FOUNDERS.map((f, i) => (
-                <FounderCard key={f.id} founder={f} index={i} onExpand={handleExpand} />
+                <FounderCard key={f.id} founder={f} index={i} onExpand={handleExpand} revealed={i < founderRevealCount} />
               ))}
             </div>
           </div>

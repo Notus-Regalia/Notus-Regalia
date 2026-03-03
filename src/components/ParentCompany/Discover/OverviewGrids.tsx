@@ -1,5 +1,5 @@
 "use client";
-import { memo, useState } from 'react';
+import { memo, useState, useRef, useEffect } from 'react';
 import { OverviewContent } from '@/data/Discover-data';
 import styles from '@/styles/ui.module.css';
 import aboutStyles from '@/styles/About.module.css';
@@ -7,6 +7,21 @@ import aboutStyles from '@/styles/About.module.css';
 const Overview = memo(({ onLearnMore }: { onLearnMore?: () => void }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [learnMoreHovered, setLearnMoreHovered] = useState(false);
+
+  /* ── Sequential staggered card reveal on mount ── */
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [revealedCount, setRevealedCount] = useState(0);
+  const totalCards = OverviewContent.length + 1; // +1 for Learn More card
+  const staggerMs = 120; // delay between each card
+
+  useEffect(() => {
+    // Trigger cards one-by-one as soon as Discover tab is accessed (component mounts)
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    for (let i = 0; i < totalCards; i++) {
+      timers.push(setTimeout(() => setRevealedCount((prev) => Math.max(prev, i + 1)), i * staggerMs + 200));
+    }
+    return () => timers.forEach(clearTimeout);
+  }, [totalCards]);
 
   return (
     <div style={{ paddingBottom: '8rem' }}>
@@ -87,20 +102,23 @@ const Overview = memo(({ onLearnMore }: { onLearnMore?: () => void }) => {
           </div>
 
           {/* Grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
+          <div ref={gridRef} className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
             {OverviewContent.map((overviewSection, index) => {
               const isHovered = hoveredIndex === index;
+              const isCardRevealed = index < revealedCount;
 
               return (
                 <div
                   key={index}
-                  className="relative backdrop-blur-sm overflow-hidden"
+                  className="relative overflow-hidden"
                   style={{
                     borderRadius: '0.75rem',
                     border: '1px solid var(--border-color)',
                     padding: '0.25rem',
-                    transition: 'border-color 0.3s ease',
+                    transition: 'border-color 0.3s ease, opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)',
                     cursor: 'default',
+                    opacity: isCardRevealed ? 1 : 0,
+                    transform: isCardRevealed ? 'none' : 'translateY(24px) scale(0.97)',
                   }}
                   onMouseEnter={() => setHoveredIndex(index)}
                   onMouseLeave={() => setHoveredIndex(null)}
@@ -278,12 +296,14 @@ const Overview = memo(({ onLearnMore }: { onLearnMore?: () => void }) => {
 
             {/* Learn More Card */}
             <div
-              className="relative backdrop-blur-sm overflow-hidden cursor-pointer"
+              className="relative overflow-hidden cursor-pointer"
               style={{
                 borderRadius: '0.75rem',
                 border: '1px solid var(--border-color)',
                 padding: '0.25rem',
-                transition: 'border-color 0.3s ease',
+                transition: 'border-color 0.3s ease, opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1)',
+                opacity: OverviewContent.length < revealedCount ? 1 : 0,
+                transform: OverviewContent.length < revealedCount ? 'none' : 'translateY(24px) scale(0.97)',
               }}
               onClick={() => onLearnMore?.()}
               onMouseEnter={() => setLearnMoreHovered(true)}
