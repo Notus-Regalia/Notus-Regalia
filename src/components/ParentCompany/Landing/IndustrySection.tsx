@@ -64,17 +64,62 @@ const TABS = [
   },
 ];
 
+const TIMER_DURATION = 10000;
+const CIRCLE_R = 9;
+const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_R;
 
+function CircleTimer({ color, running, timerKey }: { color: string; running: boolean; timerKey: number }) {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      style={{ flexShrink: 0, transform: "rotate(-90deg)" }}
+    >
+      <circle
+        cx="12" cy="12" r={CIRCLE_R}
+        fill="none"
+        stroke="rgba(255,255,255,0.12)"
+        strokeWidth="2"
+      />
+      <circle
+        key={timerKey}
+        cx="12" cy="12" r={CIRCLE_R}
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        style={{
+          strokeDasharray: CIRCLE_CIRCUMFERENCE,
+          strokeDashoffset: 0,
+          animation: running
+            ? `industry-countdown ${TIMER_DURATION}ms linear forwards`
+            : "none",
+        }}
+      />
+    </svg>
+  );
+}
 
-export default function AboutSection() {
+export default function IndustrySection() {
   const [active, setActive] = useState(0);
-  const [transitioning, setTransitioning] = useState(false);
+  const [contentActive, setContentActive] = useState(0);
+  const [contentVisible, setContentVisible] = useState(true);
   const [revealed, setRevealed] = useState(false);
   const [pillStyle, setPillStyle] = useState({ top: 0, height: 0, opacity: 0 });
+  const [timerKey, setTimerKey] = useState(0);
+
   const sectionRef = useRef<HTMLDivElement>(null);
   const navRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const sidebarRef = useRef<HTMLDivElement>(null);
 
+  const activeRef = useRef(0);
+  const contentFadeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  activeRef.current = active;
+
+  // ── Scroll reveal ──
   useEffect(() => {
     const obs = new IntersectionObserver(([e]) => {
       if (e.isIntersecting) { setRevealed(true); obs.disconnect(); }
@@ -83,33 +128,68 @@ export default function AboutSection() {
     return () => obs.disconnect();
   }, []);
 
-  const updatePill = (i: number) => {
-    const btn = navRefs.current[i];
+  // ── Pill position — reacts to active immediately ──
+  useEffect(() => {
+    const btn = navRefs.current[active];
     const sidebar = sidebarRef.current;
     if (!btn || !sidebar) return;
-    const btnRect = btn.getBoundingClientRect();
-    const sidebarRect = sidebar.getBoundingClientRect();
-    setPillStyle({
-      top: btnRect.top - sidebarRect.top,
-      height: btnRect.height,
-      opacity: 1,
-    });
+    const br = btn.getBoundingClientRect();
+    const sr = sidebar.getBoundingClientRect();
+    setPillStyle({ top: br.top - sr.top, height: br.height, opacity: 1 });
+  }, [active, revealed]);
+
+  // ── Auto-advance scheduler ──
+  const scheduleNext = () => {
+    if (autoRef.current) clearTimeout(autoRef.current);
+    autoRef.current = setTimeout(() => {
+      const next = (activeRef.current + 1) % TABS.length;
+      switchTo(next);
+    }, TIMER_DURATION);
   };
 
-  useEffect(() => { updatePill(active); }, [active, revealed]);
+  // ── Shared switch ──
+  // Pill + nav update INSTANTLY. Content fades out → swaps → fades in.
+  const switchTo = (next: number) => {
+    if (next === activeRef.current) return;
 
-  const switchTab = (i: number) => {
-    if (i === active) return;
-    updatePill(i);
-    setTransitioning(true);
-    setTimeout(() => { setActive(i); setTransitioning(false); }, 220);
+    if (autoRef.current) clearTimeout(autoRef.current);
+    if (contentFadeRef.current) clearTimeout(contentFadeRef.current);
+
+    // 1. Move pill & highlight immediately
+    setActive(next);
+    setTimerKey(k => k + 1);
+
+    // 2. Fade content out
+    setContentVisible(false);
+
+    // 3. After fade-out, swap content and fade back in
+    contentFadeRef.current = setTimeout(() => {
+      setContentActive(next);
+      setContentVisible(true);
+      scheduleNext();
+    }, 160);
   };
 
-  const tab = TABS[active];
+  // ── Start auto-advance on mount ──
+  useEffect(() => {
+    scheduleNext();
+    return () => {
+      if (autoRef.current) clearTimeout(autoRef.current);
+      if (contentFadeRef.current) clearTimeout(contentFadeRef.current);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleTabClick = (i: number) => { switchTo(i); };
+
+  const tab = TABS[contentActive];
 
   return (
     <>
       <style>{`
+        @keyframes industry-countdown {
+          from { stroke-dashoffset: 0; }
+          to { stroke-dashoffset: ${CIRCLE_CIRCUMFERENCE}; }
+        }
         .modern-about {
           background: var(--surface-secondary, #050505);
           border-top: 1px dashed rgba(255,255,255,0.1);
@@ -132,9 +212,6 @@ export default function AboutSection() {
         @media(min-width:1536px){ .modern-about { padding: 8rem 12rem; } }
         @media(min-width:1920px){ .modern-about { padding: 8rem 16rem; } }
 
-
-
-        /* ── Fixed section header ── */
         .about-section-header {
           position: relative;
           z-index: 1;
@@ -152,7 +229,6 @@ export default function AboutSection() {
           .about-container { grid-template-columns: 1fr; gap: 2rem; }
         }
 
-        /* Sidebar Nav */
         .about-sidebar {
           display: flex;
           flex-direction: column;
@@ -160,7 +236,6 @@ export default function AboutSection() {
           position: relative;
         }
 
-        /* Sliding pill background */
         .about-nav-pill {
           position: absolute;
           left: 0; right: 0;
@@ -168,8 +243,8 @@ export default function AboutSection() {
           background: rgba(255,255,255,0.05);
           box-shadow: inset 0 1px 1px rgba(255,255,255,0.08);
           pointer-events: none;
-          transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                      height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+          transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                      height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
                       opacity 0.3s ease;
           z-index: 0;
         }
@@ -178,7 +253,6 @@ export default function AboutSection() {
           box-shadow: inset 0 1px 1px rgba(0,0,0,0.06);
         }
 
-        /* Sliding accent bar on pill */
         .about-nav-pill::before {
           content: "";
           position: absolute;
@@ -197,22 +271,30 @@ export default function AboutSection() {
           padding: 1.5rem;
           border-radius: 16px;
           cursor: pointer;
-          transition: color 0.3s ease;
+          transition: color 0.2s ease;
           position: relative;
           font-size: 1.1rem;
           font-weight: 500;
           font-family: 'Inter', system-ui, sans-serif;
           z-index: 1;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.5rem;
+          width: 100%;
         }
         :root.light .nav-item { color: rgba(0,0,0,0.35); }
-
         .nav-item:hover { color: rgba(255,255,255,0.6); }
         :root.light .nav-item:hover { color: rgba(0,0,0,0.6); }
-
         .nav-item.active { color: white; }
         :root.light .nav-item.active { color: var(--content-primary); }
 
-        /* ── Content panel: fixed height, top-aligned, NEVER resizes ── */
+        .nav-item-left {
+          display: flex;
+          align-items: center;
+          gap: 0;
+        }
+
         .content-panel {
           height: 480px;
           overflow: hidden;
@@ -224,14 +306,17 @@ export default function AboutSection() {
         @media(max-width:1024px){ .content-panel { height: 540px; } }
         @media(max-width:640px){  .content-panel { height: 620px; } }
 
-        /* Transition wrapper — only the inner content animates */
         .content-inner {
           width: 100%;
-          transition: opacity 0.18s ease, transform 0.18s ease;
+          transition: opacity 0.14s ease, transform 0.14s ease;
         }
-        .content-inner.transitioning {
+        .content-inner.fading-out {
           opacity: 0;
           transform: translateY(-6px);
+        }
+        .content-inner.fading-in {
+          opacity: 1;
+          transform: translateY(0);
         }
 
         .content-label {
@@ -265,10 +350,10 @@ export default function AboutSection() {
           font-size: 1.15rem;
           line-height: 1.6;
           color: rgba(255,255,255,0.5);
+          text-align: justify;
         }
         :root.light .content-body { color: rgba(0,0,0,0.5); }
 
-        /* Entrance Animations */
         .reveal-up {
           opacity: 0;
           transform: translateY(30px);
@@ -279,12 +364,18 @@ export default function AboutSection() {
           transform: translateY(0);
         }
 
-
+        .nav-timer {
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          flex-shrink: 0;
+        }
+        .nav-item.active .nav-timer {
+          opacity: 1;
+        }
       `}</style>
 
       <section className={`modern-about${revealed ? " revealed" : ""}`} ref={sectionRef}>
 
-        {/* ── Fixed header — always rendered above tabs, never moves ── */}
         <div className="about-section-header reveal-up" style={{ transitionDelay: "0ms" }}>
           <span style={{
             display: "inline-flex", alignItems: "center", gap: "0.5rem",
@@ -317,47 +408,49 @@ export default function AboutSection() {
           }} />
         </div>
 
-        {/* ── Tab grid ── */}
         <div className="about-container">
           <div className="about-sidebar reveal-up" style={{ transitionDelay: "100ms" }} ref={sidebarRef}>
-            {/* Sliding pill */}
             <div
               className="about-nav-pill"
-              style={{
-                top: pillStyle.top,
-                height: pillStyle.height,
-                opacity: pillStyle.opacity,
-              }}
+              style={{ top: pillStyle.top, height: pillStyle.height, opacity: pillStyle.opacity }}
             />
+
             {TABS.map((t, i) => (
               <button
                 key={t.id}
                 className={`nav-item${active === i ? " active" : ""}`}
                 style={{ "--nav-accent": t.color } as React.CSSProperties}
                 ref={(el) => { navRefs.current[i] = el; }}
-                onClick={() => switchTab(i)}
+                onClick={() => handleTabClick(i)}
               >
-                <span style={{ opacity: 0.3, marginRight: "1rem", fontSize: "0.8rem" }}>0{i + 1}</span>
-                {t.label}
+                <span className="nav-item-left">
+                  <span style={{ opacity: 0.3, marginRight: "1rem", fontSize: "0.8rem" }}>0{i + 1}</span>
+                  {t.label}
+                </span>
+                <span className="nav-timer">
+                  <CircleTimer
+                    color={t.color}
+                    running={active === i}
+                    timerKey={timerKey}
+                  />
+                </span>
               </button>
             ))}
           </div>
 
-          {/* Fixed-height content panel, top-aligned */}
           <div className="content-panel reveal-up" style={{ transitionDelay: "300ms" }}>
-            <div className={`content-inner${transitioning ? " transitioning" : ""}`}>
+            <div className={`content-inner${contentVisible ? " fading-in" : " fading-out"}`}>
               <span className="content-label" style={{ color: tab.color }}>{tab.label}</span>
               <h2 className="content-title">{tab.title}</h2>
               <div className="content-body">
-                <p style={{ color: "var(--content-primary)", marginBottom: "1.5rem", fontSize: "1.25rem" }}>
+                <p style={{ color: "var(--content-primary)", marginBottom: "1.5rem", fontSize: "1.25rem", textAlign: "justify" }}>
                   {tab.description}
                 </p>
-                {tab.paragraphs.map((p, i) => (
-                  <p key={i}>{p}</p>
+                {tab.paragraphs.map((p, idx) => (
+                  <p key={idx}>{p}</p>
                 ))}
               </div>
             </div>
-
           </div>
         </div>
       </section>

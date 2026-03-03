@@ -261,15 +261,13 @@ export default function FrameworkSection() {
   const [progress, setProgress] = useState(0);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [showLabels, setShowLabels] = useState(true);
-  const rafRef = useRef<number | null>(null);
 
   const focusedId = hoveredId;
-  const [, setTick] = useState(0);
 
   useEffect(() => {
     const id = setTimeout(() => {
       const ctx = gsap.context(() => {
-        const st = ScrollTrigger.create({
+        ScrollTrigger.create({
           trigger: outerRef.current,
           start: "top top",
           end: "bottom bottom",
@@ -280,23 +278,12 @@ export default function FrameworkSection() {
             const raw = self.progress;
             const p = raw < 0.5 ? 2 * raw * raw : -1 + (4 - 2 * raw) * raw;
             setProgress(p);
-            if (p > 0.7) {
-              if (!rafRef.current) {
-                const loop = () => { setTick((t) => t + 1); rafRef.current = requestAnimationFrame(loop); };
-                rafRef.current = requestAnimationFrame(loop);
-              }
-            } else {
-              if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
-            }
           },
         });
       });
       return () => ctx.revert();
     }, 100);
-    return () => {
-      clearTimeout(id);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    };
+    return () => clearTimeout(id);
   }, []);
 
   function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
@@ -306,10 +293,7 @@ export default function FrameworkSection() {
 
   function getScreenY(i: number): number {
     const spreadY = (i - (n - 1) / 2) * SPREAD_GAP;
-    const float = progress > 0.8
-      ? Math.sin(Date.now() * 0.001 + i * 0.8) * 4 * ((progress - 0.8) / 0.2)
-      : 0;
-    return lerp(0, spreadY, progress) + float;
+    return lerp(0, spreadY, progress);
   }
 
   return (
@@ -362,6 +346,11 @@ export default function FrameworkSection() {
           border-radius: 8px;
           overflow: hidden;
           transition: box-shadow .4s, filter .4s;
+        }
+
+        @keyframes fw-float-bob {
+          0%, 100% { translate: 0 0; }
+          50% { translate: 0 -4px; }
         }
 
         @keyframes fw-drift1 { from{transform:translate(0,0)scale(1)} to{transform:translate(5%,8%)scale(1.1)} }
@@ -770,7 +759,13 @@ export default function FrameworkSection() {
                       zIndex: cardZ,
                       opacity: cardOpacity,
                       transition: "opacity .4s",
+                      willChange: "transform",
                       cursor: "crosshair",
+                        animationName: progress > 0.8 ? "fw-float-bob" : "none",
+                        animationDuration: "6.28s",
+                        animationTimingFunction: "ease-in-out",
+                        animationIterationCount: "infinite",
+                        animationDelay: `${-i * 0.8}s`,
                     }}
                     onMouseEnter={() => setHoveredId(layer.id)}
                     onMouseLeave={() => setHoveredId(null)}
