@@ -1,0 +1,220 @@
+"use client";
+import { useEffect, useRef, useState } from "react";
+
+const STATS = [
+  { value: "2026", label: "Year Founded", accent: false },
+  { value: "4",    label: "Founders",     accent: true  },
+  { value: "6",    label: "Active Units", accent: false },
+  { value: "∞",    label: "Ambition",     accent: true  },
+];
+
+const TICKER_ITEMS = [
+  "NOTUS REGALIA",
+  "GOVERNANCE · STRUCTURE",
+  "FOUNDED 2026",
+  "LAYERED AUTHORITY",
+  "SPECIALISED EXECUTION",
+  "THE DYNASTY PREVAILS",
+];
+
+export default function StatsSection() {
+  const tickerRef = useRef<HTMLDivElement>(null);
+  const [revealed, setRevealed] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setRevealed(true); obs.disconnect(); } },
+      { threshold: 0.15 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <>
+      <style>{`
+        @keyframes tickerScroll {
+          from { transform: translateX(0); }
+          to   { transform: translateX(-50%); }
+        }
+        @keyframes statReveal {
+          from { opacity: 0; transform: translateY(18px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes statPulse {
+          0%,100% { box-shadow: 0 0 0 0 rgba(227,27,84,0); }
+          50%      { box-shadow: 0 0 18px 2px rgba(227,27,84,0.18); }
+        }
+
+        .stats-root {
+          position: relative;
+          background: var(--gradient-section, #0a0a12);
+          overflow: hidden;
+          contain: layout style paint;
+        }
+
+        /* ── Top ticker ── */
+        .stats-ticker-wrap {
+          overflow: hidden;
+          border-bottom: 1px dashed rgba(255,255,255,0.09);
+          background: rgba(0,0,0,0.25);
+        }
+        :root.light .stats-ticker-wrap {
+          border-bottom: 1px dashed rgba(0,0,0,0.12);
+          background: rgba(0,0,0,0.04);
+        }
+        .stats-ticker-track {
+          display: flex;
+          width: max-content;
+          animation: tickerScroll 22s linear infinite;
+          padding: 0.7rem 0;
+        }
+        .stats-ticker-item {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+          padding: 0 2.5rem;
+          font-family: ui-monospace, Menlo, monospace;
+          font-size: 0.6rem;
+          letter-spacing: 0.26em;
+          text-transform: uppercase;
+          font-weight: 700;
+          color: rgba(255,255,255,0.2);
+          white-space: nowrap;
+          flex-shrink: 0;
+        }
+        :root.light .stats-ticker-item { color: rgba(0,0,0,0.22); }
+        .stats-ticker-dot {
+          width: 3px;
+          height: 3px;
+          border-radius: 50%;
+          background: #E31B54;
+          flex-shrink: 0;
+          opacity: 0.6;
+        }
+
+        /* ── Stats bar ── */
+        .stats-bar {
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          border-top: 2px solid #E31B54;
+          border-bottom: 2px solid #E31B54;
+          position: relative;
+        }
+        .stats-bar::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(180deg, rgba(227,27,84,0.04) 0%, transparent 100%);
+          pointer-events: none;
+        }
+        .stats-bar-glow {
+          position: absolute;
+          top: 0; left: 0; right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent 0%, rgba(227,27,84,0.6) 50%, transparent 100%);
+          pointer-events: none;
+        }
+        @media (max-width: 639px) {
+          .stats-bar { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        .stat-item {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 2.75rem 1.5rem;
+          gap: 0.6rem;
+          border-right: 1px dashed rgba(255,255,255,0.08);
+          position: relative;
+          opacity: 0;
+          transform: translateY(18px);
+          transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1);
+        }
+        .stat-item.revealed { opacity: 1; transform: translateY(0); }
+        .stat-item:last-child { border-right: none; }
+        @media (max-width: 639px) {
+          .stat-item:nth-child(2) { border-right: none; }
+          .stat-item:nth-child(1),
+          .stat-item:nth-child(2) { border-bottom: 1px dashed rgba(255,255,255,0.08); }
+        }
+        :root.light .stat-item { border-right: 1px dashed rgba(0,0,0,0.1); }
+        :root.light .stat-item:last-child { border-right: none; }
+
+        .stat-val {
+          font-family: ui-monospace, Menlo, monospace;
+          font-size: clamp(2rem, 3.5vw, 2.75rem);
+          font-weight: 700;
+          letter-spacing: -0.04em;
+          line-height: 1;
+          color: var(--content-primary, #f1f5f9);
+          transition: transform 0.3s ease;
+        }
+        .stat-val.accent { color: #E31B54; animation: statPulse 3s ease-in-out infinite; }
+        .stat-item:hover .stat-val { transform: scale(1.08); }
+        .stat-lbl {
+          font-family: ui-monospace, Menlo, monospace;
+          font-size: 0.58rem;
+          text-transform: uppercase;
+          letter-spacing: 0.2em;
+          color: rgba(255,255,255,0.28);
+          text-align: center;
+        }
+        :root.light .stat-lbl { color: rgba(0,0,0,0.35); }
+        :root.light .stat-val { color: #0f172a; }
+
+        .stat-corner {
+          position: absolute;
+          width: 6px; height: 6px;
+          border-color: rgba(227,27,84,0.4);
+          border-style: solid;
+          pointer-events: none;
+          opacity: 0;
+          transition: opacity 0.4s ease;
+        }
+        .stat-item:hover .stat-corner { opacity: 1; }
+        .stat-corner-tl { top: 8px; left: 8px; border-width: 1px 0 0 1px; }
+        .stat-corner-tr { top: 8px; right: 8px; border-width: 1px 1px 0 0; }
+        .stat-corner-bl { bottom: 8px; left: 8px; border-width: 0 0 1px 1px; }
+        .stat-corner-br { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+      `}</style>
+
+      <div className="stats-root" ref={sectionRef}>
+        {/* Ticker */}
+        <div className="stats-ticker-wrap">
+          <div className="stats-ticker-track" ref={tickerRef}>
+            {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
+              <span key={i} className="stats-ticker-item">
+                <span className="stats-ticker-dot" />
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats bar */}
+        <div className="stats-bar">
+          <div className="stats-bar-glow" />
+          {STATS.map((s, i) => (
+            <div
+              key={s.label}
+              className={`stat-item${revealed ? " revealed" : ""}`}
+              style={{ transitionDelay: `${i * 90}ms` }}
+            >
+              <span className="stat-corner stat-corner-tl" />
+              <span className="stat-corner stat-corner-tr" />
+              <span className="stat-corner stat-corner-bl" />
+              <span className="stat-corner stat-corner-br" />
+              <span className={`stat-val${s.accent ? " accent" : ""}`}>{s.value}</span>
+              <span className="stat-lbl">{s.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
