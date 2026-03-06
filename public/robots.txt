@@ -1,9 +1,9 @@
 # ── General Crawlers ──────────────────────────────────────────────────────────
+# Founders and team content is rendered client-side on the root page.
+# The data-nosnippet attribute on those DOM nodes is used to suppress
+# that content from appearing in search result snippets.
 User-agent: *
-Disallow: /teams
-Disallow: /teams/
-Disallow: /about
-Disallow: /about/
+Disallow:
 
 # ── AI Training Crawlers (block entirely) ─────────────────────────────────────
 User-agent: GPTBot
@@ -31,4 +31,4 @@ User-agent: cohere-ai
 Disallow: /
 
 # ── Sitemap ───────────────────────────────────────────────────────────────────
-Sitemap: https://yourdomain.com/sitemap.xml
+Sitemap: https://notusregalia.com/sitemap.xml

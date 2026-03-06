@@ -579,7 +579,7 @@ const TheOrganization = () => {
             </div>
           </div>
 
-          <div className="founders-section" ref={foundersReveal.ref} style={foundersReveal.style}>
+          <div className="founders-section" ref={foundersReveal.ref} style={foundersReveal.style} data-nosnippet>
             <div className="founders-label-row">
               <span className="founders-label">The Four Founders</span>
               <div className="founders-label-line" />
