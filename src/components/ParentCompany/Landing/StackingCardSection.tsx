@@ -49,12 +49,32 @@ const CARDS = [
 export default function StackingCards() {
   const outerRef = useRef(null);
   const stickyRef = useRef(null);
+  const swipeStartXRef = useRef<number | null>(null);
+  const swipeStartYRef = useRef<number | null>(null);
+  const didSwipeRef = useRef(false);
   const [progress, setProgress] = useState(0);
-  const [hoveredCard, setHoveredCard] = useState(null);
+  const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileStep, setMobileStep] = useState(0);
 
   useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const onChange = () => setIsMobile(media.matches);
+    onChange();
+    media.addEventListener("change", onChange);
+    return () => media.removeEventListener("change", onChange);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      setProgress(1);
+      setMobileStep(0);
+      return;
+    }
+
+    let ctx: gsap.Context | null = null;
     const id = setTimeout(() => {
-      const ctx = gsap.context(() => {
+      ctx = gsap.context(() => {
         ScrollTrigger.create({
           trigger: outerRef.current,
           start: "top top",
@@ -65,10 +85,12 @@ export default function StackingCards() {
           onUpdate: (self) => setProgress(self.progress),
         });
       });
-      return () => ctx.revert();
     }, 100);
-    return () => clearTimeout(id);
-  }, []);
+    return () => {
+      clearTimeout(id);
+      ctx?.revert();
+    };
+  }, [isMobile]);
 
   const getCardStyle = (index) => {
     const p = progress;
@@ -92,6 +114,31 @@ export default function StackingCards() {
       return { transform: `translateY(${translateY}%)`, zIndex: 3 };
     }
     return {};
+  };
+
+  const getMobileCardStyle = (index: number) => {
+    const dropped = index < mobileStep;
+    const active = index === mobileStep;
+    const queued = index > mobileStep;
+    const queuedOffset = Math.min(index - mobileStep, 2);
+    return {
+      zIndex: CARDS.length - index,
+      transform: dropped
+        ? "translateY(118%) scale(0.98)"
+        : active
+          ? "translateY(0) scale(1)"
+          : `translateY(${14 + queuedOffset * 10}px) scale(${1 - queuedOffset * 0.04})`,
+      opacity: dropped ? 0 : queued ? Math.max(0.35, 0.88 - queuedOffset * 0.24) : 1,
+      pointerEvents: active ? "auto" : "none",
+    };
+  };
+
+  const advanceMobileDeck = () => {
+    setMobileStep((prev) => Math.min(prev + 1, CARDS.length - 1));
+  };
+
+  const retreatMobileDeck = () => {
+    setMobileStep((prev) => Math.max(prev - 1, 0));
   };
 
   return (
@@ -464,6 +511,175 @@ export default function StackingCards() {
           51%  { transform: scaleY(1); transform-origin: bottom; }
           100% { transform: scaleY(0); transform-origin: bottom; }
         }
+
+        @media(max-width:767px) {
+          .sc-section-header {
+            padding: 5rem 1rem 2rem;
+          }
+          .sc-subheading {
+            font-size: 0.82rem;
+            line-height: 1.6;
+            max-width: 60ch;
+          }
+          .sc-outer {
+            height: auto;
+          }
+          .sc-pinned {
+            height: auto;
+            padding: 1.25rem 1rem 2rem;
+            align-items: flex-start;
+            flex-direction: column;
+            overflow: visible;
+            width: 100%;
+          }
+          .sc-stack {
+            height: min(460px, 72vh);
+            display: block;
+            overflow: visible;
+            margin-top: 0.55rem;
+            width: 100%;
+          }
+          .sc-glow {
+            display: block;
+            opacity: 0.75;
+          }
+          .sc-glow::before {
+            filter: blur(3.2vmin);
+          }
+          .sc-card-wrap {
+            position: absolute;
+            inset: 0;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.35), 0 0 0 0.75px rgba(255,255,255,0.06);
+            transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease;
+            touch-action: pan-y;
+          }
+          .sc-card {
+            padding: 1.15rem;
+            gap: 0.95rem;
+          }
+          .sc-card-mid {
+            justify-content: flex-start;
+            gap: 0.55rem;
+          }
+          .sc-icon-badge {
+            width: 30px;
+            height: 30px;
+            font-size: 0.95rem;
+          }
+          .sc-tagline {
+            font-size: 0.52rem;
+          }
+          .sc-title {
+            font-size: clamp(2rem, 11vw, 3.2rem);
+            line-height: 0.96;
+          }
+          .sc-title-rule {
+            max-width: 100%;
+            opacity: 1;
+          }
+          .sc-card-bot {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.85rem;
+          }
+          .sc-desc {
+            max-width: none;
+            font-size: 0.78rem;
+            line-height: 1.6;
+            opacity: 0.84;
+            font-style: normal;
+          }
+          .sc-stat {
+            text-align: left;
+          }
+          .sc-stat-num {
+            font-size: 2rem;
+          }
+          .sc-index-tag {
+            opacity: 1;
+            font-size: 0.46rem;
+          }
+          .sc-mobile-swipe-hint {
+            position: static;
+            pointer-events: none;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.48rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.62);
+            background: rgba(8,8,8,0.56);
+            border: 1px solid rgba(255,255,255,0.14);
+            border-radius: 999px;
+            padding: 0.28rem 0.48rem;
+            backdrop-filter: blur(4px);
+            white-space: nowrap;
+          }
+          .sc-mobile-swipe-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.6rem;
+            margin-top: 1.65rem;
+            margin-bottom: 0.35rem;
+            width: 100%;
+            padding: 0 0.15rem;
+          }
+          .sc-mobile-progress {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.45rem;
+            margin-top: 0.35rem;
+          }
+          .sc-mobile-progress-dash {
+            width: 34px;
+            height: 3px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.2);
+            transition: background-color 160ms ease, box-shadow 160ms ease;
+          }
+          .sc-mobile-progress-dash.active {
+            background: #E31B54;
+            box-shadow: 0 0 8px rgba(227,27,84,0.55);
+          }
+          .sc-card-wrap:hover .sc-corner-br-h,
+          .sc-card-wrap:hover .sc-corner-br-v {
+            opacity: 0;
+          }
+          .sc-card-wrap:hover .sc-icon-badge {
+            transform: none;
+          }
+          .sc-card-wrap:hover .sc-title {
+            letter-spacing: 0.01em;
+          }
+          .sc-card-wrap:hover .sc-title-rule {
+            max-width: 100%;
+            opacity: 1;
+            box-shadow: none;
+          }
+          .sc-card-wrap:hover .sc-desc {
+            opacity: 0.84;
+            transform: none;
+          }
+          .sc-card-wrap:hover .sc-stat {
+            transform: none;
+          }
+          .sc-card-wrap:hover .sc-index-tag {
+            opacity: 1;
+          }
+          .sc-icon-badge,
+          .sc-title,
+          .sc-title-rule,
+          .sc-desc,
+          .sc-stat,
+          .sc-index-tag,
+          .sc-corner-br-h,
+          .sc-corner-br-v {
+            transition: none !important;
+            animation: none !important;
+          }
+        }
       `}</style>
 
       {/* Section wrapper with dotted bg */}
@@ -474,6 +690,8 @@ export default function StackingCards() {
         backgroundSize: "24px 24px",
         borderTop: "1px dashed rgba(255,255,255,0.12)",
         borderBottom: "1px dashed rgba(255,255,255,0.12)",
+        paddingTop: "2.5rem",
+        paddingBottom: "2.5rem",
       }}>
 
       {/* Section Header */}
@@ -493,7 +711,34 @@ export default function StackingCards() {
       <div ref={outerRef} className="sc-outer">
         {/* Inner — GSAP pins this */}
         <div ref={stickyRef} className="sc-pinned">
-          <div className="sc-stack">
+          <div
+            className="sc-stack"
+            onPointerDown={(event) => {
+              if (!isMobile) return;
+              swipeStartXRef.current = event.clientX;
+              swipeStartYRef.current = event.clientY;
+              didSwipeRef.current = false;
+            }}
+            onPointerUp={(event) => {
+              if (!isMobile || swipeStartXRef.current === null || swipeStartYRef.current === null) return;
+              const deltaX = event.clientX - swipeStartXRef.current;
+              const deltaY = event.clientY - swipeStartYRef.current;
+              swipeStartXRef.current = null;
+              swipeStartYRef.current = null;
+              if (Math.abs(deltaX) < 30 || Math.abs(deltaX) < Math.abs(deltaY)) return;
+              didSwipeRef.current = true;
+              if (deltaX > 0) advanceMobileDeck();
+              if (deltaX < 0) retreatMobileDeck();
+            }}
+            onClick={() => {
+              if (!isMobile) return;
+              if (didSwipeRef.current) {
+                didSwipeRef.current = false;
+                return;
+              }
+              advanceMobileDeck();
+            }}
+          >
             <div className="sc-glow" />
             {CARDS.map((card, i) => {
               const isLight = card.bg === "#f5f0e8";
@@ -530,10 +775,14 @@ export default function StackingCards() {
                   key={card.id}
                   className="sc-card-wrap"
                   style={{
-                    ...getCardStyle(i),
+                    ...(isMobile ? getMobileCardStyle(i) : getCardStyle(i)),
                   } as unknown as React.CSSProperties}
-                  onMouseEnter={() => setHoveredCard(card.id)}
-                  onMouseLeave={() => setHoveredCard(null)}
+                  onMouseEnter={() => {
+                    if (!isMobile) setHoveredCard(card.id);
+                  }}
+                  onMouseLeave={() => {
+                    if (!isMobile) setHoveredCard(null);
+                  }}
                 >
 
                   {/* Corner accents — top-left (always) */}
@@ -607,13 +856,29 @@ export default function StackingCards() {
               );
             })}
           </div>
+          {isMobile && (
+            <>
+              <div className="sc-mobile-swipe-row">
+                <div className="sc-mobile-swipe-hint">Slide Next</div>
+                <div className="sc-mobile-swipe-hint">Slide Back</div>
+              </div>
+              <div className="sc-mobile-progress" aria-label={`Card ${mobileStep + 1} of ${CARDS.length}`}>
+                {CARDS.map((card, idx) => (
+                  <span
+                    key={`mobile-progress-${card.id}`}
+                    className={`sc-mobile-progress-dash${idx <= mobileStep ? " active" : ""}`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       </div>{/* end dotted bg wrapper */}
 
       {/* Scroll hint */}
-      {progress < 0.05 && (
+      {!isMobile && progress < 0.05 && (
         <div className="sc-hint">
           Scroll
           <div className="sc-hint-line" />

@@ -256,17 +256,38 @@ const CONTENT: Record<string, React.ReactNode> = {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function FrameworkSection() {
+  const sectionRef = useRef<HTMLDivElement>(null);
   const outerRef  = useRef<HTMLDivElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
+  const rafProgressRef = useRef<number | null>(null);
+  const pendingProgressRef = useRef(0);
+  const lastCommittedProgressRef = useRef(-1);
   const [progress, setProgress] = useState(0);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showLabels, setShowLabels] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
-  const focusedId = hoveredId;
+  const focusedId = selectedId ?? hoveredId;
 
   useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const onChange = () => setIsMobile(media.matches);
+    onChange();
+    media.addEventListener("change", onChange);
+    return () => media.removeEventListener("change", onChange);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) {
+      setProgress(1);
+      lastCommittedProgressRef.current = 1;
+      return;
+    }
+
+    let ctx: gsap.Context | null = null;
     const id = setTimeout(() => {
-      const ctx = gsap.context(() => {
+      ctx = gsap.context(() => {
         ScrollTrigger.create({
           trigger: outerRef.current,
           start: "top top",
@@ -277,22 +298,62 @@ export default function FrameworkSection() {
           onUpdate: (self) => {
             const raw = self.progress;
             const p = raw < 0.5 ? 2 * raw * raw : -1 + (4 - 2 * raw) * raw;
-            setProgress(p);
+            pendingProgressRef.current = p;
+            if (rafProgressRef.current !== null) return;
+            rafProgressRef.current = window.requestAnimationFrame(() => {
+              rafProgressRef.current = null;
+              const snapped = Math.round(pendingProgressRef.current * 180) / 180;
+              if (Math.abs(snapped - lastCommittedProgressRef.current) < 0.003) return;
+              lastCommittedProgressRef.current = snapped;
+              setProgress(snapped);
+            });
           },
         });
       });
-      return () => ctx.revert();
     }, 100);
-    return () => clearTimeout(id);
-  }, []);
+    return () => {
+      clearTimeout(id);
+      if (rafProgressRef.current !== null) {
+        window.cancelAnimationFrame(rafProgressRef.current);
+        rafProgressRef.current = null;
+      }
+      ctx?.revert();
+    };
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (isMobile) {
+      setHoveredId(null);
+    }
+  }, [isMobile]);
+
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const onDocPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (!sectionRef.current?.contains(target)) {
+        setSelectedId(null);
+      }
+    };
+
+    document.addEventListener("pointerdown", onDocPointerDown);
+    return () => document.removeEventListener("pointerdown", onDocPointerDown);
+  }, [isMobile]);
 
   function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
 
   const n = LAYERS.length;
   const labelOpacity = progress < 0.3 ? 0 : Math.min((progress - 0.3) / 0.4, 1);
+  const sceneCardSize = isMobile ? 190 : CARD;
+  const spreadGap = isMobile ? 72 : SPREAD_GAP;
+  const labelSideMax = `calc(50% - ${Math.round(sceneCardSize / 2 + 10)}px)`;
+  const isDesktopCompressed = !isMobile && progress < 0.42;
+  const shouldRenderDesktopLabels = !isMobile && progress > 0.28;
 
   function getScreenY(i: number): number {
-    const spreadY = (i - (n - 1) / 2) * SPREAD_GAP;
+    const spreadY = (i - (n - 1) / 2) * spreadGap;
     return lerp(0, spreadY, progress);
   }
 
@@ -421,6 +482,22 @@ export default function FrameworkSection() {
           border: 1px solid transparent;
           cursor: default;
           transition: background .3s, border-color .3s, opacity .3s;
+          animation: fw-pill-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        @keyframes fw-pill-enter {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .fw-roster-row {
+            animation: none;
+          }
         }
         .fw-roster-row.active {
           background: rgba(255,255,255,0.04);
@@ -569,6 +646,41 @@ export default function FrameworkSection() {
           background: #E31B54;
           box-shadow: 0 0 6px rgba(227,27,84,0.8);
         }
+        @media(max-width:767px) {
+          .fw-outer {
+            height: auto;
+            min-height: 0;
+          }
+          .fw-sticky {
+            height: auto;
+            display: block;
+          }
+          .fw-left {
+            padding: 1.25rem 1rem;
+            justify-content: flex-start;
+            border-right: none;
+            border-bottom: 1px dashed var(--border-dashed, rgba(255,255,255,0.1));
+          }
+          .fw-desc {
+            margin-bottom: 1rem;
+          }
+          .fw-scroll-hint {
+            display: none;
+          }
+          .fw-right {
+            min-height: 620px;
+          }
+          .fw-right-controls {
+            left: 0.75rem;
+            bottom: 0.75rem;
+          }
+          .fw-roster-row,
+          .fw-roster-dot,
+          .fw-roster-name,
+          .fw-roster-badge {
+            transition: none !important;
+          }
+        }
         /* ── Light mode overrides ── */
         :root.light .fw-sticky {
           background: var(--gradient-section, #ffffff);
@@ -626,14 +738,30 @@ export default function FrameworkSection() {
         :root.light .fw-toggle-knob {
           background: rgba(0,0,0,0.25);
         }
+        @media(max-width:767px) {
+          :root.light .fw-left {
+            border-bottom: 1px dashed var(--border-dashed, rgba(0,0,0,0.12));
+          }
+        }
       `}</style>
 
-      <div style={{
-        position: "relative",
-        background: "var(--gradient-section, #050505)",
-        borderTop: "1px dashed var(--border-dashed, rgba(255,255,255,0.1))",
-        borderBottom: "1px dashed var(--border-dashed, rgba(255,255,255,0.1))",
-      }}>
+      <div
+        ref={sectionRef}
+        style={{
+          position: "relative",
+          background: "var(--gradient-section, #050505)",
+          borderTop: "1px dashed var(--border-dashed, rgba(255,255,255,0.1))",
+          borderBottom: "1px dashed var(--border-dashed, rgba(255,255,255,0.1))",
+        }}
+        onPointerDown={(event) => {
+          if (!isMobile) return;
+          const target = event.target as HTMLElement | null;
+          if (!target) return;
+          if (!target.closest("[data-fw-keep-active='true']")) {
+            setSelectedId(null);
+          }
+        }}
+      >
         {/* Outer — scroll driver */}
         <div ref={outerRef} className="fw-outer">
 
@@ -656,21 +784,31 @@ export default function FrameworkSection() {
 
               {/* Live layer roster */}
               <div className="fw-roster">
-                {LAYERS.map((layer) => {
+                {LAYERS.map((layer, idx) => {
                   const isActive = focusedId === layer.id;
                   const isDimmed = focusedId !== null && !isActive;
                   return (
                     <div
                       key={layer.id}
+                      data-fw-keep-active="true"
                       className={`fw-roster-row${isActive ? " active" : ""}${isDimmed ? " dimmed" : ""}`}
                       style={{
                         borderColor: isActive ? `${layer.statusColor}30` : "transparent",
                         background: isActive ? `${layer.statusColor}08` : "transparent",
                         cursor: "pointer",
+                        touchAction: "manipulation",
+                        animationDelay: `${idx * 70}ms`,
                       }}
-                      onMouseEnter={() => setHoveredId(layer.id)}
-                      onMouseLeave={() => setHoveredId(null)}
-                      onClick={() => {}}
+                      onMouseEnter={() => {
+                        if (!isMobile) setHoveredId(layer.id);
+                      }}
+                      onMouseLeave={() => {
+                        if (!isMobile) setHoveredId(null);
+                      }}
+                      onPointerDown={() => setSelectedId((prev) => (prev === layer.id ? null : layer.id))}
+                      onClick={() => {
+                        if (!isMobile) setSelectedId((prev) => (prev === layer.id ? null : layer.id));
+                      }}
                     >
                       <div
                         className="fw-roster-dot"
@@ -721,6 +859,7 @@ export default function FrameworkSection() {
               <div className="fw-right-controls">
                 {/* Labels toggle */}
                 <button
+                  type="button"
                   className={`fw-label-toggle${showLabels ? " on" : ""}`}
                   onClick={() => setShowLabels(v => !v)}
                 >
@@ -741,8 +880,8 @@ export default function FrameworkSection() {
               {[...LAYERS].reverse().map((layer, ri) => {
                 const i = LAYERS.length - 1 - ri;
                 const sy = getScreenY(i);
-                const shadowBlur = 16 + progress * 44;
-                const shadowOpacity = 0.25 + progress * 0.45;
+                const shadowBlur = isMobile ? 24 : 34;
+                const shadowOpacity = isMobile ? 0.34 : 0.44;
                 const cardZ = 10 + (LAYERS.length - i) * 2;
                 const isHovered = focusedId === layer.id;
                 const cardOpacity = focusedId === null ? 1 : isHovered ? 1 : 0.2;
@@ -750,33 +889,48 @@ export default function FrameworkSection() {
                 return (
                   <div
                     key={`card-${layer.id}`}
+                    data-fw-keep-active="true"
                     style={{
                       position: "absolute",
                       top: "50%", left: "50%",
-                      width: CARD, height: CARD,
-                      marginLeft: -CARD / 2, marginTop: -CARD / 2,
-                      transform: `translateY(${sy}px)`,
+                      width: sceneCardSize, height: sceneCardSize,
+                      marginLeft: -sceneCardSize / 2, marginTop: -sceneCardSize / 2,
+                      transform: `translate3d(0, ${sy}px, 0)`,
                       zIndex: cardZ,
                       opacity: cardOpacity,
-                      transition: "opacity .4s",
+                      transition: isMobile ? "none" : "opacity .16s linear",
                       willChange: "transform",
                       cursor: "crosshair",
-                        animationName: progress > 0.8 ? "fw-float-bob" : "none",
+                        animationName: "none",
                         animationDuration: "6.28s",
                         animationTimingFunction: "ease-in-out",
                         animationIterationCount: "infinite",
                         animationDelay: `${-i * 0.8}s`,
                     }}
-                    onMouseEnter={() => setHoveredId(layer.id)}
-                    onMouseLeave={() => setHoveredId(null)}
+                    onMouseEnter={() => {
+                      if (!isMobile) setHoveredId(layer.id);
+                    }}
+                    onMouseLeave={() => {
+                      if (!isMobile) setHoveredId(null);
+                    }}
+                    onPointerDown={() => setSelectedId((prev) => (prev === layer.id ? null : layer.id))}
+                    onClick={() => {
+                      if (!isMobile) setSelectedId((prev) => (prev === layer.id ? null : layer.id));
+                    }}
                   >
                     <div
                       className="fw-card-iso"
                       style={{
-                        boxShadow: isHovered
-                          ? `0 ${18 + progress * 18}px ${shadowBlur + 16}px rgba(0,0,0,${shadowOpacity + 0.2}), 0 0 32px ${layer.statusColor}22, 0 1px 0 rgba(255,255,255,0.12)`
-                          : `0 ${14 + progress * 18}px ${shadowBlur}px rgba(0,0,0,${shadowOpacity}), 0 1px 0 rgba(255,255,255,0.07)`,
-                        filter: isHovered ? "brightness(1.12)" : "brightness(1)",
+                        boxShadow: isMobile
+                          ? `0 20px ${shadowBlur}px rgba(0,0,0,${shadowOpacity}), 0 1px 0 rgba(255,255,255,0.07)`
+                          : isDesktopCompressed
+                            ? isHovered
+                              ? `0 10px 20px rgba(0,0,0,0.34), 0 0 14px ${layer.statusColor}1f, 0 1px 0 rgba(255,255,255,0.09)`
+                              : `0 8px 16px rgba(0,0,0,0.28), 0 1px 0 rgba(255,255,255,0.06)`
+                          : isHovered
+                            ? `0 24px ${shadowBlur + 14}px rgba(0,0,0,${shadowOpacity + 0.18}), 0 0 32px ${layer.statusColor}22, 0 1px 0 rgba(255,255,255,0.12)`
+                            : `0 20px ${shadowBlur}px rgba(0,0,0,${shadowOpacity}), 0 1px 0 rgba(255,255,255,0.07)`,
+                        filter: isMobile || isDesktopCompressed ? "none" : isHovered ? "brightness(1.12)" : "brightness(1)",
                       }}
                     >
                       {CONTENT[layer.id]}
@@ -786,47 +940,47 @@ export default function FrameworkSection() {
               })}
 
               {/* FLOATING LABELS — above cards */}
-              <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 200, fontFamily: "ui-monospace, Menlo, monospace" }}>
-                {LAYERS.map((layer, i) => {
-                  const labelY = (i - (n - 1) / 2) * SPREAD_GAP;
-                  const isHov = focusedId === layer.id;
-                  const textOpacity = showLabels ? labelOpacity * (focusedId === null ? 1 : isHov ? 1 : 0) : 0;
-                  return (
-                    <div
-                      key={`label-${layer.id}`}
-                      style={{
-                        position: "absolute",
-                        top: "50%", left: 0, right: 0,
-                        transform: `translateY(calc(-50% + ${labelY}px))`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 12,
-                        opacity: textOpacity,
-                        transition: "opacity .35s",
-                        paddingLeft: 8, paddingRight: 8,
-                      }}
-                    >
-                      {/* Left mini-label */}
-                      <div style={{ textAlign: "right", minWidth: 0, flex: "0 0 auto", maxWidth: "calc(50% - 148px)" }}>
-                        <div style={{ fontSize: 6, letterSpacing: "0.16em", color: layer.statusColor, border: `1px solid ${layer.statusColor}44`, borderRadius: 2, padding: "1px 5px", display: "inline-block", marginBottom: 3, opacity: 0.85 }}>{layer.tag}</div>
-                        <div style={{ fontSize: 9, fontWeight: 700, color: "#fff", letterSpacing: "0.07em", lineHeight: 1.25, marginBottom: 2, whiteSpace: "nowrap" }}>{layer.label}</div>
-                        <div style={{ fontSize: 6.5, color: "rgba(255,255,255,.35)", letterSpacing: "0.1em", whiteSpace: "nowrap" }}>{layer.sublabel}</div>
-                      </div>
+              <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 200, fontFamily: "ui-monospace, Menlo, monospace", display: shouldRenderDesktopLabels || isMobile ? "block" : "none" }}>
+                  {LAYERS.map((layer, i) => {
+                    const labelY = (i - (n - 1) / 2) * spreadGap;
+                    const isHov = focusedId === layer.id;
+                    const textOpacity = showLabels ? labelOpacity * (focusedId === null ? 1 : isHov ? 1 : 0) : 0;
+                    return (
+                      <div
+                        key={`label-${layer.id}`}
+                        style={{
+                          position: "absolute",
+                          top: "50%", left: 0, right: 0,
+                          transform: `translateY(calc(-50% + ${labelY}px))`,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 12,
+                          opacity: textOpacity,
+                          transition: isMobile ? "none" : "opacity .16s linear",
+                          paddingLeft: 8, paddingRight: 8,
+                        }}
+                      >
+                        {/* Left mini-label */}
+                        <div style={{ textAlign: "right", minWidth: 0, flex: "0 0 auto", maxWidth: labelSideMax }}>
+                          <div style={{ fontSize: 6, letterSpacing: "0.16em", color: layer.statusColor, border: `1px solid ${layer.statusColor}44`, borderRadius: 2, padding: "1px 5px", display: "inline-block", marginBottom: 3, opacity: 0.85 }}>{layer.tag}</div>
+                          <div style={{ fontSize: isMobile ? 7 : 9, fontWeight: 700, color: "#fff", letterSpacing: "0.07em", lineHeight: 1.25, marginBottom: 2, whiteSpace: isMobile ? "normal" : "nowrap" }}>{layer.label}</div>
+                          <div style={{ fontSize: isMobile ? 5.5 : 6.5, color: "rgba(255,255,255,.35)", letterSpacing: "0.1em", whiteSpace: isMobile ? "normal" : "nowrap" }}>{layer.sublabel}</div>
+                        </div>
 
-                      {/* Spacer for card width */}
-                      <div style={{ width: CARD, flexShrink: 0 }} />
+                        {/* Spacer for card width */}
+                        <div style={{ width: sceneCardSize, flexShrink: 0 }} />
 
-                      {/* Right annotation */}
-                      <div style={{ textAlign: "left", minWidth: 0, flex: "0 0 auto", maxWidth: "calc(50% - 148px)" }}>
-                        {layer.annotation.map((line, j) => (
-                          <div key={j} style={{ fontSize: j === 0 ? 7 : 6, color: j === 0 ? "rgba(255,255,255,.5)" : "rgba(255,255,255,.25)", letterSpacing: "0.1em", lineHeight: 1.9, textTransform: "uppercase", whiteSpace: "nowrap" }}>{line}</div>
-                        ))}
+                        {/* Right annotation */}
+                        <div style={{ textAlign: "left", minWidth: 0, flex: "0 0 auto", maxWidth: labelSideMax }}>
+                          {layer.annotation.map((line, j) => (
+                            <div key={j} style={{ fontSize: isMobile ? (j === 0 ? 5.5 : 5) : (j === 0 ? 7 : 6), color: j === 0 ? "rgba(255,255,255,.5)" : "rgba(255,255,255,.25)", letterSpacing: "0.1em", lineHeight: isMobile ? 1.45 : 1.9, textTransform: "uppercase", whiteSpace: isMobile ? "normal" : "nowrap" }}>{line}</div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
             </div>
 
           </div>

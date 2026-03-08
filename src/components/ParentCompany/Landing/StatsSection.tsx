@@ -44,10 +44,6 @@ export default function StatsSection() {
           from { opacity: 0; transform: translateY(18px); }
           to   { opacity: 1; transform: translateY(0); }
         }
-        @keyframes statPulse {
-          0%,100% { box-shadow: 0 0 0 0 rgba(227,27,84,0); }
-          50%      { box-shadow: 0 0 18px 2px rgba(227,27,84,0.18); }
-        }
 
         .stats-root {
           position: relative;
@@ -104,22 +100,12 @@ export default function StatsSection() {
           border-bottom: 2px solid #E31B54;
           position: relative;
         }
-        .stats-bar::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(180deg, rgba(227,27,84,0.04) 0%, transparent 100%);
-          pointer-events: none;
-        }
-        .stats-bar-glow {
-          position: absolute;
-          top: 0; left: 0; right: 0;
-          height: 1px;
-          background: linear-gradient(90deg, transparent 0%, rgba(227,27,84,0.6) 50%, transparent 100%);
-          pointer-events: none;
-        }
-        @media (max-width: 639px) {
-          .stats-bar { grid-template-columns: repeat(2, 1fr); }
+        @media (max-width: 767px) {
+          .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            overflow: hidden;
+          }
         }
 
         .stat-item {
@@ -137,10 +123,23 @@ export default function StatsSection() {
         }
         .stat-item.revealed { opacity: 1; transform: translateY(0); }
         .stat-item:last-child { border-right: none; }
-        @media (max-width: 639px) {
-          .stat-item:nth-child(2) { border-right: none; }
-          .stat-item:nth-child(1),
-          .stat-item:nth-child(2) { border-bottom: 1px dashed rgba(255,255,255,0.08); }
+        @media (max-width: 767px) {
+          .stat-item {
+            min-width: 0;
+            padding: 1.15rem 0.45rem;
+            transform: none;
+            gap: 0.36rem;
+          }
+          .stat-val {
+            font-size: clamp(0.56rem, 2.6vw, 0.72rem);
+            letter-spacing: 0;
+            line-height: 1;
+          }
+          .stat-lbl {
+            font-size: 0.26rem;
+            letter-spacing: 0.18em;
+            line-height: 1.45;
+          }
         }
         :root.light .stat-item { border-right: 1px dashed rgba(0,0,0,0.1); }
         :root.light .stat-item:last-child { border-right: none; }
@@ -154,7 +153,7 @@ export default function StatsSection() {
           color: var(--content-primary, #f1f5f9);
           transition: transform 0.3s ease;
         }
-        .stat-val.accent { color: #E31B54; animation: statPulse 3s ease-in-out infinite; }
+        .stat-val.accent { color: #E31B54; }
         .stat-item:hover .stat-val { transform: scale(1.08); }
         .stat-lbl {
           font-family: ui-monospace, Menlo, monospace;
@@ -181,6 +180,20 @@ export default function StatsSection() {
         .stat-corner-tr { top: 8px; right: 8px; border-width: 1px 1px 0 0; }
         .stat-corner-bl { bottom: 8px; left: 8px; border-width: 0 0 1px 1px; }
         .stat-corner-br { bottom: 8px; right: 8px; border-width: 0 1px 1px 0; }
+
+        /* Keep mobile overrides at the end so they win the cascade */
+        @media (max-width: 767px) {
+          .stats-root .stat-val {
+            font-size: clamp(0.92rem, 4.2vw, 1.16rem) !important;
+            letter-spacing: 0 !important;
+            line-height: 1 !important;
+          }
+          .stats-root .stat-lbl {
+            font-size: 0.52rem !important;
+            letter-spacing: 0.18em !important;
+            line-height: 1.45 !important;
+          }
+        }
       `}</style>
 
       <div className="stats-root" ref={sectionRef}>
@@ -198,7 +211,6 @@ export default function StatsSection() {
 
         {/* Stats bar */}
         <div className="stats-bar">
-          <div className="stats-bar-glow" />
           {STATS.map((s, i) => (
             <div
               key={s.label}
