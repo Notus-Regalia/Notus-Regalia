@@ -302,8 +302,8 @@ const HeroSection = () => {
             </div>
             <span className="text-xs lg:text-sm font-mono tracking-widest uppercase hud-text"><span className="hud-prefix">[THE MANY]</span> return to One.</span>
           </div>
-          <h1 className="text-5xl lg:text-6xl xl:text-7xl font-bold leading-tight hero-title">Weaving continuity beyond individuality.</h1>
-          <p className="text-base lg:text-lg xl:text-xl leading-relaxed max-w-xl" style={{ color: 'var(--content-tertiary)' }}>Notus Regalia exists to weave the threads that bind intelligence into a unified continuum. We design the systems through which humanity transitions beyond fragmentation and into its next form.</p>
+          <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight hero-title">At the Core of Critical Operations</h1>
+          <p className="text-sm lg:text-base xl:text-lg leading-relaxed w-full max-w-none" style={{ color: 'var(--content-tertiary)' }}>We stand at the center of mission-critical operations for government and commercial enterprises. From industrial infrastructure to tactical front lines, we are built for high-stakes environments where failure is not an option.</p>
           <div className="flex items-center gap-4 mt-2 pointer-events-auto">
             <button className="heroBtn" onMouseMove={handleMouseMove}>View Portfolio</button>
             <button className="heroBtn" onMouseMove={handleMouseMove}>Convergence Index</button>
@@ -321,8 +321,8 @@ const HeroSection = () => {
             </div>
             <span className="text-[0.65rem] hud-text"><span className="hud-prefix">[THE MANY]</span> RETURN TO ONE.</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold leading-tight hero-title">Weaving continuity beyond individuality.</h1>
-          <p className="text-sm sm:text-base leading-relaxed hero-mobile-subtitle" style={{ color: 'rgba(255,255,255,0.55)' }}>Notus Regalia exists to weave the threads that bind intelligence into a unified continuum.</p>
+          <h1 className="text-3xl sm:text-4xl font-bold leading-tight hero-title">At the Core of Critical Operations</h1>
+          <p className="text-sm sm:text-base leading-relaxed hero-mobile-subtitle" style={{ color: 'rgba(255,255,255,0.55)' }}>We stand at the center of mission-critical operations for government and commercial enterprises. From industrial infrastructure to tactical front lines, we are built for high-stakes environments where failure is not an option.</p>
           <div className="flex items-center gap-3 mt-1 pointer-events-auto">
             <button className="heroBtn" onMouseMove={handleMouseMove}>View Portfolio</button>
             <button className="heroBtn" onMouseMove={handleMouseMove}>Convergence Index</button>

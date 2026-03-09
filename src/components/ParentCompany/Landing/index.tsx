@@ -17,14 +17,14 @@ const Landing = () => {
       {/* Stats / Pillars Strip */}
       <StatsSection />
 
+      {/* Industry */}
+      <AboutSection />
+
       {/* Command & Control Demo */}
       <SoftwareDemo />
 
       {/* Intelligence Stack — isometric C2 architecture */}
       <FrameworkSection />
-
-      {/* About / Mission */}
-      <AboutSection />
 
       {/* Features / Operations */}
       <FeaturesSection />

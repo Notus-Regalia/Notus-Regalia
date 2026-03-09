@@ -3,6 +3,16 @@ import { useState, useEffect, useRef } from "react";
 
 const TABS = [
   {
+    id: "government",
+    label: "Government",
+    title: "Government Systems for Public Impact",
+    description: "The Notus Regalia develops structured frameworks that support transparent governance and coordinated public services.",
+    paragraphs: [
+      "Government environments require reliability, accountability, and seamless collaboration across institutions. We design systems that organize information flow, clarify operational responsibilities, and strengthen the connection between policy and implementation.",
+    ],
+    color: "#059669"
+  },
+  {
     id: "defense",
     label: "Defense",
     title: "Built on Layered Authority for Command and Control",
@@ -31,16 +41,6 @@ const TABS = [
       "Enterprises succeed when strategy, execution, and communication function as a unified framework. We create environments where processes are clearly defined, responsibilities are transparent, and decisions are supported by reliable information.",
     ],
     color: "#2563EB"
-  },
-  {
-    id: "civic",
-    label: "Civic Systems",
-    title: "Civic Systems for Public Impact",
-    description: "The Notus Regalia develops structured frameworks that support transparent governance and coordinated public services.",
-    paragraphs: [
-      "Civic environments require reliability, accountability, and seamless collaboration across institutions. We design systems that organize information flow, clarify operational responsibilities, and strengthen the connection between policy and implementation.",
-    ],
-    color: "#059669"
   },
   {
     id: "energy",
@@ -235,6 +235,13 @@ export default function IndustrySection() {
           gap: 0.5rem;
           position: relative;
         }
+        @media (max-width: 768px) {
+          .about-sidebar {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.65rem;
+          }
+        }
 
         .about-nav-pill {
           position: absolute;
@@ -251,6 +258,9 @@ export default function IndustrySection() {
         :root.light .about-nav-pill {
           background: rgba(0,0,0,0.04);
           box-shadow: inset 0 1px 1px rgba(0,0,0,0.06);
+        }
+        @media (max-width: 768px) {
+          .about-nav-pill { display: none; }
         }
 
         .about-nav-pill::before {
@@ -283,16 +293,53 @@ export default function IndustrySection() {
           gap: 0.5rem;
           width: 100%;
         }
+        @media (max-width: 768px) {
+          .nav-item {
+            padding: 0.9rem 0.8rem;
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 12px;
+            min-height: 80px;
+            align-items: flex-start;
+            font-size: 0.92rem;
+            line-height: 1.25;
+          }
+        }
         :root.light .nav-item { color: rgba(0,0,0,0.35); }
+        @media (max-width: 768px) {
+          :root.light .nav-item { border: 1px solid rgba(0,0,0,0.12); }
+        }
         .nav-item:hover { color: rgba(255,255,255,0.6); }
         :root.light .nav-item:hover { color: rgba(0,0,0,0.6); }
         .nav-item.active { color: white; }
         :root.light .nav-item.active { color: var(--content-primary); }
+        @media (max-width: 768px) {
+          .nav-item.active {
+            background: rgba(227,27,84,0.12);
+            border-color: rgba(227,27,84,0.45);
+          }
+          :root.light .nav-item.active {
+            background: rgba(227,27,84,0.08);
+            border-color: rgba(227,27,84,0.4);
+          }
+        }
 
         .nav-item-left {
           display: flex;
           align-items: center;
           gap: 0;
+        }
+        @media (max-width: 768px) {
+          .nav-item-left {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.3rem;
+          }
+          .nav-item-left > span:first-child {
+            margin-right: 0 !important;
+            font-size: 0.62rem !important;
+            letter-spacing: 0.12em;
+            opacity: 0.45 !important;
+          }
         }
 
         .content-panel {
@@ -353,6 +400,32 @@ export default function IndustrySection() {
           text-align: justify;
         }
         :root.light .content-body { color: rgba(0,0,0,0.5); }
+        .content-description {
+          color: var(--content-primary);
+          margin-bottom: 1.5rem;
+          font-size: 1.25rem;
+          text-align: justify;
+          line-height: 1.55;
+        }
+        @media (max-width: 768px) {
+          .content-label {
+            font-size: 0.66rem;
+            letter-spacing: 0.22em;
+            margin-bottom: 0.8rem;
+          }
+          .content-title {
+            font-size: clamp(1.3rem, 7vw, 1.9rem);
+            margin-bottom: 1rem;
+          }
+          .content-body {
+            font-size: 0.98rem;
+            line-height: 1.55;
+          }
+          .content-description {
+            font-size: 1.05rem;
+            margin-bottom: 1rem;
+          }
+        }
 
         .reveal-up {
           opacity: 0;
@@ -372,6 +445,10 @@ export default function IndustrySection() {
         .nav-item.active .nav-timer {
           opacity: 1;
         }
+        @media (max-width: 768px) {
+          .nav-timer { opacity: 0.55; }
+          .nav-item.active .nav-timer { opacity: 1; }
+        }
       `}</style>
 
       <section className={`modern-about${revealed ? " revealed" : ""}`} ref={sectionRef}>
@@ -384,7 +461,7 @@ export default function IndustrySection() {
             fontWeight: 700, color: "#E31B54", marginBottom: "1rem"
           }}>
             <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#E31B54", flexShrink: 0 }} />
-            Who We Are
+            Our Presence throughout Critical Industries
           </span>
           <h2 style={{
             fontSize: "clamp(1.75rem, 4vw, 2.75rem)", fontWeight: 700,
@@ -443,7 +520,7 @@ export default function IndustrySection() {
               <span className="content-label" style={{ color: tab.color }}>{tab.label}</span>
               <h2 className="content-title">{tab.title}</h2>
               <div className="content-body">
-                <p style={{ color: "var(--content-primary)", marginBottom: "1.5rem", fontSize: "1.25rem", textAlign: "justify" }}>
+                <p className="content-description">
                   {tab.description}
                 </p>
                 {tab.paragraphs.map((p, idx) => (
