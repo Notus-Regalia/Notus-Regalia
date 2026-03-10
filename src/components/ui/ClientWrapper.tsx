@@ -20,7 +20,7 @@ const VALID_TABS: TabType[] = ['home', 'discover', 'information', 'affiliations'
 
 const DEFAULT_SUBTABS: Partial<Record<TabType, string>> = {
   discover: 'discover-overview',
-  technologies: 'technologies-defense',
+  technologies: 'technologies-civic-operations',
 };
 
 const ClientWrapper = () => {

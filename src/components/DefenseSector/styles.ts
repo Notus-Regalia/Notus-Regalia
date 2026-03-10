@@ -7,6 +7,10 @@ export const DEFENSE_NAVBAR_CSS = `
   from { opacity: 0; transform: translateX(8px); }
   to   { opacity: 1; transform: translateX(0); }
 }
+@keyframes stripCornerPulse {
+  0%, 100% { opacity: 0.78; }
+  50%      { opacity: 1; }
+}
 @keyframes dfEyepulse {
   0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(227,27,84,.5); }
   50%       { opacity: .7; box-shadow: 0 0 0 5px rgba(227,27,84,0); }
@@ -107,10 +111,10 @@ export const DEFENSE_NAVBAR_CSS = `
   background: linear-gradient(to bottom, #f8fafc 0%, #eef2f6 60%);
   border-bottom: 1px solid rgba(0,0,0,0.08);
 }
-:root.light .glass-navbar::before { display: none; }
 
 .glass-navbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+  --nav-scroll-progress: 0;
   background: linear-gradient(160deg, #0a0a0f 0%, #0d0d14 60%, #080810 100%);
   backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
   border-bottom: 1px solid rgba(255,255,255,0.07);
@@ -125,12 +129,21 @@ export const DEFENSE_NAVBAR_CSS = `
 }
 .glass-navbar::before {
   content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px;
-  background: radial-gradient(400px circle at var(--mouse-x, 50%) 100%,
-    rgba(0,255,166,0.45), rgba(255,215,0,0.35), rgba(236,72,153,0.35),
-    rgba(147,51,234,0.28), rgba(59,130,246,0.22), transparent 70%);
-  opacity: 0; transition: opacity 0.35s ease; pointer-events: none;
+  background: var(--border-color); opacity: 0.95; pointer-events: none;
 }
-.glass-navbar:hover::before { opacity: 1; }
+.glass-navbar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: calc(var(--nav-scroll-progress, 0) * 100%);
+  height: 1.1px;
+  background: linear-gradient(90deg, rgba(0,255,166,0.72) 0%, rgba(255,215,0,0.66) 28%, rgba(236,72,153,0.62) 58%, rgba(147,51,234,0.58) 80%, rgba(59,130,246,0.52) 100%);
+  box-shadow: 0 0 5px rgba(0,255,166,0.24), 0 0 7px rgba(227,27,84,0.14);
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+:root.light .glass-navbar::after { box-shadow: 0 0 4px rgba(0,255,166,0.16), 0 0 6px rgba(227,27,84,0.1); }
 
 .logo-mark {
   display: flex; align-items: center; gap: 12px; user-select: none;
@@ -316,11 +329,20 @@ export const DEFENSE_NAVBAR_CSS = `
 .strip-indicator-bg { position: absolute; inset: 0; background: rgba(255,255,255,0.06); transition: background 0.2s ease; }
 :root.light .strip-indicator-bg { background: rgba(0,0,0,0.065); }
 .strip-indicator-line {
-  position: absolute; bottom: 0; left: 14px; right: 14px; height: 2px; border-radius: 999px;
-  background: linear-gradient(90deg, transparent 0%, rgba(0,255,166,0.6) 15%, rgba(255,215,0,0.45) 30%, rgba(236,72,153,0.45) 45%, rgba(147,51,234,0.45) 60%, rgba(59,130,246,0.4) 75%, transparent 90%);
-  background-size: 200% 100%; animation: orbitBorder 2.5s linear infinite;
+  display: none;
 }
-:root.light .strip-indicator-line { display: none; }
+.strip-indicator-corner {
+  position: absolute; width: 8px; height: 8px;
+  border-color: rgba(227,27,84,0.88);
+  pointer-events: none; animation: stripCornerPulse 2s ease-in-out infinite;
+}
+.strip-indicator-corner.tl { top: 3px; left: 3px; border-top: 1.5px solid currentColor; border-left: 1.5px solid currentColor; }
+.strip-indicator-corner.tr { top: 3px; right: 3px; border-top: 1.5px solid currentColor; border-right: 1.5px solid currentColor; }
+.strip-indicator-corner.bl { bottom: 3px; left: 3px; border-bottom: 1.5px solid currentColor; border-left: 1.5px solid currentColor; }
+.strip-indicator-corner.br { bottom: 3px; right: 3px; border-bottom: 1.5px solid currentColor; border-right: 1.5px solid currentColor; }
+@media (max-width: 640px) {
+  .strip-indicator-corner { width: 7px; height: 7px; }
+}
 
 .subtab-strip-outer.strip-entering .strip-tab {
   animation: slimTabIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;

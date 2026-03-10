@@ -28,7 +28,7 @@ export default function DefenseSitePage() {
   const [searchOpen, setSearchOpen] = useState(false);
 
   const navContainerRef = useRef<HTMLDivElement>(null);
-  const rafIdRef = useRef<number | null>(null);
+  const navProgressRafRef = useRef<number | null>(null);
   const manualOpenRef = useRef(false);
   const touchRef = useRef<{ startX: number; startY: number } | null>(null);
   const navCollapsedRef = useRef(false);
@@ -56,20 +56,41 @@ export default function DefenseSitePage() {
     return () => { clearTimeout(t); window.removeEventListener('resize', check); };
   }, []);
 
-  // ── Mouse gradient accent ──
+  // ── Nav scroll progress border ──
   useEffect(() => {
-    const el = navContainerRef.current;
-    if (!el) return;
-    const onMove = (e: MouseEvent) => {
-      if (rafIdRef.current !== null) return;
-      rafIdRef.current = requestAnimationFrame(() => {
-        const r = el.getBoundingClientRect();
-        el.style.setProperty('--mouse-x', `${((e.clientX - r.left) / r.width) * 100}%`);
-        rafIdRef.current = null;
+    const navEl = navContainerRef.current;
+    if (!navEl) return;
+
+    const scheduleProgressUpdate = () => {
+      if (navProgressRafRef.current !== null) return;
+      navProgressRafRef.current = requestAnimationFrame(() => {
+        const doc = document.documentElement;
+        const scrollRange = Math.max(1, doc.scrollHeight - window.innerHeight);
+        const sm = ScrollSmoother.get();
+        const currentScroll = sm ? sm.scrollTop() : window.scrollY;
+        const progress = Math.min(1, Math.max(0, currentScroll / scrollRange));
+        navEl.style.setProperty('--nav-scroll-progress', progress.toString());
+        navProgressRafRef.current = null;
       });
     };
-    document.addEventListener('mousemove', onMove, { passive: true });
-    return () => { document.removeEventListener('mousemove', onMove); if (rafIdRef.current !== null) cancelAnimationFrame(rafIdRef.current); };
+
+    const resizeObserver = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(() => scheduleProgressUpdate())
+      : null;
+    resizeObserver?.observe(document.body);
+
+    scheduleProgressUpdate();
+    window.addEventListener('scroll', scheduleProgressUpdate, { passive: true });
+    window.addEventListener('resize', scheduleProgressUpdate, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', scheduleProgressUpdate);
+      window.removeEventListener('resize', scheduleProgressUpdate);
+      resizeObserver?.disconnect();
+      if (navProgressRafRef.current !== null) {
+        cancelAnimationFrame(navProgressRafRef.current);
+      }
+    };
   }, []);
 
   // ── Content transitions ──

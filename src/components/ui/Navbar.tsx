@@ -88,9 +88,12 @@ const NAV_ITEMS: NavItem[] = [
     icon: 'bi-crosshair',
     isSpecial: true,
     subtabs: [
-      { id: 'technologies-defense',         label: 'Defense Sector' },
-      { id: 'technologies-healthcare',       label: 'Healthcare Sector' },
-      { id: 'technologies-civic-operations', label: 'Civic Integration' },
+      { id: 'technologies-civic-operations', label: 'Government' },
+      { id: 'technologies-defense',          label: 'Defense' },
+      { id: 'technologies-healthcare',       label: 'Healthcare' },
+      { id: 'technologies-enterprise',       label: 'Enterprise' },
+      { id: 'technologies-energy',           label: 'Energy' },
+      { id: 'technologies-disaster-response', label: 'Disaster Response' },
     ],
   },
 ];
@@ -221,16 +224,20 @@ const NAVBAR_CSS = `
   from { opacity: 0; transform: translateX(8px); }
   to   { opacity: 1; transform: translateX(0); }
 }
+@keyframes stripCornerPulse {
+  0%, 100% { opacity: 0.78; }
+  50%      { opacity: 1; }
+}
 
 /* ── Light-mode navbar ── */
 :root.light .glass-navbar {
   background: linear-gradient(to bottom, #f8fafc 0%, #eef2f6 60%);
   border-bottom: 1px solid rgba(0,0,0,0.08);
 }
-:root.light .glass-navbar::before { display: none; }
 
 .glass-navbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+  --nav-scroll-progress: 0;
   background: linear-gradient(160deg, #0a0a0f 0%, #0d0d14 60%, #080810 100%);
   backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
   border-bottom: 1px solid rgba(255,255,255,0.07);
@@ -247,12 +254,21 @@ const NAVBAR_CSS = `
 }
 .glass-navbar::before {
   content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px;
-  background: radial-gradient(400px circle at var(--mouse-x, 50%) 100%,
-    rgba(0,255,166,0.45), rgba(255,215,0,0.35), rgba(236,72,153,0.35),
-    rgba(147,51,234,0.28), rgba(59,130,246,0.22), transparent 70%);
-  opacity: 0; transition: opacity 0.35s ease; pointer-events: none;
+  background: var(--border-color); opacity: 0.95; pointer-events: none;
 }
-.glass-navbar:hover::before { opacity: 1; }
+.glass-navbar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: calc(var(--nav-scroll-progress, 0) * 100%);
+  height: 1.1px;
+  background: linear-gradient(90deg, rgba(0,255,166,0.72) 0%, rgba(255,215,0,0.66) 28%, rgba(236,72,153,0.62) 58%, rgba(147,51,234,0.58) 80%, rgba(59,130,246,0.52) 100%);
+  box-shadow: 0 0 5px rgba(0,255,166,0.24), 0 0 7px rgba(227,27,84,0.14);
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+:root.light .glass-navbar::after { box-shadow: 0 0 4px rgba(0,255,166,0.16), 0 0 6px rgba(227,27,84,0.1); }
 
 /* ── Logo ── */
 .logo-mark {
@@ -509,20 +525,23 @@ const NAVBAR_CSS = `
 }
 :root.light .strip-indicator-bg { background: rgba(0,0,0,0.065); }
 .strip-indicator-line {
-  position: absolute;
-  bottom: 0;
-  left: 14px;
-  right: 14px;
-  height: 2px;
-  border-radius: 999px;
-  background: linear-gradient(90deg,
-    transparent 0%, rgba(0,255,166,0.6) 15%, rgba(255,215,0,0.45) 30%,
-    rgba(236,72,153,0.45) 45%, rgba(147,51,234,0.45) 60%,
-    rgba(59,130,246,0.4) 75%, transparent 90%);
-  background-size: 200% 100%;
-  animation: orbitBorder 2.5s linear infinite;
+  display: none;
 }
-:root.light .strip-indicator-line { display: none; }
+.strip-indicator-corner {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: rgba(227,27,84,0.88);
+  pointer-events: none;
+  animation: stripCornerPulse 2s ease-in-out infinite;
+}
+.strip-indicator-corner.tl { top: 3px; left: 3px; border-top: 1.5px solid currentColor; border-left: 1.5px solid currentColor; }
+.strip-indicator-corner.tr { top: 3px; right: 3px; border-top: 1.5px solid currentColor; border-right: 1.5px solid currentColor; }
+.strip-indicator-corner.bl { bottom: 3px; left: 3px; border-bottom: 1.5px solid currentColor; border-left: 1.5px solid currentColor; }
+.strip-indicator-corner.br { bottom: 3px; right: 3px; border-bottom: 1.5px solid currentColor; border-right: 1.5px solid currentColor; }
+@media (max-width: 640px) {
+  .strip-indicator-corner { width: 7px; height: 7px; }
+}
 
 /* Staggered entrance animation for strip tabs — only on initial open */
 .subtab-strip-outer.strip-entering .strip-tab {
@@ -826,7 +845,10 @@ const StripRow = memo(({
               aria-hidden
             >
               <div className="strip-indicator-bg" />
-              <div className="strip-indicator-line" />
+              <div className="strip-indicator-corner tl" />
+              <div className="strip-indicator-corner tr" />
+              <div className="strip-indicator-corner bl" />
+              <div className="strip-indicator-corner br" />
             </div>
 
             {item.subtabs!.map((sub, idx) => (
@@ -951,7 +973,10 @@ const DiscoverStripContent = memo(({
       <div className="strip-tabs-track" ref={trackRef}>
         <div className="strip-indicator" style={indicatorCSSStyle} aria-hidden>
           <div className="strip-indicator-bg" />
-          <div className="strip-indicator-line" />
+          <div className="strip-indicator-corner tl" />
+          <div className="strip-indicator-corner tr" />
+          <div className="strip-indicator-corner bl" />
+          <div className="strip-indicator-corner br" />
         </div>
         {DISCOVER_SUBTABS.map((sub, idx) => (
           <button
@@ -996,7 +1021,9 @@ const Navbar = ({
   const [navCollapsed, setNavCollapsed]           = useState(false);
 
   const navContainerRef          = useRef<HTMLDivElement>(null);
-  const rafIdRef                 = useRef<number | null>(null);
+  const navProgressRafRef        = useRef<number | null>(null);
+  const navProgressSyncRafRef    = useRef<number | null>(null);
+  const navProgressUpdateRef     = useRef<(() => void) | null>(null);
   const touchRef                 = useRef<{ startX: number; startY: number } | null>(null);
   const navCollapsedRef          = useRef(false);
   const manualOpenRef            = useRef(false);
@@ -1049,21 +1076,77 @@ const Navbar = ({
     return () => { clearTimeout(t); window.removeEventListener('resize', check); };
   }, []);
 
-  // ── Mouse-position for gradient accent ──
+  const setNavProgress = useCallback((value: number) => {
+    const navEl = navContainerRef.current;
+    if (!navEl) return;
+    const clamped = Math.min(1, Math.max(0, value));
+    navEl.style.setProperty('--nav-scroll-progress', clamped.toString());
+  }, []);
+
+  const syncNavProgressFor = useCallback((durationMs = 1200) => {
+    const stopAt = performance.now() + durationMs;
+    const tick = (now: number) => {
+      navProgressUpdateRef.current?.();
+      if (now < stopAt) {
+        navProgressSyncRafRef.current = requestAnimationFrame(tick);
+      } else {
+        navProgressSyncRafRef.current = null;
+      }
+    };
+
+    if (navProgressSyncRafRef.current !== null) {
+      cancelAnimationFrame(navProgressSyncRafRef.current);
+    }
+    navProgressSyncRafRef.current = requestAnimationFrame(tick);
+  }, []);
+
+  // ── Nav scroll progress border ──
   useEffect(() => {
-    const el = navContainerRef.current;
-    if (!el) return;
-    const onMove = (e: MouseEvent) => {
-      if (rafIdRef.current !== null) return;
-      rafIdRef.current = requestAnimationFrame(() => {
-        const r = el.getBoundingClientRect();
-        el.style.setProperty('--mouse-x', `${((e.clientX - r.left) / r.width) * 100}%`);
-        rafIdRef.current = null;
+    const scheduleProgressUpdate = () => {
+      if (navProgressRafRef.current !== null) return;
+      navProgressRafRef.current = requestAnimationFrame(() => {
+        const doc = document.documentElement;
+        const scrollRange = Math.max(1, doc.scrollHeight - window.innerHeight);
+        const sm = ScrollSmoother.get();
+        const currentScroll = sm ? sm.scrollTop() : window.scrollY;
+        const progress = Math.min(1, Math.max(0, currentScroll / scrollRange));
+        setNavProgress(progress);
+        navProgressRafRef.current = null;
       });
     };
-    document.addEventListener('mousemove', onMove, { passive: true });
-    return () => { document.removeEventListener('mousemove', onMove); if (rafIdRef.current !== null) cancelAnimationFrame(rafIdRef.current); };
-  }, []);
+    navProgressUpdateRef.current = scheduleProgressUpdate;
+
+    const resizeObserver = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(() => scheduleProgressUpdate())
+      : null;
+    resizeObserver?.observe(document.body);
+
+    const smoother = ScrollSmoother.get() as {
+      scrollTrigger?: {
+        addEventListener?: (event: string, cb: () => void) => void;
+        removeEventListener?: (event: string, cb: () => void) => void;
+      };
+    } | null;
+    smoother?.scrollTrigger?.addEventListener?.('update', scheduleProgressUpdate);
+
+    scheduleProgressUpdate();
+    window.addEventListener('scroll', scheduleProgressUpdate, { passive: true });
+    window.addEventListener('resize', scheduleProgressUpdate, { passive: true });
+
+    return () => {
+      navProgressUpdateRef.current = null;
+      window.removeEventListener('scroll', scheduleProgressUpdate);
+      window.removeEventListener('resize', scheduleProgressUpdate);
+      smoother?.scrollTrigger?.removeEventListener?.('update', scheduleProgressUpdate);
+      resizeObserver?.disconnect();
+      if (navProgressRafRef.current !== null) {
+        cancelAnimationFrame(navProgressRafRef.current);
+      }
+      if (navProgressSyncRafRef.current !== null) {
+        cancelAnimationFrame(navProgressSyncRafRef.current);
+      }
+    };
+  }, [setNavProgress]);
 
   // When active tab changes: open strip, reset scroll-spy to first subtab
   useEffect(() => {
@@ -1116,14 +1199,22 @@ const Navbar = ({
   // Main-tab switches just fade; instant scroll-to-top happens while content is invisible
   const handleTabClick = useCallback((tabId: string) => {
     setActiveTab(tabId);
-    setTimeout(() => gsapScrollToTop(false), 150);
-  }, [setActiveTab]);
+    setNavProgress(0);
+    setTimeout(() => {
+      gsapScrollToTop(false);
+      syncNavProgressFor(450);
+    }, 150);
+  }, [setActiveTab, setNavProgress, syncNavProgressFor]);
 
   // ── Arrow click ──
   const handleArrowToggle = useCallback((tabId: string) => {
     if (tabId !== activeTab) {
       setActiveTab(tabId);
-      setTimeout(() => gsapScrollToTop(false), 150);
+      setNavProgress(0);
+      setTimeout(() => {
+        gsapScrollToTop(false);
+        syncNavProgressFor(450);
+      }, 150);
       return;
     }
     setStripOpen(prev => {
@@ -1131,7 +1222,7 @@ const Navbar = ({
       manualOpenRef.current = next;
       return next;
     });
-  }, [activeTab, setActiveTab]);
+  }, [activeTab, setActiveTab, setNavProgress, syncNavProgressFor]);
 
   // ── Subtab click inside the strip ──
   const handleSubtabClick = useCallback((parentTabId: string, sub: SubtabItem) => {
@@ -1153,24 +1244,35 @@ const Navbar = ({
 
       const scrollToSection = () => {
         const el = document.getElementById(sub.sectionId!);
-        if (el) { gsapScrollTo(el); return; }
+        if (el) {
+          gsapScrollTo(el);
+          syncNavProgressFor(1600);
+          return;
+        }
         // Element not in DOM yet (tab switch still rendering) — retry once
         setTimeout(() => {
           const el2 = document.getElementById(sub.sectionId!);
-          if (el2) gsapScrollTo(el2);
+          if (el2) {
+            gsapScrollTo(el2);
+            syncNavProgressFor(1600);
+          }
         }, 80);
       };
       requestAnimationFrame(scrollToSection);
     } else {
-      gsapScrollToTop();
+      setNavProgress(0);
+      gsapScrollToTop(false);
+      syncNavProgressFor(450);
     }
-  }, [activeTab, setActiveTab, onSubtabClick]);
+  }, [activeTab, setActiveTab, onSubtabClick, setNavProgress, syncNavProgressFor]);
 
   // ── Info tab subtab click — sub.id is the InfoContentType value directly ──
   const handleInfoSubtabClick = useCallback((sub: SubtabItem) => {
+    setNavProgress(0);
     onInfoContentChange?.(sub.id as InfoContentType);
-    gsapScrollToTop();
-  }, [onInfoContentChange]);
+    gsapScrollToTop(false);
+    syncNavProgressFor(450);
+  }, [onInfoContentChange, setNavProgress, syncNavProgressFor]);
 
   // ── Search ──
   const openSearch  = useCallback(() => setSearchOpen(true),  []);
@@ -1194,12 +1296,17 @@ const Navbar = ({
       // Give time for the tab to render, then scroll
       setTimeout(() => {
         const el = document.getElementById(sub.sectionId!);
-        if (el) gsapScrollTo(el);
+        if (el) {
+          gsapScrollTo(el);
+          syncNavProgressFor(1600);
+        }
       }, 450);
     } else {
-      gsapScrollToTop();
+      setNavProgress(0);
+      gsapScrollToTop(false);
+      syncNavProgressFor(450);
     }
-  }, [setActiveTab, onSubtabClick, onInfoContentChange]);
+  }, [setActiveTab, onSubtabClick, onInfoContentChange, setNavProgress, syncNavProgressFor]);
 
   // ── Mobile sidebar ──
   const openMobile      = useCallback(() => setMobileOpen(true), []);
@@ -1208,8 +1315,12 @@ const Navbar = ({
 
   const handleMobileTabClick = useCallback((tabId: string) => {
     setActiveTab(tabId); setMobileOpen(false); setMobileExpandedTab(null);
-    setTimeout(() => gsapScrollToTop(false), 150);
-  }, [setActiveTab]);
+    setNavProgress(0);
+    setTimeout(() => {
+      gsapScrollToTop(false);
+      syncNavProgressFor(450);
+    }, 150);
+  }, [setActiveTab, setNavProgress, syncNavProgressFor]);
 
   const handleMobileSubtabClick = useCallback((parentTabId: string, sub: SubtabItem) => {
     setActiveTab(parentTabId); onSubtabClick?.(parentTabId, sub.id);
@@ -1217,17 +1328,26 @@ const Navbar = ({
     if (sub.sectionId) {
       requestAnimationFrame(() => {
         const el = document.getElementById(sub.sectionId!);
-        if (el) gsapScrollTo(el);
+        if (el) {
+          gsapScrollTo(el);
+          syncNavProgressFor(1600);
+        }
       });
-    } else gsapScrollToTop();
-  }, [setActiveTab, onSubtabClick]);
+    } else {
+      setNavProgress(0);
+      gsapScrollToTop(false);
+      syncNavProgressFor(450);
+    }
+  }, [setActiveTab, onSubtabClick, setNavProgress, syncNavProgressFor]);
 
   const handleMobileInfoSubtabClick = useCallback((sub: SubtabItem) => {
     setActiveTab('information');
+    setNavProgress(0);
     onInfoContentChange?.(sub.id as InfoContentType);
     setMobileOpen(false); setMobileExpandedTab(null);
-    gsapScrollToTop();
-  }, [setActiveTab, onInfoContentChange]);
+    gsapScrollToTop(false);
+    syncNavProgressFor(450);
+  }, [setActiveTab, onInfoContentChange, setNavProgress, syncNavProgressFor]);
 
   const handleMobileSearch = useCallback(() => { setMobileOpen(false); setSearchOpen(true); }, []);
 

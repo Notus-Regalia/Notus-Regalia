@@ -342,28 +342,30 @@ const Footer = ({ onNavigate }: FooterProps) => {
       ]
     },
     {
+      title: 'Industry',
+      links: [
+        { label: 'Government',       tabId: 'home' },
+        { label: 'Defense',          tabId: 'home' },
+        { label: 'Healthcare',       tabId: 'home' },
+        { label: 'Enterprise',       tabId: 'home' },
+        { label: 'Energy',           tabId: 'home' },
+        { label: 'Disaster Response',tabId: 'home' },
+      ]
+    },
+    {
       title: 'Technologies',
       links: [
-        { label: 'Defense',          tabId: 'technologies', subtabId: 'defense' },
-        { label: 'Healthcare',       tabId: 'technologies', subtabId: 'healthcare' },
-        { label: 'Civic Operations', tabId: 'technologies', subtabId: 'civic-operations' },
+        { label: 'Megiddo', tabId: 'technologies', subtabId: 'technologies-defense' },
+        { label: 'Argos',   tabId: 'technologies', subtabId: 'technologies-defense' },
       ]
     },
     {
-      title: 'Reach Out',
+      title: 'Settings',
       links: [
-        { label: 'Contact',  href: '/contact' },
-        { label: 'Support',  href: '/contact' },
-        { label: 'Feedback', href: '/contact' },
-      ]
-    },
-    {
-      title: 'Community',
-      links: [
-        { label: 'Contribute',      href: '#' },
-        { label: 'Build With Us',   href: '#' },
-        { label: 'Become a Fool',   href: '#' },
-        { label: 'Sandbox Program', href: '#' },
+        { label: 'Contact & Support', href: '/contact' },
+        { label: 'Feedback',          href: '/contact' },
+        { label: 'Site Settings',     tabId: 'information', infoContent: 'policies' },
+        { label: 'Request a Demo',    href: '/contact' },
       ]
     },
     {
@@ -1095,7 +1097,7 @@ const Footer = ({ onNavigate }: FooterProps) => {
             All rights reserved.
           </p>
           <div className="flex items-center gap-2.5">
-            {['bi-twitter-x', 'bi-github', 'bi-discord', 'bi-linkedin'].map((icon, idx) => (
+            {['bi-twitter-x', 'bi-discord', 'bi-linkedin'].map((icon, idx) => (
               <a key={idx} href="#" className="nr-glass-btn" aria-label={icon.replace('bi-', '')}>
                 <i className={`bi ${icon} text-2xl`} />
               </a>

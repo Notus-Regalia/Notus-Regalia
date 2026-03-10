@@ -138,7 +138,10 @@ const StripRow = memo(({
           <div className="strip-tabs-track" ref={trackRef}>
             <div className="strip-indicator" style={indicatorCSSStyle} aria-hidden>
               <div className="strip-indicator-bg" />
-              <div className="strip-indicator-line" />
+              <div className="strip-indicator-corner tl" />
+              <div className="strip-indicator-corner tr" />
+              <div className="strip-indicator-corner bl" />
+              <div className="strip-indicator-corner br" />
             </div>
             {item.subtabs.map((sub, idx) => (
               <button

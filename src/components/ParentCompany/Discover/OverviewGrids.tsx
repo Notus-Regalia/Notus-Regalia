@@ -29,7 +29,6 @@ const Overview = memo(({ onLearnMore }: { onLearnMore?: () => void }) => {
         className="relative overflow-hidden"
         style={{
           background: 'var(--gradient-section)',
-          borderTop: '1px dashed var(--border-dashed)',
           borderBottom: '1px dashed var(--border-dashed)',
         }}
       >

@@ -55,7 +55,6 @@ const DiscoverHeader = memo(() => {
         style={{
           height: "clamp(280px, 45vh, 500px)",
           paddingTop: "72px",
-          borderBottom: "1px dashed var(--border-dashed)",
         }}
       >
         <StarfieldBackground
