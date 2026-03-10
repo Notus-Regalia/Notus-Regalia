@@ -1,32 +1,87 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === 'development';
+
+const cspDirectives = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "object-src 'none'",
+  // 'unsafe-inline' kept for Next.js inline scripts & CSS-in-JS.
+  // TODO: migrate to nonce-based CSP to eliminate 'unsafe-inline' entirely.
+  // 'unsafe-eval' required in dev for webpack HMR; stripped in production builds.
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://va.vercel-scripts.com https://vitals.vercel-insights.com`,
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data: https:",
+  "connect-src 'self' https: wss:",
+  "media-src 'self' data: blob: https:",
+  "worker-src 'self' blob:",
+  "frame-src 'self'",
+  "manifest-src 'self'",
+  // Only upgrade insecure requests in production — dev server is HTTP-only.
+  ...(isDev ? [] : ["upgrade-insecure-requests"]),
+].join("; ");
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
   // Add security headers - SELECTIVE blocking for Teams/About pages only
   async headers() {
+    const securityHeaders = [
+      {
+        key: 'X-Content-Type-Options',
+        value: 'nosniff',
+      },
+      {
+        key: 'X-Frame-Options',
+        value: 'DENY',
+      },
+      {
+        key: 'Referrer-Policy',
+        value: 'no-referrer',
+      },
+      {
+        key: 'Permissions-Policy',
+        value: 'camera=(), microphone=(), geolocation=()',
+      },
+      {
+        key: 'Cross-Origin-Opener-Policy',
+        value: 'same-origin',
+      },
+      {
+        key: 'Cross-Origin-Resource-Policy',
+        value: 'same-origin',
+      },
+      {
+        key: 'Origin-Agent-Cluster',
+        value: '?1',
+      },
+      {
+        key: 'X-DNS-Prefetch-Control',
+        value: 'off',
+      },
+      {
+        // Enforce CSP in production; report-only in dev so the dev server works.
+        key: isDev ? 'Content-Security-Policy-Report-Only' : 'Content-Security-Policy',
+        value: cspDirectives,
+      },
+    ];
+
+    // Enable HSTS only after HTTPS is fully configured on your domain.
+    if (process.env.ENABLE_HSTS === 'true') {
+      securityHeaders.push({
+        key: 'Strict-Transport-Security',
+        value: 'max-age=31536000; includeSubDomains; preload',
+      });
+    }
+
     return [
       {
         // General security headers for ALL routes (does NOT block SEO)
         source: '/:path*',
-        headers: [
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'no-referrer',
-          },
-          {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
-          },
-        ],
+        headers: securityHeaders,
       },
       {
         // ONLY block Teams page from search indexing
@@ -41,6 +96,16 @@ const nextConfig: NextConfig = {
       {
         // ONLY block About page from search indexing (if it contains executive info)
         source: '/about/:path*',
+        headers: [
+          {
+            key: 'X-Robots-Tag',
+            value: 'noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate',
+          },
+        ],
+      },
+      {
+        // Sensitive contact route should not be indexed
+        source: '/contact/:path*',
         headers: [
           {
             key: 'X-Robots-Tag',
@@ -91,6 +156,9 @@ const nextConfig: NextConfig = {
     return config;
   },
 
+  // Prevent source maps from leaking to the browser in production
+  productionBrowserSourceMaps: false,
+
   // Disable X-Powered-By header (security best practice)
   poweredByHeader: false,
 
@@ -105,32 +173,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-
-/* 
- * SEO CONFIGURATION NOTES:
- * 
- * This configuration allows your entire website to be indexed for SEO,
- * EXCEPT for the /teams and /about pages which contain executive information.
- * 
- * INDEXED (Good for SEO):
- * ✅ Homepage (/)
- * ✅ Projects (/projects)
- * ✅ Ventures (/ventures)
- * ✅ Blog (/blog)
- * ✅ Contact (/contact)
- * ✅ All other pages not explicitly blocked
- * 
- * BLOCKED (Protected from search engines):
- * ❌ Teams page (/teams)
- * ❌ About page (/about)
- * 
- * ADDITIONAL SEO RECOMMENDATIONS:
- * 
- * 1. Create a sitemap.xml in /public/sitemap.xml
- * 2. Add proper meta tags to pages you want indexed:
- *    <meta name="description" content="Your page description" />
- *    <meta name="robots" content="index, follow" />
- * 
- * 3. Submit sitemap to Google Search Console
- * 4. Use Next.js Metadata API for SEO optimization
- */

@@ -38,11 +38,12 @@ const SmoothScroller = ({ children }: SmoothScrollerProps) => {
     ScrollTrigger.clearScrollMemory?.();
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
 
-    // Detect touch / mobile — skip ScrollSmoother to save CPU
+    // Detect true mobile/tablet — skip ScrollSmoother to save CPU.
+    // macOS trackpads report maxTouchPoints > 0, so we also check for
+    // a coarse primary pointer to distinguish real touch devices.
     const isMobile =
-      "ontouchstart" in window ||
-      navigator.maxTouchPoints > 0 ||
-      window.matchMedia("(pointer: coarse)").matches;
+      window.matchMedia("(pointer: coarse)").matches &&
+      ("ontouchstart" in window || navigator.maxTouchPoints > 0);
 
     if (isMobile) {
       requestAnimationFrame(() => {

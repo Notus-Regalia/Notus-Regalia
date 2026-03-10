@@ -1,0 +1,6 @@
+Contact: mailto:support@notus-regalia.com
+Contact: https://notusregalia.com/contact
+Expires: 2027-03-10T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://notusregalia.com/.well-known/security.txt
+Policy: https://notusregalia.com/?tab=information

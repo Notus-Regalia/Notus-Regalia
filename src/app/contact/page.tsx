@@ -1,4 +1,15 @@
-export const metadata = { title: 'Contact' };
+export const metadata = {
+  title: 'Contact',
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+    },
+  },
+};
 
 export default function ContactPage() {
   return (

@@ -2648,6 +2648,7 @@ function InfrastructureIntelligence() {
   const govMarkersRef = useRef<Record<string, any>>({});
   const selectedGovKeyRef = useRef<string | null>(null);
   const suppressAutoFocusOnNextSelectionSyncRef = useRef(false);
+  const suppressNextMapClearRef = useRef(false);
 
   const criticalDomainCounts = useMemo(() => {
     const counts = CRITICAL_DOMAIN_GROUPS.reduce((acc, item) => {
@@ -2872,6 +2873,7 @@ function InfrastructureIntelligence() {
           layer.on("mouseout", () => setHoveredProvinceId((current) => (current === boundary.id ? null : current)));
           layer.on("click", (event: any) => {
             event?.originalEvent?.stopPropagation?.();
+            suppressNextMapClearRef.current = true;
             setSelectedGovPoint(null);
             setHoveredProvinceId(null);
             setActiveProvinceId(boundary.id);
@@ -2909,6 +2911,10 @@ function InfrastructureIntelligence() {
         provinceShapeRefs.current = provinceShapes;
         provinceMetaRef.current = provinceMeta;
         map.on("click", () => {
+          if (suppressNextMapClearRef.current) {
+            suppressNextMapClearRef.current = false;
+            return;
+          }
           setSelectedGovPoint(null);
           setActiveProvinceId(null);
           setHoveredProvinceId(null);
@@ -3139,6 +3145,7 @@ function InfrastructureIntelligence() {
     };
 
     const onSelectPoint = (selectedPoint: GovInfrastructurePoint) => {
+      suppressNextMapClearRef.current = true;
       setActiveProvinceId(null);
       setHoveredProvinceId(null);
       setSelectedRegionCenter([selectedPoint.lat, selectedPoint.lon]);
@@ -3210,6 +3217,9 @@ function InfrastructureIntelligence() {
       if (typeof marker.setIcon === "function") {
         marker.setIcon(active ? markerIcons.active : markerIcons.base);
       }
+      if (!active && typeof marker.closeTooltip === "function") {
+        marker.closeTooltip();
+      }
     };
 
     const previousKey = selectedGovKeyRef.current;
@@ -3257,13 +3267,12 @@ function InfrastructureIntelligence() {
   const resetViewport = () => {
     const map = mapInstanceRef.current;
     if (!map) return;
-    const defaultPoint = MILITARY_FACILITIES[0] ?? CRITICAL_INFRASTRUCTURE_POINTS[0] ?? null;
     map.setView(INFRA_DEFAULT_CENTER, INFRA_DEFAULT_ZOOM, { animate: true, duration: 0.8 });
     setLayerVisibility({ ...DEFAULT_INFRA_FILTER_VISIBILITY });
     setHoveredProvinceId(null);
     setActiveProvinceId(null);
-    setSelectedGovPoint(defaultPoint);
-    setSelectedRegionCenter(defaultPoint ? [defaultPoint.lat, defaultPoint.lon] : null);
+    setSelectedGovPoint(null);
+    setSelectedRegionCenter(null);
   };
 
   const setZoomLevel = (index: number) => {
@@ -3355,12 +3364,12 @@ function InfrastructureIntelligence() {
               suppressAutoFocusOnNextSelectionSyncRef.current = true;
               setBeaconMode((prev) => (prev === "compressed" ? "expanded" : "compressed"));
             }}
-            aria-label="Toggle beacon compression"
+            aria-label="Toggle beacon grouping"
           >
-            {beaconMode === "compressed" ? "COMPRESSED" : "EXPANDED"}
+            {beaconMode === "compressed" ? "GROUP" : "UNGROUP"}
           </button>
-          <button type="button" onClick={clearFilters} className="infra-clear-filters">Clear filters</button>
-          <button type="button" onClick={resetViewport} className="infra-reset">Reset</button>
+          <button type="button" onClick={clearFilters} className="infra-clear-filters">CLEAR FILTERS</button>
+          <button type="button" onClick={resetViewport} className="infra-reset">RESET</button>
         </div>
       </div>
 

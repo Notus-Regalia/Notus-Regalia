@@ -3,7 +3,8 @@
 # The data-nosnippet attribute on those DOM nodes is used to suppress
 # that content from appearing in search result snippets.
 User-agent: *
-Disallow:
+Disallow: /contact
+Allow: /
 
 # ── AI Training Crawlers (block entirely) ─────────────────────────────────────
 User-agent: GPTBot
