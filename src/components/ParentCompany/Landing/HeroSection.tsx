@@ -305,8 +305,11 @@ const HeroSection = () => {
           <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight hero-title">At the Core of Critical Operations</h1>
           <p className="text-sm lg:text-base xl:text-lg leading-relaxed w-full max-w-none" style={{ color: 'var(--content-tertiary)' }}>We stand at the center of mission-critical operations for government and commercial enterprises. From industrial infrastructure to tactical front lines, we are built for high-stakes environments where failure is not an option.</p>
           <div className="flex items-center gap-4 mt-2 pointer-events-auto">
-            <button className="heroBtn" onMouseMove={handleMouseMove}>View Portfolio</button>
-            <button className="heroBtn" onMouseMove={handleMouseMove}>Convergence Index</button>
+            <button className="heroBtn" onMouseMove={handleMouseMove}>
+              Start a Project
+              <i className="bi bi-arrow-up-right-square" aria-hidden="true" />
+            </button>
+            <button className="heroBtn" onMouseMove={handleMouseMove}>View case studies</button>
           </div>
         </div>
       </div>
@@ -324,8 +327,11 @@ const HeroSection = () => {
           <h1 className="text-3xl sm:text-4xl font-bold leading-tight hero-title">At the Core of Critical Operations</h1>
           <p className="text-sm sm:text-base leading-relaxed hero-mobile-subtitle" style={{ color: 'rgba(255,255,255,0.55)' }}>We stand at the center of mission-critical operations for government and commercial enterprises. From industrial infrastructure to tactical front lines, we are built for high-stakes environments where failure is not an option.</p>
           <div className="flex items-center gap-3 mt-1 pointer-events-auto">
-            <button className="heroBtn" onMouseMove={handleMouseMove}>View Portfolio</button>
-            <button className="heroBtn" onMouseMove={handleMouseMove}>Convergence Index</button>
+            <button className="heroBtn" onMouseMove={handleMouseMove}>
+              Start a Project
+              <i className="bi bi-arrow-up-right-square" aria-hidden="true" />
+            </button>
+            <button className="heroBtn" onMouseMove={handleMouseMove}>View case studies</button>
           </div>
         </div>
         <div className="flex items-center gap-3 pointer-events-auto hero-scroll-hint self-start">

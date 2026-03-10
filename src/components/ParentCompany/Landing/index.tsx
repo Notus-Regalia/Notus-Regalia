@@ -3,6 +3,7 @@
 import HeroSection from './HeroSection';
 import AboutSection from './IndustrySection';
 import StatsSection from './StatsSection';
+import WhatWeDoBentoSection from './WhatWeDoBentoSection';
 import SoftwareDemo from './SoftwareDemo';
 import FrameworkSection from './FrameworkSection';
 import FeaturesSection from './StackingCardSection';
@@ -19,6 +20,9 @@ const Landing = () => {
 
       {/* Industry */}
       <AboutSection />
+
+      {/* What We Do */}
+      <WhatWeDoBentoSection />
 
       {/* Command & Control Demo */}
       <SoftwareDemo />

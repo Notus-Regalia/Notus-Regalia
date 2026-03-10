@@ -451,7 +451,7 @@ export default function IndustrySection() {
         }
       `}</style>
 
-      <section className={`modern-about${revealed ? " revealed" : ""}`} ref={sectionRef}>
+      <section id="industries-we-serve" className={`modern-about${revealed ? " revealed" : ""}`} ref={sectionRef}>
 
         <div className="about-section-header reveal-up" style={{ transitionDelay: "0ms" }}>
           <span style={{

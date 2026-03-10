@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback, useMemo, type ReactElement, type RefObject } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, type MouseEvent as ReactMouseEvent, type ReactElement, type RefObject } from "react";
 import { gsap } from "gsap";
 
 function useGlitch(intervalMs = 4000) {
@@ -261,57 +261,141 @@ type ServiceFocusPayload = {
 
 type FeaturedSoftwareId = "government" | "infrastructure" | "command";
 
-const LIMITED_ENVIRONMENT_LINKS: Record<FeaturedSoftwareId, { requestDemoHref: string; viewSpecsHref: string }> = {
+const LIMITED_ENVIRONMENT_LINKS: Record<FeaturedSoftwareId, { requestDemoHref: string }> = {
   government: {
     requestDemoHref: "#request-demo-government",
-    viewSpecsHref: "#view-specifications-government",
   },
   infrastructure: {
     requestDemoHref: "#request-demo-infrastructure",
-    viewSpecsHref: "#view-specifications-infrastructure",
   },
   command: {
     requestDemoHref: "#request-demo-command",
-    viewSpecsHref: "#view-specifications-command",
   },
 };
+
+const LIMITED_ENVIRONMENT_DEFINITIONS: Record<FeaturedSoftwareId, { title: string; description: string }> = {
+  government: {
+    title: "Unified Government Services Framework",
+    description:
+      "A coordinated national services framework for the Philippines, built to eliminate fragmented agency workflows and deliver seamless citizen service.",
+  },
+  infrastructure: {
+    title: "Nationwide Government Infrastructure Layers",
+    description:
+      "Satellite-grade Philippine map with coordinate-level beacons for Energy & Oil, Fluid Systems, Transport, Telecommunications, Healthcare, Bank & Finance, Food & Agriculture, Government, Defense facilities, Data Center, and Aerospace.",
+  },
+  command: {
+    title: "Reserved Command Surface",
+    description:
+      "Command mission surface reserved for incident workflows, dispatch controls, and escalation orchestration.",
+  },
+};
+
+const LIMITED_MODAL_CLOSE_DURATION_MS = 280;
+
+function useLimitedEnvironmentModal(initialOpen = true) {
+  const [isOpen, setIsOpen] = useState(initialOpen);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const close = useCallback(() => {
+    if (!isOpen || isClosing) return;
+    setIsClosing(true);
+  }, [isOpen, isClosing]);
+
+  useEffect(() => {
+    if (!isClosing) return;
+    const timerId = window.setTimeout(() => {
+      setIsOpen(false);
+      setIsClosing(false);
+    }, LIMITED_MODAL_CLOSE_DURATION_MS);
+    return () => window.clearTimeout(timerId);
+  }, [isClosing]);
+
+  return { isOpen, isClosing, close };
+}
 
 type GovFlowCard = (typeof GOV_FLOW_CARDS)[number];
 
 function LimitedEnvironmentModal({
   surfaceLabel,
+  definitionTitle,
+  definitionDescription,
   requestDemoHref,
-  viewSpecsHref,
+  primaryLabel = "Accept & Proceed",
+  primaryHref,
+  secondaryLabel = "Request a Demo",
+  secondaryHref,
+  showPrimaryIcon = true,
+  isClosing,
   onClose,
 }: {
   surfaceLabel: string;
+  definitionTitle: string;
+  definitionDescription: string;
   requestDemoHref: string;
-  viewSpecsHref: string;
+  primaryLabel?: string;
+  primaryHref?: string;
+  secondaryLabel?: string;
+  secondaryHref?: string;
+  showPrimaryIcon?: boolean;
+  isClosing: boolean;
   onClose: () => void;
 }) {
+  const updateGlowPosition = (event: ReactMouseEvent<HTMLElement>, xVar: string, yVar: string) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    event.currentTarget.style.setProperty(xVar, `${event.clientX - rect.left}px`);
+    event.currentTarget.style.setProperty(yVar, `${event.clientY - rect.top}px`);
+  };
+  const resolvedSecondaryHref = secondaryHref ?? requestDemoHref;
+
   return (
-    <div className="infra-limited-modal-wrap" role="dialog" aria-modal="true" aria-label="Limited environment notice">
-      <div className="infra-limited-modal">
+    <div className={`infra-limited-modal-wrap${isClosing ? " closing" : ""}`} role="dialog" aria-modal="true" aria-label="Limited environment notice">
+      <div
+        className="infra-limited-modal"
+        onMouseMove={(event) => updateGlowPosition(event, "--modal-mx", "--modal-my")}
+      >
         <div className="infra-limited-accent" />
-        <button
-          type="button"
-          className="infra-limited-close"
-          onClick={onClose}
-          aria-label="Close limited environment notice"
-        >
-          ×
-        </button>
         <div className="sw-mono infra-limited-eyebrow">
           <span className="infra-limited-eyebrow-dot" />
           {surfaceLabel}
         </div>
-        <h4 className="infra-limited-title">Limited Environment</h4>
+        <h4 className="infra-limited-title">{definitionTitle}</h4>
+        <p className="infra-limited-definition">{definitionDescription}</p>
         <p className="infra-limited-desc">
-          A limited demonstration of the platform. Full operational access is available through a private briefing demo or licensed deployment.
+          <span className="infra-limited-disclaimer-title">Disclaimer</span>
+          <span className="infra-limited-disclaimer-label">Limited Environment Showcase</span>
+          A controlled demonstration environment is currently active. Full operational access is available through private briefing or licensed deployment.
         </p>
         <div className="infra-limited-actions">
-          <a href={requestDemoHref} className="infra-limited-btn">Request a Demo</a>
-          <a href={viewSpecsHref} className="infra-limited-btn infra-limited-btn-ghost">View Specifications</a>
+          {primaryHref ? (
+            <a
+              href={primaryHref}
+              className="infra-limited-btn"
+              onMouseMove={(event) => updateGlowPosition(event, "--btn-mx", "--btn-my")}
+            >
+              {primaryLabel}
+              {showPrimaryIcon ? <i className="bi bi-arrow-right-square" aria-hidden="true" /> : null}
+            </a>
+          ) : (
+            <button
+              type="button"
+              className="infra-limited-btn"
+              onClick={onClose}
+              onMouseMove={(event) => updateGlowPosition(event, "--btn-mx", "--btn-my")}
+            >
+              {primaryLabel}
+              {showPrimaryIcon ? <i className="bi bi-arrow-right-square" aria-hidden="true" /> : null}
+            </button>
+          )}
+          {resolvedSecondaryHref ? (
+            <a
+              href={resolvedSecondaryHref}
+              className="infra-limited-btn infra-limited-btn-ghost"
+              onMouseMove={(event) => updateGlowPosition(event, "--btn-mx", "--btn-my")}
+            >
+              {secondaryLabel}
+            </a>
+          ) : null}
         </div>
       </div>
     </div>
@@ -409,7 +493,11 @@ function GovernmentServiceFlow({
 // Government Systems window: primary place to edit the live coordination experience.
 function GovernmentSystemsWindow() {
   const [active, setActive] = useState(C2_NODES[0]);
-  const [showLimitedEnvironmentModal, setShowLimitedEnvironmentModal] = useState(true);
+  const {
+    isOpen: showLimitedEnvironmentModal,
+    isClosing: isLimitedEnvironmentClosing,
+    close: closeLimitedEnvironmentModal,
+  } = useLimitedEnvironmentModal(true);
   const glitch = useGlitch();
   const time = useClock();
   const [serviceFocus, setServiceFocus] = useState(active.focus);
@@ -514,9 +602,11 @@ function GovernmentSystemsWindow() {
       {showLimitedEnvironmentModal && (
         <LimitedEnvironmentModal
           surfaceLabel="Government Systems"
+          definitionTitle={LIMITED_ENVIRONMENT_DEFINITIONS.government.title}
+          definitionDescription={LIMITED_ENVIRONMENT_DEFINITIONS.government.description}
           requestDemoHref={LIMITED_ENVIRONMENT_LINKS.government.requestDemoHref}
-          viewSpecsHref={LIMITED_ENVIRONMENT_LINKS.government.viewSpecsHref}
-          onClose={() => setShowLimitedEnvironmentModal(false)}
+          isClosing={isLimitedEnvironmentClosing}
+          onClose={closeLimitedEnvironmentModal}
         />
       )}
     </div>
@@ -2620,7 +2710,11 @@ function InfrastructureIntelligence() {
   const [selectedGovPoint, setSelectedGovPoint] = useState<GovInfrastructurePoint | null>(null);
   const [activeProvinceId, setActiveProvinceId] = useState<string | null>(null);
   const [hoveredProvinceId, setHoveredProvinceId] = useState<string | null>(null);
-  const [showLimitedEnvironmentModal, setShowLimitedEnvironmentModal] = useState(true);
+  const {
+    isOpen: showLimitedEnvironmentModal,
+    isClosing: isLimitedEnvironmentClosing,
+    close: closeLimitedEnvironmentModal,
+  } = useLimitedEnvironmentModal(true);
   const [c2FilterEnabled, setC2FilterEnabled] = useState(true);
   const [trackingEnabled, setTrackingEnabled] = useState(true);
   const [beaconMode, setBeaconMode] = useState<"compressed" | "expanded">("expanded");
@@ -3302,7 +3396,7 @@ function InfrastructureIntelligence() {
   };
 
   return (
-    <div className="sw-panel infra-panel">
+    <div className={`sw-panel infra-panel${showLimitedEnvironmentModal ? " sw-panel-modal-open" : ""}`}>
       <div className="infra-topbar">
         <div className="sw-mono infra-topbar-title">PHILIPPINE STRATEGIC INFRASTRUCTURE INTELLIGENCE</div>
         <div className="infra-topbar-center">
@@ -3442,14 +3536,6 @@ function InfrastructureIntelligence() {
         >
           <div ref={mapHostRef} className="infra-leaflet-map" />
           <Crosshair color="var(--sdemo-crosshair-color, rgba(255,255,255,0.86))" containerRef={mapStageRef} />
-          {showLimitedEnvironmentModal && (
-            <LimitedEnvironmentModal
-              surfaceLabel="Infrastructure Intelligence"
-              requestDemoHref={LIMITED_ENVIRONMENT_LINKS.infrastructure.requestDemoHref}
-              viewSpecsHref={LIMITED_ENVIRONMENT_LINKS.infrastructure.viewSpecsHref}
-              onClose={() => setShowLimitedEnvironmentModal(false)}
-            />
-          )}
           {mapState === "ready" && (
             <div className={`infra-gov-chip ${govLayerState}`}>
               <span className="sw-mono">
@@ -3512,6 +3598,16 @@ function InfrastructureIntelligence() {
           </div>
         </aside>
       </div>
+      {showLimitedEnvironmentModal && (
+        <LimitedEnvironmentModal
+          surfaceLabel="Infrastructure Intelligence"
+          definitionTitle={LIMITED_ENVIRONMENT_DEFINITIONS.infrastructure.title}
+          definitionDescription={LIMITED_ENVIRONMENT_DEFINITIONS.infrastructure.description}
+          requestDemoHref={LIMITED_ENVIRONMENT_LINKS.infrastructure.requestDemoHref}
+          isClosing={isLimitedEnvironmentClosing}
+          onClose={closeLimitedEnvironmentModal}
+        />
+      )}
     </div>
   );
 }
@@ -3539,7 +3635,11 @@ const COMMAND_WORKSTREAMS = [
 
 // Command & Control window scaffold: replace cards and telemetry blocks as this module evolves.
 function CommandControlWindow() {
-  const [showLimitedEnvironmentModal, setShowLimitedEnvironmentModal] = useState(true);
+  const {
+    isOpen: showLimitedEnvironmentModal,
+    isClosing: isLimitedEnvironmentClosing,
+    close: closeLimitedEnvironmentModal,
+  } = useLimitedEnvironmentModal(true);
   const time = useClock();
 
   return (
@@ -3584,9 +3684,11 @@ function CommandControlWindow() {
       {showLimitedEnvironmentModal && (
         <LimitedEnvironmentModal
           surfaceLabel="Command and Control"
+          definitionTitle={LIMITED_ENVIRONMENT_DEFINITIONS.command.title}
+          definitionDescription={LIMITED_ENVIRONMENT_DEFINITIONS.command.description}
           requestDemoHref={LIMITED_ENVIRONMENT_LINKS.command.requestDemoHref}
-          viewSpecsHref={LIMITED_ENVIRONMENT_LINKS.command.viewSpecsHref}
-          onClose={() => setShowLimitedEnvironmentModal(false)}
+          isClosing={isLimitedEnvironmentClosing}
+          onClose={closeLimitedEnvironmentModal}
         />
       )}
     </div>
@@ -3594,21 +3696,29 @@ function CommandControlWindow() {
 }
 
 function LearnMoreCard() {
+  const {
+    isOpen: showLimitedEnvironmentModal,
+    isClosing: isLimitedEnvironmentClosing,
+    close: closeLimitedEnvironmentModal,
+  } = useLimitedEnvironmentModal(true);
+
   return (
-    <div className="sw-panel learn-panel">
-      <div className="learn-halo" />
-      <div className="learn-shell">
-        <div className="sw-mono learn-kicker">NEXT STEP</div>
-        <h3 className="learn-title">Learn more</h3>
-        <p className="learn-desc">
-          Explore the full Notus Regalia platform and discover how coordinated software can unify fragmented agencies,
-          infrastructure intelligence, and crisis command operations.
-        </p>
-        <div className="learn-actions">
-          <a href="#services" className="learn-btn">Explore Services</a>
-          <a href="#contact" className="learn-btn learn-btn-ghost">Request Briefing</a>
-        </div>
-      </div>
+    <div className={`sw-panel command-panel${showLimitedEnvironmentModal ? " sw-panel-modal-open" : ""}`}>
+      {showLimitedEnvironmentModal && (
+        <LimitedEnvironmentModal
+          surfaceLabel="Platform Overview"
+          definitionTitle="Expand the Strategic Platform"
+          definitionDescription="Explore every strategic system window, operational capability, and sector deployment surface."
+          requestDemoHref="#what-we-do"
+          primaryLabel="View Technologies"
+          primaryHref="#what-we-do"
+          secondaryLabel="Check Industries"
+          secondaryHref="#industries-we-serve"
+          showPrimaryIcon={false}
+          isClosing={isLimitedEnvironmentClosing}
+          onClose={closeLimitedEnvironmentModal}
+        />
+      )}
     </div>
   );
 }
@@ -3651,7 +3761,7 @@ const SOFTWARE_WINDOWS: SoftwareWindowDefinition[] = [
     component: CommandControlWindow,
   },
   {
-    id: "learn", tag: "04", name: "Learn more", industry: "Overview",
+    id: "learn", tag: "04", name: "See All", industry: "Overview",
     tagline: "Expand the Strategic Platform",
     desc: "Access deeper implementation pathways, deployment models, and strategic integration options.",
     status: "INFO",
@@ -3746,8 +3856,8 @@ export default function SoftwareDemo() {
         }
 
         .sdemo-root {
-          background: var(--gradient-section, #06060e);
-          border-top: 1px dashed rgba(255,255,255,0.08);
+          background: #000000;
+          border-top: none;
           color: #fff;
           font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
           overflow: hidden;
@@ -3757,7 +3867,7 @@ export default function SoftwareDemo() {
           transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
         }
         .sdemo-root.revealed { opacity: 1; transform: translateY(0); }
-        :root.light .sdemo-root { background: #f4f5f8; border-top: 1px dashed rgba(0,0,0,0.1); color: #0f172a; }
+        :root.light .sdemo-root { background: var(--surface-secondary, #f8f9fa); border-top: none; color: #0f172a; }
         .sdemo-crosshair-layer {
           position:absolute;
           inset:0;
@@ -3968,13 +4078,8 @@ export default function SoftwareDemo() {
         .sdemo-tab-open { font-size:0.6rem; color:rgba(255,255,255,0.5); }
         :root.light .sdemo-tab-open { color:rgba(0,0,0,0.45); }
 
-        .sdemo-meta { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1.2rem; flex-wrap:wrap; }
-        .sdemo-tagline { font-size:clamp(1rem,2vw,1.3rem); font-weight:700; letter-spacing:-0.02em; color:rgba(255,255,255,0.9); margin-bottom:0.2rem; }
-        :root.light .sdemo-tagline { color:rgba(0,0,0,0.9); }
-        .sdemo-desc { font-size:0.82rem; line-height:1.6; color:rgba(255,255,255,0.38); font-family:'Inter',ui-sans-serif,system-ui,sans-serif; }
-        :root.light .sdemo-desc { color:rgba(0,0,0,0.45); }
+        .sdemo-meta { display:flex; align-items:center; justify-content:flex-end; gap:1rem; margin-bottom:1.2rem; }
         @media(max-width:640px){
-          .sdemo-meta > div:first-child { width:100%; }
           .sdemo-nav { width:100%; justify-content:flex-end; }
         }
 
@@ -4539,6 +4644,12 @@ export default function SoftwareDemo() {
           flex-direction:column;
           background:linear-gradient(160deg,#040913 0%, #02050d 56%, #06030f 100%);
         }
+        .infra-panel > :not(.infra-limited-modal-wrap) {
+          transition:filter 0.24s ease;
+        }
+        .infra-panel.sw-panel-modal-open > :not(.infra-limited-modal-wrap) {
+          filter:blur(6px);
+        }
         :root.light .infra-panel {
           background:linear-gradient(160deg,#eef1f8 0%, #e4e8f2 56%, #edf0f7 100%);
         }
@@ -4851,6 +4962,22 @@ export default function SoftwareDemo() {
             filter: blur(0);
           }
         }
+        @keyframes infraModalOverlayOut {
+          from { opacity: 1; }
+          to { opacity: 0; }
+        }
+        @keyframes infraModalPanelOut {
+          from {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            filter: blur(0);
+          }
+          to {
+            opacity: 0;
+            transform: scale(0.97) translateY(12px);
+            filter: blur(2px);
+          }
+        }
         .infra-limited-modal-wrap {
           position:absolute;
           inset:0;
@@ -4858,15 +4985,18 @@ export default function SoftwareDemo() {
           display:flex;
           align-items:center;
           justify-content:center;
-          padding:1rem;
+          padding:1.25rem;
           background:rgba(0,0,0,0.42);
           backdrop-filter:blur(3px);
           -webkit-backdrop-filter:blur(3px);
           animation:infraModalOverlayIn 0.2s ease both;
         }
+        .infra-limited-modal-wrap.closing {
+          animation:infraModalOverlayOut ${LIMITED_MODAL_CLOSE_DURATION_MS}ms ease forwards;
+        }
         .infra-limited-modal {
           position:relative;
-          width:min(92%, 540px);
+          width:min(92%, 580px);
           border:1px solid rgba(255,255,255,0.1);
           border-radius:16px;
           background:linear-gradient(165deg, rgba(12,12,18,0.96) 0%, rgba(6,6,10,0.97) 100%);
@@ -4874,9 +5004,38 @@ export default function SoftwareDemo() {
             0 24px 80px rgba(0,0,0,0.6),
             0 0 0 1px rgba(255,255,255,0.03) inset,
             0 1px 0 rgba(255,255,255,0.04) inset;
-          padding:1.24rem 1.14rem 1.08rem;
+          padding:1.8rem 1.65rem 1.55rem;
           overflow:hidden;
           animation:infraModalPanelIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        .infra-limited-modal::before {
+          content:"";
+          position:absolute;
+          inset:0;
+          border-radius:16px;
+          padding:1px;
+          background:radial-gradient(
+            420px circle at var(--modal-mx, 50%) var(--modal-my, 50%),
+            rgba(0,255,166,0.8),
+            rgba(255,215,0,0.6),
+            rgba(236,72,153,0.6),
+            rgba(147,51,234,0.6),
+            rgba(59,130,246,0.5),
+            transparent 70%
+          );
+          -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite:xor;
+          mask-composite:exclude;
+          opacity:0;
+          transition:opacity 0.4s ease;
+          pointer-events:none;
+          z-index:2;
+        }
+        .infra-limited-modal-wrap:not(.closing) .infra-limited-modal:hover::before {
+          opacity:1;
+        }
+        .infra-limited-modal-wrap.closing .infra-limited-modal {
+          animation:infraModalPanelOut ${LIMITED_MODAL_CLOSE_DURATION_MS}ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
         .infra-limited-accent {
           position:absolute;
@@ -4887,28 +5046,6 @@ export default function SoftwareDemo() {
           background:linear-gradient(90deg, transparent 0%, #E31B54 22%, #E31B54 78%, transparent 100%);
           opacity:0.75;
         }
-        .infra-limited-close {
-          position:absolute;
-          top:0.72rem;
-          right:0.74rem;
-          width:30px;
-          height:30px;
-          border-radius:8px;
-          border:1px solid rgba(255,255,255,0.14);
-          background:rgba(255,255,255,0.04);
-          color:rgba(255,255,255,0.7);
-          cursor:pointer;
-          font-size:1rem;
-          line-height:1;
-          font-weight:500;
-          transition:all 0.2s ease;
-        }
-        .infra-limited-close:hover {
-          border-color:rgba(255,255,255,0.26);
-          background:rgba(255,255,255,0.08);
-          color:rgba(255,255,255,0.96);
-        }
-        .infra-limited-close:focus-visible,
         .infra-limited-btn:focus-visible {
           outline:none;
           box-shadow:0 0 0 2px rgba(227,27,84,0.35);
@@ -4921,7 +5058,7 @@ export default function SoftwareDemo() {
           letter-spacing:0.2em;
           text-transform:uppercase;
           color:rgba(255,255,255,0.34);
-          margin-bottom:0.45rem;
+          margin-bottom:0.78rem;
           padding-right:2rem;
         }
         .infra-limited-eyebrow-dot {
@@ -4937,39 +5074,102 @@ export default function SoftwareDemo() {
           font-size:clamp(1.12rem, 2vw, 1.42rem);
           font-weight:700;
           letter-spacing:-0.02em;
-          line-height:1.16;
+          line-height:1.2;
           background:linear-gradient(135deg, #f1f5f9 0%, rgba(241,245,249,0.66) 100%);
           -webkit-background-clip:text;
           -webkit-text-fill-color:transparent;
           background-clip:text;
         }
-        .infra-limited-desc {
-          margin:0.64rem 0 0;
+        .infra-limited-definition {
+          margin:0.98rem 0 0;
           font-size:0.8rem;
           line-height:1.63;
-          color:rgba(255,255,255,0.54);
+          font-family:'Inter',ui-sans-serif,system-ui,sans-serif;
+          color:rgba(255,255,255,0.68);
+        }
+        .infra-limited-desc {
+          margin:1.08rem 0 0;
+          padding-top:1rem;
+          border-top:1px solid rgba(255,255,255,0.08);
+          font-size:0.8rem;
+          line-height:1.63;
+          font-family:'Inter',ui-sans-serif,system-ui,sans-serif;
+          color:rgba(255,255,255,0.52);
+        }
+        .infra-limited-disclaimer-label {
+          display:block;
+          margin-bottom:0.52rem;
+          font-size:0.8rem;
+          line-height:1.4;
+          font-weight:500;
+          letter-spacing:0;
+          text-transform:none;
+          color:rgba(227,27,84,0.82);
+        }
+        .infra-limited-disclaimer-title {
+          display:block;
+          margin-bottom:0.42rem;
+          font-size:0.8rem;
+          line-height:1.4;
+          font-weight:600;
+          letter-spacing:0;
+          text-transform:none;
+          color:rgba(255,255,255,0.8);
         }
         .infra-limited-actions {
-          margin-top:1rem;
+          margin-top:1.5rem;
           display:flex;
           flex-wrap:wrap;
-          gap:0.58rem;
+          gap:0.78rem;
         }
         .infra-limited-btn {
           display:inline-flex;
           align-items:center;
           justify-content:center;
+          gap:0.52rem;
+          position:relative;
+          overflow:hidden;
           text-decoration:none;
-          border-radius:10px;
+          border-radius:11px;
           border:1px solid rgba(227,27,84,0.54);
           background:#E31B54;
           color:#fff;
-          font-size:0.64rem;
-          letter-spacing:0.1em;
+          font-size:0.72rem;
+          letter-spacing:0.11em;
           font-weight:600;
           text-transform:uppercase;
-          padding:0.6rem 0.88rem;
+          padding:0.86rem 1.28rem;
+          min-height:44px;
           transition:all 0.2s ease;
+        }
+        .infra-limited-btn::before {
+          content:"";
+          position:absolute;
+          inset:0;
+          border-radius:11px;
+          padding:1px;
+          background:radial-gradient(
+            180px circle at var(--btn-mx, 50%) var(--btn-my, 50%),
+            rgba(0,255,166,0.85),
+            rgba(255,215,0,0.62),
+            rgba(236,72,153,0.6),
+            rgba(147,51,234,0.58),
+            rgba(59,130,246,0.5),
+            transparent 70%
+          );
+          -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite:xor;
+          mask-composite:exclude;
+          opacity:0;
+          transition:opacity 0.35s ease;
+          pointer-events:none;
+        }
+        .infra-limited-btn:hover::before {
+          opacity:1;
+        }
+        .infra-limited-btn i {
+          font-size:1.1rem;
+          line-height:1;
         }
         .infra-limited-btn:hover {
           background:#c91449;
@@ -4998,23 +5198,19 @@ export default function SoftwareDemo() {
             0 24px 80px rgba(0,0,0,0.12),
             0 0 0 1px rgba(0,0,0,0.03) inset;
         }
-        :root.light .infra-limited-close {
-          border:1px solid rgba(0,0,0,0.11);
-          background:rgba(0,0,0,0.04);
-          color:rgba(0,0,0,0.56);
-        }
-        :root.light .infra-limited-close:hover {
-          border-color:rgba(0,0,0,0.2);
-          background:rgba(0,0,0,0.07);
-          color:rgba(0,0,0,0.82);
-        }
         :root.light .infra-limited-eyebrow { color:rgba(0,0,0,0.34); }
         :root.light .infra-limited-title {
           background:linear-gradient(135deg, #0f172a 0%, rgba(15,23,42,0.68) 100%);
           -webkit-background-clip:text;
           background-clip:text;
         }
-        :root.light .infra-limited-desc { color:rgba(0,0,0,0.57); }
+        :root.light .infra-limited-definition { color:rgba(0,0,0,0.68); }
+        :root.light .infra-limited-desc {
+          color:rgba(0,0,0,0.57);
+          border-top:1px solid rgba(0,0,0,0.1);
+        }
+        :root.light .infra-limited-disclaimer-label { color:rgba(227,27,84,0.8); }
+        :root.light .infra-limited-disclaimer-title { color:rgba(0,0,0,0.74); }
         :root.light .infra-limited-btn {
           color:#fff;
           background:#E31B54;
@@ -5060,17 +5256,21 @@ export default function SoftwareDemo() {
           }
         }
         @media(max-width:640px){
-          .infra-limited-modal-wrap { padding:0.72rem; }
-          .infra-limited-modal { width:100%; padding:0.95rem 0.84rem 0.88rem; }
+          .infra-limited-modal-wrap { padding:0.9rem; }
+          .infra-limited-modal { width:100%; padding:1.2rem 1.02rem 1.04rem; }
           .infra-limited-eyebrow { font-size:0.52rem; letter-spacing:0.16em; }
-          .infra-limited-title { font-size:1.04rem; }
-          .infra-limited-desc { font-size:0.72rem; }
-          .infra-limited-actions { gap:0.45rem; }
+          .infra-limited-title { font-size:1.06rem; }
+          .infra-limited-definition { font-size:0.74rem; }
+          .infra-limited-desc { font-size:0.74rem; }
+          .infra-limited-disclaimer-title,
+          .infra-limited-disclaimer-label { font-size:0.74rem; }
+          .infra-limited-actions { gap:0.58rem; margin-top:1.1rem; }
           .infra-limited-btn {
             width:100%;
             justify-content:center;
-            padding:0.52rem 0.74rem;
-            font-size:0.58rem;
+            padding:0.74rem 0.98rem;
+            font-size:0.64rem;
+            min-height:42px;
           }
         }
         .infra-leaflet-map {
@@ -5830,8 +6030,6 @@ export default function SoftwareDemo() {
         }
 
         .learn-panel {
-          align-items:center;
-          justify-content:center;
           background:linear-gradient(160deg,#04040b 0%, #0b0812 100%);
           position:relative;
           overflow:hidden;
@@ -5844,55 +6042,30 @@ export default function SoftwareDemo() {
           border-radius:50%;
           background:radial-gradient(circle, rgba(227,27,84,0.25), rgba(227,27,84,0) 70%);
           filter:blur(6px);
+          top:50%;
+          left:50%;
+          transform:translate(-50%,-50%);
+          pointer-events:none;
         }
-        .learn-shell {
-          position:relative;
-          z-index:2;
-          width:min(88%, 560px);
-          border:1px solid rgba(255,255,255,0.12);
-          border-radius:14px;
-          background:linear-gradient(145deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015));
-          padding:1.6rem;
-          box-shadow:0 20px 50px rgba(0,0,0,0.35);
+        .learn-modal-wrap {
+          background:transparent;
+          backdrop-filter:none;
+          -webkit-backdrop-filter:none;
+          z-index:3;
         }
-        :root.light .learn-shell {
-          border:1px solid rgba(0,0,0,0.12);
-          background:linear-gradient(145deg,rgba(255,255,255,0.88),rgba(255,255,255,0.64));
-          box-shadow:0 12px 30px rgba(15,23,42,0.12);
+        .learn-modal-wrap .infra-limited-modal {
+          animation:none;
         }
-        .learn-kicker {
-          font-size:0.58rem;
-          letter-spacing:0.2em;
-          color:#E31B54;
-          margin-bottom:0.7rem;
+        .learn-panel .infra-limited-title {
+          margin:0;
         }
-        .learn-title { margin:0 0 0.75rem; font-size:1.6rem; letter-spacing:-0.02em; }
-        .learn-desc {
-          margin:0 0 1.2rem;
-          font-size:0.78rem;
-          line-height:1.6;
-          color:rgba(255,255,255,0.68);
+        @media(max-width:640px){
+          .learn-modal-wrap { padding:0.9rem; }
+          .learn-modal-wrap .infra-limited-modal {
+            width:100%;
+            padding:1.2rem 1.02rem 1.04rem;
+          }
         }
-        :root.light .learn-desc { color:rgba(0,0,0,0.62); }
-        .learn-actions { display:flex; gap:0.55rem; flex-wrap:wrap; }
-        .learn-btn {
-          font-size:0.63rem;
-          letter-spacing:0.14em;
-          text-transform:uppercase;
-          text-decoration:none;
-          color:#fff;
-          border:1px solid rgba(227,27,84,0.52);
-          background:rgba(227,27,84,0.16);
-          border-radius:999px;
-          padding:0.55rem 0.85rem;
-        }
-        .learn-btn-ghost {
-          color:rgba(255,255,255,0.82);
-          background:rgba(255,255,255,0.02);
-          border-color:rgba(255,255,255,0.24);
-        }
-        :root.light .learn-btn { color:#7f1236; background:rgba(227,27,84,0.14); }
-        :root.light .learn-btn-ghost { color:#0f172a; background:rgba(0,0,0,0.03); border-color:rgba(0,0,0,0.2); }
       `}</style>
 
       <div className={`sdemo-root${revealed ? " revealed" : ""}`} ref={sectionRef}>
@@ -5904,7 +6077,7 @@ export default function SoftwareDemo() {
                 <span className="sdemo-eyebrow-dot" />
                 Platform Suite
               </div>
-              <h2 className="sdemo-heading">The Software Arsenal</h2>
+              <h2 className="sdemo-heading">Featured System Demo</h2>
               <div className="sdemo-rule" />
             </div>
             <p className="sdemo-header-desc">
@@ -5925,10 +6098,6 @@ export default function SoftwareDemo() {
           </div>
 
           <div className="sdemo-meta">
-            <div>
-              <div className="sdemo-tagline">{sw.tagline}</div>
-              <div className="sdemo-desc">{sw.desc}</div>
-            </div>
             <div className="sdemo-nav">
               <button type="button" className="sdemo-arrow" onClick={back} aria-label="Previous software">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
