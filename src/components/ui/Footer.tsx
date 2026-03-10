@@ -1055,7 +1055,7 @@ const Footer = ({ onNavigate }: FooterProps) => {
             {/* Status badge — always dark bg so text contrast is stable */}
             <div className="nr-system-status">
               <span className="w-1.5 h-1.5 rounded-full animate-pulse flex-shrink-0" style={{ background: '#EB1143', boxShadow: '0 0 8px rgba(235,17,67,0.8)' }} />
-              <span className="nr-system-status-text">the many return to one</span>
+              <span className="nr-system-status-text">At the Core of Critical Operations</span>
             </div>
           </div>
 
@@ -1092,7 +1092,7 @@ const Footer = ({ onNavigate }: FooterProps) => {
         {/* Bottom bar */}
         <div className="flex flex-col-reverse sm:flex-row items-center sm:justify-between justify-center pt-10 gap-5 nr-bottom-bar">
           <p className="nr-copyright">
-            &copy; 2026 Notus Regalia — The Notus Dynasty
+            &copy; 2026 Notus Regalia — NR Group
             <br />
             All rights reserved.
           </p>
