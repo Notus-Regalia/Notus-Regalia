@@ -27,13 +27,33 @@ const SmoothScroller = ({ children }: SmoothScrollerProps) => {
   const smoother = useRef<ScrollSmoother | null>(null);
 
   useEffect(() => {
+    const previousRestoration =
+      "scrollRestoration" in window.history ? window.history.scrollRestoration : null;
+
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+
+    // Clear any native/GSAP scroll memory and jump to top on fresh mount/reload.
+    ScrollTrigger.clearScrollMemory?.();
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+
     // Detect touch / mobile — skip ScrollSmoother to save CPU
     const isMobile =
       "ontouchstart" in window ||
       navigator.maxTouchPoints > 0 ||
       window.matchMedia("(pointer: coarse)").matches;
 
-    if (isMobile) return;
+    if (isMobile) {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+      });
+      return () => {
+        if (previousRestoration && "scrollRestoration" in window.history) {
+          window.history.scrollRestoration = previousRestoration;
+        }
+      };
+    }
 
     smoother.current = ScrollSmoother.create({
       wrapper: "#smooth-wrapper",
@@ -44,9 +64,14 @@ const SmoothScroller = ({ children }: SmoothScrollerProps) => {
       ignoreMobileResize: true,
     });
 
+    smoother.current.scrollTo(0, false);
+
     return () => {
       smoother.current?.kill();
       smoother.current = null;
+      if (previousRestoration && "scrollRestoration" in window.history) {
+        window.history.scrollRestoration = previousRestoration;
+      }
     };
   }, []);
 

@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback, useMemo, type RefObject } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, type ReactElement, type RefObject } from "react";
 import { gsap } from "gsap";
 
 function useGlitch(intervalMs = 4000) {
@@ -246,16 +246,125 @@ const GOV_FLOW_CARDS = [
   { id: "response", title: "Resilience Command Network", cluster: "response", x: "74%", y: "56%", items: ["Multi-agency dispatch", "Situation room escalation", "Recovery resource alignment"] },
 ] as const;
 
+const GOV_CLUSTER_STAGE: Record<C2Node["cluster"], string> = {
+  citizen: "Validation Path",
+  business: "Validation Path",
+  revenue: "Processing Path",
+  response: "Escalation Path",
+};
+
+type ServiceFocusPayload = {
+  service: string;
+  stage: string;
+  detail: string;
+};
+
+type FeaturedSoftwareId = "government" | "infrastructure" | "command";
+
+const LIMITED_ENVIRONMENT_LINKS: Record<FeaturedSoftwareId, { requestDemoHref: string; viewSpecsHref: string }> = {
+  government: {
+    requestDemoHref: "#request-demo-government",
+    viewSpecsHref: "#view-specifications-government",
+  },
+  infrastructure: {
+    requestDemoHref: "#request-demo-infrastructure",
+    viewSpecsHref: "#view-specifications-infrastructure",
+  },
+  command: {
+    requestDemoHref: "#request-demo-command",
+    viewSpecsHref: "#view-specifications-command",
+  },
+};
+
+type GovFlowCard = (typeof GOV_FLOW_CARDS)[number];
+
+function LimitedEnvironmentModal({
+  surfaceLabel,
+  requestDemoHref,
+  viewSpecsHref,
+  onClose,
+}: {
+  surfaceLabel: string;
+  requestDemoHref: string;
+  viewSpecsHref: string;
+  onClose: () => void;
+}) {
+  return (
+    <div className="infra-limited-modal-wrap" role="dialog" aria-modal="true" aria-label="Limited environment notice">
+      <div className="infra-limited-modal">
+        <div className="infra-limited-accent" />
+        <button
+          type="button"
+          className="infra-limited-close"
+          onClick={onClose}
+          aria-label="Close limited environment notice"
+        >
+          ×
+        </button>
+        <div className="sw-mono infra-limited-eyebrow">
+          <span className="infra-limited-eyebrow-dot" />
+          {surfaceLabel}
+        </div>
+        <h4 className="infra-limited-title">Limited Environment</h4>
+        <p className="infra-limited-desc">
+          A limited demonstration of the platform. Full operational access is available through a private briefing demo or licensed deployment.
+        </p>
+        <div className="infra-limited-actions">
+          <a href={requestDemoHref} className="infra-limited-btn">Request a Demo</a>
+          <a href={viewSpecsHref} className="infra-limited-btn infra-limited-btn-ghost">View Specifications</a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GovernmentServiceCard({
+  card,
+  isActive,
+  mobile = false,
+  onCardSelect,
+}: {
+  card: GovFlowCard;
+  isActive: boolean;
+  mobile?: boolean;
+  onCardSelect: (payload: ServiceFocusPayload) => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={`gov-card${isActive ? " active" : ""}${mobile ? " gov-card-mobile" : ""}`}
+      style={mobile ? undefined : { left: card.x, top: card.y }}
+      onClick={() =>
+        onCardSelect({
+          service: card.title,
+          stage: GOV_CLUSTER_STAGE[card.cluster],
+          detail: card.items.join(" • "),
+        })
+      }
+    >
+      <div className="gov-card-head">
+        <span className="gov-card-led" />
+        <span>{card.title}</span>
+      </div>
+      <div className="gov-card-body">
+        {card.items.map((item) => (
+          <div key={item} className="gov-item">{item}</div>
+        ))}
+      </div>
+    </button>
+  );
+}
+
 function GovernmentServiceFlow({
   activeCluster,
   onCardSelect,
 }: {
   activeCluster: C2Node["cluster"];
-  onCardSelect: (payload: { service: string; stage: string; detail: string }) => void;
+  onCardSelect: (payload: ServiceFocusPayload) => void;
 }) {
   return (
     <div className="gov-flow-root">
-      <div className="gov-flow-board">
+      <div className="gov-flow-board gov-flow-board-desktop">
         <svg className="gov-flow-lines" viewBox="0 0 1000 620" preserveAspectRatio="none" aria-hidden="true">
           <path d="M245,160 L365,160 L365,115 L380,115" className="gov-stroke" />
           <path d="M605,160 L725,160" className="gov-stroke" />
@@ -274,36 +383,33 @@ function GovernmentServiceFlow({
         </svg>
 
         {GOV_FLOW_CARDS.map((card) => (
-          <button
+          <GovernmentServiceCard
             key={card.id}
-            className={`gov-card${card.cluster === activeCluster ? " active" : ""}`}
-            style={{ left: card.x, top: card.y }}
-            onClick={() =>
-              onCardSelect({
-                service: card.title,
-                stage: card.cluster === "response" ? "Escalation Path" : card.cluster === "revenue" ? "Processing Path" : "Validation Path",
-                detail: card.items.join(" • "),
-              })
-            }
-          >
-            <div className="gov-card-head">
-              <span className="gov-card-led" />
-              <span>{card.title}</span>
-            </div>
-            <div className="gov-card-body">
-              {card.items.map((item) => (
-                <div key={item} className="gov-item">{item}</div>
-              ))}
-            </div>
-          </button>
+            card={card}
+            isActive={card.cluster === activeCluster}
+            onCardSelect={onCardSelect}
+          />
+        ))}
+      </div>
+      <div className="gov-flow-mobile">
+        {GOV_FLOW_CARDS.map((card) => (
+          <GovernmentServiceCard
+            key={card.id}
+            card={card}
+            isActive={card.cluster === activeCluster}
+            mobile
+            onCardSelect={onCardSelect}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function CommandControl() {
+// Government Systems window: primary place to edit the live coordination experience.
+function GovernmentSystemsWindow() {
   const [active, setActive] = useState(C2_NODES[0]);
+  const [showLimitedEnvironmentModal, setShowLimitedEnvironmentModal] = useState(true);
   const glitch = useGlitch();
   const time = useClock();
   const [serviceFocus, setServiceFocus] = useState(active.focus);
@@ -321,7 +427,7 @@ function CommandControl() {
   ];
 
   return (
-    <div className="sw-panel c2-panel">
+    <div className={`sw-panel c2-panel${showLimitedEnvironmentModal ? " sw-panel-modal-open" : ""}`}>
       <div className="scanline" />
       <div className="c2-topbar">
         <div className="c2-topbar-left">
@@ -335,21 +441,24 @@ function CommandControl() {
         </div>
       </div>
       <aside className="c2-sidebar">
-        <div className="sw-mono sw-dim" style={{ marginBottom: "1rem", fontSize: "0.6rem", letterSpacing: "0.16em" }}>
+        <div className="sw-mono sw-dim c2-sidebar-label">
           COORDINATED_SERVICES // PH GOV GRID
         </div>
-        {C2_NODES.map((n) => (
-          <div
-            key={n.id}
-            className={`c2-node${active.id === n.id ? " c2-node-active" : ""}`}
-            onClick={() => setActive(n)}
-          >
-            <div className="sw-mono" style={{ fontSize: "0.55rem", opacity: 0.4 }}>{n.id}</div>
-            <div style={{ fontWeight: 700, fontSize: "0.88rem" }}>{n.label}</div>
-            <div className="sw-mono" style={{ fontSize: "0.65rem", color: n.color }}>● {n.status}</div>
-            <div className="sw-mono sw-dim" style={{ fontSize: "0.55rem", marginTop: "0.25rem" }}>{n.coord}</div>
-          </div>
-        ))}
+        <div className="c2-node-list">
+          {C2_NODES.map((n) => (
+            <button
+              type="button"
+              key={n.id}
+              className={`c2-node${active.id === n.id ? " c2-node-active" : ""}`}
+              onClick={() => setActive(n)}
+            >
+              <div className="sw-mono c2-node-id">{n.id}</div>
+              <div className="c2-node-title">{n.label}</div>
+              <div className="sw-mono c2-node-status" style={{ color: n.color }}>● {n.status}</div>
+              <div className="sw-mono sw-dim c2-node-coord">{n.coord}</div>
+            </button>
+          ))}
+        </div>
       </aside>
       <main className="c2-radar">
         <GovernmentServiceFlow activeCluster={active.cluster} onCardSelect={setServiceFocus} />
@@ -393,7 +502,7 @@ function CommandControl() {
             </div>
           ))}
         </div>
-        <div style={{ marginTop: "auto", paddingTop: "1.2rem" }}>
+        <div className="c2-status-foot">
           <div className="sw-mono" style={{ color: glitch ? "#f59e0b" : "#00ffaa", fontWeight: 700, fontSize: "0.72rem" }}>
             FRAMEWORK {glitch ? "DEGRADED" : "COORDINATED"}
           </div>
@@ -402,6 +511,14 @@ function CommandControl() {
           </div>
         </div>
       </aside>
+      {showLimitedEnvironmentModal && (
+        <LimitedEnvironmentModal
+          surfaceLabel="Government Systems"
+          requestDemoHref={LIMITED_ENVIRONMENT_LINKS.government.requestDemoHref}
+          viewSpecsHref={LIMITED_ENVIRONMENT_LINKS.government.viewSpecsHref}
+          onClose={() => setShowLimitedEnvironmentModal(false)}
+        />
+      )}
     </div>
   );
 }
@@ -2503,6 +2620,7 @@ function InfrastructureIntelligence() {
   const [selectedGovPoint, setSelectedGovPoint] = useState<GovInfrastructurePoint | null>(null);
   const [activeProvinceId, setActiveProvinceId] = useState<string | null>(null);
   const [hoveredProvinceId, setHoveredProvinceId] = useState<string | null>(null);
+  const [showLimitedEnvironmentModal, setShowLimitedEnvironmentModal] = useState(true);
   const [c2FilterEnabled, setC2FilterEnabled] = useState(true);
   const [trackingEnabled, setTrackingEnabled] = useState(true);
   const [beaconMode, setBeaconMode] = useState<"compressed" | "expanded">("expanded");
@@ -2838,7 +2956,7 @@ function InfrastructureIntelligence() {
   }, []);
 
   useEffect(() => {
-    if (mapState !== "ready" || !trackingEnabled) return;
+    if (mapState !== "ready" || !trackingEnabled || showLimitedEnvironmentModal) return;
     const map = mapInstanceRef.current;
     if (!map || typeof map.getContainer !== "function") return;
     const container = map.getContainer() as HTMLElement | null;
@@ -2979,7 +3097,20 @@ function InfrastructureIntelligence() {
       map.off("dragstart", handleDragStart);
       map.off("dragend", handleDragEnd);
     };
-  }, [mapState, trackingEnabled]);
+  }, [mapState, trackingEnabled, showLimitedEnvironmentModal]);
+
+  useEffect(() => {
+    if (mapState !== "ready") return;
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (showLimitedEnvironmentModal) {
+      map.dragging?.disable?.();
+      return;
+    }
+
+    map.dragging?.enable?.();
+  }, [mapState, showLimitedEnvironmentModal]);
 
   useEffect(() => {
     if (mapState !== "ready" || govLayerState !== "ready") return;
@@ -3298,10 +3429,18 @@ function InfrastructureIntelligence() {
 
         <div
           ref={mapStageRef}
-          className={`infra-map-stage crosshair-enabled${c2FilterEnabled ? " infra-map-stage-c2" : ""}`}
+          className={`infra-map-stage${showLimitedEnvironmentModal ? "" : " crosshair-enabled"}${c2FilterEnabled ? " infra-map-stage-c2" : ""}${showLimitedEnvironmentModal ? " infra-map-stage-modal-open" : ""}`}
         >
           <div ref={mapHostRef} className="infra-leaflet-map" />
           <Crosshair color="var(--sdemo-crosshair-color, rgba(255,255,255,0.86))" containerRef={mapStageRef} />
+          {showLimitedEnvironmentModal && (
+            <LimitedEnvironmentModal
+              surfaceLabel="Infrastructure Intelligence"
+              requestDemoHref={LIMITED_ENVIRONMENT_LINKS.infrastructure.requestDemoHref}
+              viewSpecsHref={LIMITED_ENVIRONMENT_LINKS.infrastructure.viewSpecsHref}
+              onClose={() => setShowLimitedEnvironmentModal(false)}
+            />
+          )}
           {mapState === "ready" && (
             <div className={`infra-gov-chip ${govLayerState}`}>
               <span className="sw-mono">
@@ -3368,8 +3507,81 @@ function InfrastructureIntelligence() {
   );
 }
 
-function CommandControlBlank() {
-  return <div className="sw-panel blank-panel" />;
+const COMMAND_WORKSTREAMS = [
+  {
+    id: "timeline",
+    title: "Incident Timeline",
+    status: "Queued",
+    items: ["Cross-agency event stream", "Escalation checkpoints", "Responder acknowledgements"],
+  },
+  {
+    id: "dispatch",
+    title: "Taskforce Dispatch",
+    status: "Designing",
+    items: ["Role-based assignments", "Geo-fenced response units", "Rules for authority handoffs"],
+  },
+  {
+    id: "playbooks",
+    title: "Playbook Engine",
+    status: "Planning",
+    items: ["Crisis runbooks", "Automatic policy triggers", "After-action report output"],
+  },
+] as const;
+
+// Command & Control window scaffold: replace cards and telemetry blocks as this module evolves.
+function CommandControlWindow() {
+  const [showLimitedEnvironmentModal, setShowLimitedEnvironmentModal] = useState(true);
+  const time = useClock();
+
+  return (
+    <div className={`sw-panel command-panel${showLimitedEnvironmentModal ? " sw-panel-modal-open" : ""}`}>
+      <div className="scanline" />
+      <div className="command-shell">
+        <div className="command-header">
+          <div>
+            <div className="sw-mono command-kicker">COMMAND & CONTROL // WORKBENCH</div>
+            <h3 className="command-title">Mission Orchestration Surface</h3>
+            <p className="command-desc">
+              This window is scaffolded for your upcoming edits. Replace these blocks with your incident controls,
+              routing logic, and command workflows.
+            </p>
+          </div>
+          <div className="command-stamp sw-mono">
+            <span>STATUS: RESERVED</span>
+            <span>{time}</span>
+          </div>
+        </div>
+
+        <div className="command-grid">
+          {COMMAND_WORKSTREAMS.map((workstream) => (
+            <article key={workstream.id} className="command-card">
+              <div className="command-card-top">
+                <h4>{workstream.title}</h4>
+                <span className="sw-mono">{workstream.status}</span>
+              </div>
+              <ul className="command-items">
+                {workstream.items.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+
+        <div className="command-footer sw-mono">
+          Reserve this space for mission timeline, command approvals, and inter-agency escalation pathways.
+        </div>
+      </div>
+      {showLimitedEnvironmentModal && (
+        <LimitedEnvironmentModal
+          surfaceLabel="Command and Control"
+          requestDemoHref={LIMITED_ENVIRONMENT_LINKS.command.requestDemoHref}
+          viewSpecsHref={LIMITED_ENVIRONMENT_LINKS.command.viewSpecsHref}
+          onClose={() => setShowLimitedEnvironmentModal(false)}
+        />
+      )}
+    </div>
+  );
 }
 
 function LearnMoreCard() {
@@ -3392,14 +3604,26 @@ function LearnMoreCard() {
   );
 }
 
-const SOFTWARES = [
+type SoftwareWindowDefinition = {
+  id: "government" | "infrastructure" | "command" | "learn";
+  tag: string;
+  name: string;
+  industry: string;
+  tagline: string;
+  desc: string;
+  status: string;
+  uptime: string;
+  component: () => ReactElement;
+};
+
+const SOFTWARE_WINDOWS: SoftwareWindowDefinition[] = [
   {
     id: "government", tag: "01", name: "Government Systems", industry: "Public Sector",
     tagline: "Unified Government Services Framework",
     desc: "A coordinated national services framework for the Philippines, built to eliminate fragmented agency workflows and deliver seamless citizen service.",
     status: "LIVE",
     uptime: "99.98%",
-    component: CommandControl,
+    component: GovernmentSystemsWindow,
   },
   {
     id: "infrastructure", tag: "02", name: "Infrastructure Intelligence", industry: "National Infrastructure",
@@ -3412,10 +3636,10 @@ const SOFTWARES = [
   {
     id: "command", tag: "03", name: "Command & Control", industry: "Coordination",
     tagline: "Reserved Command Surface",
-    desc: "",
+    desc: "Command mission surface reserved for incident workflows, dispatch controls, and escalation orchestration.",
     status: "PENDING",
     uptime: "--",
-    component: CommandControlBlank,
+    component: CommandControlWindow,
   },
   {
     id: "learn", tag: "04", name: "Learn more", industry: "Overview",
@@ -3426,6 +3650,39 @@ const SOFTWARES = [
     component: LearnMoreCard,
   },
 ];
+
+function SoftwareTab({
+  software,
+  index,
+  active,
+  onSelect,
+}: {
+  software: SoftwareWindowDefinition;
+  index: number;
+  active: boolean;
+  onSelect: (index: number) => void;
+}) {
+  return (
+    <button
+      type="button"
+      role="tab"
+      aria-selected={active}
+      className={`sdemo-tab${active ? " active" : ""}`}
+      onClick={() => onSelect(index)}
+    >
+      <div className="sdemo-tab-top">
+        <span className="sdemo-tab-tag">{software.tag}</span>
+        <span className="sdemo-tab-status">{software.status}</span>
+      </div>
+      <span className="sdemo-tab-name">{software.name}</span>
+      <span className="sdemo-tab-industry">{software.industry}</span>
+      <div className="sdemo-tab-foot">
+        <span className="sw-mono sdemo-tab-up">UPTIME {software.uptime}</span>
+        <span className="sdemo-tab-open">Open</span>
+      </div>
+    </button>
+  );
+}
 
 export default function SoftwareDemo() {
   const [active, setActive]       = useState(0);
@@ -3445,17 +3702,17 @@ export default function SoftwareDemo() {
     return () => obs.disconnect();
   }, []);
 
-  const goto = useCallback((i) => {
+  const goto = useCallback((i: number) => {
     if (i === active || transitioning) return;
     setDir(i > active ? "next" : "prev");
     setTrans(true);
     setTimeout(() => { setActive(i); setTrans(false); }, 320);
   }, [active, transitioning]);
 
-  const next = () => goto((active + 1) % SOFTWARES.length);
-  const back = () => goto((active - 1 + SOFTWARES.length) % SOFTWARES.length);
+  const next = () => goto((active + 1) % SOFTWARE_WINDOWS.length);
+  const back = () => goto((active - 1 + SOFTWARE_WINDOWS.length) % SOFTWARE_WINDOWS.length);
 
-  const sw = SOFTWARES[active];
+  const sw = SOFTWARE_WINDOWS[active];
   const ActiveComp = sw.component;
 
   return (
@@ -3526,17 +3783,17 @@ export default function SoftwareDemo() {
         }
 
         .sdemo-inner {
-          padding: 5rem 2rem 6rem;
+          padding: 4rem 1rem 5rem;
         }
-        @media(min-width:640px){.sdemo-inner{padding:5rem 4rem 6rem;}}
-        @media(min-width:768px){.sdemo-inner{padding:6rem 6rem 7rem;}}
-        @media(min-width:1024px){.sdemo-inner{padding:6rem 6rem 7rem;}}
-        @media(min-width:1280px){.sdemo-inner{padding:7rem 8rem 8rem;}}
-        @media(min-width:1536px){.sdemo-inner{padding:7rem 12rem 8rem;}}
-        @media(min-width:1920px){.sdemo-inner{padding:7rem 16rem 8rem;}}
+        @media(min-width:640px){.sdemo-inner{padding:4.75rem 1.5rem 5.5rem;}}
+        @media(min-width:768px){.sdemo-inner{padding:5.5rem 3rem 6.25rem;}}
+        @media(min-width:1024px){.sdemo-inner{padding:6rem 5rem 7rem;}}
+        @media(min-width:1280px){.sdemo-inner{padding:6.5rem 7rem 7.5rem;}}
+        @media(min-width:1536px){.sdemo-inner{padding:7rem 10rem 8rem;}}
+        @media(min-width:1920px){.sdemo-inner{padding:7rem 14rem 8rem;}}
 
-        .sdemo-header { display:flex; flex-direction:column; gap:2rem; margin-bottom:3.5rem; }
-        @media(min-width:768px){ .sdemo-header { flex-direction:row; align-items:flex-end; justify-content:space-between; } }
+        .sdemo-header { display:flex; flex-direction:column; gap:1.5rem; margin-bottom:2.25rem; }
+        @media(min-width:768px){ .sdemo-header { flex-direction:row; align-items:flex-end; justify-content:space-between; gap:2rem; margin-bottom:3rem; } }
         .sdemo-eyebrow {
           display:inline-flex; align-items:center; gap:0.5rem;
           font-size:0.62rem; text-transform:uppercase; letter-spacing:0.24em;
@@ -3558,32 +3815,49 @@ export default function SoftwareDemo() {
           -webkit-background-clip:text; background-clip:text;
         }
         .sdemo-rule { width:40px; height:2px; background:#E31B54; border-radius:999px; box-shadow:0 0 8px rgba(227,27,84,0.5); margin-top:1rem; }
-        .sdemo-header-desc { font-size:0.88rem; line-height:1.75; color:rgba(255,255,255,0.4); font-family:'Inter',ui-sans-serif,system-ui,sans-serif; }
+        .sdemo-header-desc {
+          max-width:min(100%, 540px);
+          font-size:0.82rem;
+          line-height:1.65;
+          color:rgba(255,255,255,0.4);
+          font-family:'Inter',ui-sans-serif,system-ui,sans-serif;
+        }
         :root.light .sdemo-header-desc { color:rgba(0,0,0,0.45); }
+        @media(min-width:768px){
+          .sdemo-header-desc {
+            font-size:0.88rem;
+            line-height:1.75;
+            text-align:right;
+          }
+        }
 
         .sdemo-tabs {
-          display:grid;
-          grid-template-columns:repeat(4,minmax(180px,1fr));
-          gap:0.8rem;
+          display:flex;
+          gap:0.65rem;
           margin-bottom:2rem;
           overflow-x:auto;
+          overflow-y:hidden;
           scrollbar-width:none;
+          padding-bottom:0.2rem;
         }
-        @media(max-width:960px){
+        @media(min-width:960px){
           .sdemo-tabs {
-            grid-template-columns:repeat(2,minmax(0,1fr));
-            gap:0.65rem;
-            overflow-x:visible;
+            display:grid;
+            grid-template-columns:repeat(4,minmax(160px,1fr));
+            gap:0.8rem;
+            overflow:visible;
+            padding-bottom:0;
           }
         }
         .sdemo-tabs::-webkit-scrollbar { display:none; }
 
         .sdemo-tab {
-          min-width:210px;
+          min-width:220px;
+          flex:0 0 220px;
           display:flex;
           flex-direction:column;
           gap:0.28rem;
-          padding:0.95rem 1rem;
+          padding:0.85rem 0.9rem;
           border:1px solid rgba(255,255,255,0.09);
           background:linear-gradient(155deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015));
           cursor:pointer;
@@ -3594,8 +3868,12 @@ export default function SoftwareDemo() {
           white-space:normal;
           backdrop-filter: blur(8px);
         }
-        @media(max-width:960px){
-          .sdemo-tab { min-width:0; }
+        @media(min-width:960px){
+          .sdemo-tab {
+            min-width:0;
+            flex:1 1 auto;
+            padding:0.95rem 1rem;
+          }
         }
         .sdemo-tab:hover {
           transform:translateY(-2px);
@@ -3681,11 +3959,15 @@ export default function SoftwareDemo() {
         .sdemo-tab-open { font-size:0.6rem; color:rgba(255,255,255,0.5); }
         :root.light .sdemo-tab-open { color:rgba(0,0,0,0.45); }
 
-        .sdemo-meta { display:flex; align-items:center; justify-content:space-between; gap:1.5rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+        .sdemo-meta { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1.2rem; flex-wrap:wrap; }
         .sdemo-tagline { font-size:clamp(1rem,2vw,1.3rem); font-weight:700; letter-spacing:-0.02em; color:rgba(255,255,255,0.9); margin-bottom:0.2rem; }
         :root.light .sdemo-tagline { color:rgba(0,0,0,0.9); }
         .sdemo-desc { font-size:0.82rem; line-height:1.6; color:rgba(255,255,255,0.38); font-family:'Inter',ui-sans-serif,system-ui,sans-serif; }
         :root.light .sdemo-desc { color:rgba(0,0,0,0.45); }
+        @media(max-width:640px){
+          .sdemo-meta > div:first-child { width:100%; }
+          .sdemo-nav { width:100%; justify-content:flex-end; }
+        }
 
         .sdemo-nav { display:flex; gap:0.5rem; align-items:center; flex-shrink:0; }
         .sdemo-arrow {
@@ -3705,10 +3987,11 @@ export default function SoftwareDemo() {
         .sdemo-viewport {
           position:relative; border:1px solid rgba(255,255,255,0.08);
           border-radius:10px; overflow:hidden; background:#050510;
-          height:680px;
+          height:clamp(640px, 76vh, 760px);
         }
         :root.light .sdemo-viewport { border:1px solid rgba(0,0,0,0.12); background:#eceef3; }
-        @media(max-width:640px){ .sdemo-viewport { height:560px; } }
+        @media(max-width:960px){ .sdemo-viewport { height:clamp(680px, 84vh, 860px); } }
+        @media(max-width:640px){ .sdemo-viewport { height:clamp(720px, 88vh, 920px); } }
 
         .sdemo-slide {
           position:absolute; inset:0;
@@ -3732,6 +4015,11 @@ export default function SoftwareDemo() {
           position:absolute; inset:0; display:flex; overflow:hidden;
           font-family:'Inter', ui-sans-serif, system-ui, sans-serif; color:#fff;
         }
+        .sw-panel.sw-panel-modal-open > :not(.infra-limited-modal-wrap) {
+          pointer-events:none;
+          user-select:none;
+        }
+        .sw-panel.sw-panel-modal-open .scanline { display:none; }
         :root.light .sw-panel { color:#0f172a; }
         .sw-mono { font-family:ui-monospace, Menlo, monospace; }
         .sw-dim  { color:rgba(255,255,255,0.35); }
@@ -3744,13 +4032,18 @@ export default function SoftwareDemo() {
         }
         @keyframes scan { from{top:0} to{top:100%} }
 
-        .c2-panel { background:radial-gradient(ellipse at 50% 0%,#130419 0%,#04040a 100%); }
+        .c2-panel {
+          background:radial-gradient(ellipse at 50% 0%,#130419 0%,#04040a 100%);
+          display:grid;
+          grid-template-columns:minmax(210px, 240px) minmax(0, 1fr) minmax(210px, 240px);
+          grid-template-rows:40px minmax(0, 1fr);
+          grid-template-areas:
+            "topbar topbar topbar"
+            "sidebar radar stats";
+        }
         :root.light .c2-panel { background:#eceef3; }
         .c2-topbar {
-          position:absolute;
-          top:0;
-          left:0;
-          right:0;
+          grid-area:topbar;
           z-index:20;
           height:40px;
           display:flex;
@@ -3764,50 +4057,98 @@ export default function SoftwareDemo() {
           background:linear-gradient(90deg,rgba(255,255,255,0.78),rgba(255,255,255,0.5));
           border-bottom:1px solid rgba(0,0,0,0.1);
         }
-        .c2-topbar-left { display:flex; align-items:center; gap:0.55rem; font-size:0.57rem; letter-spacing:0.16em; }
-        .c2-topbar-right { display:flex; align-items:center; gap:0.8rem; font-size:0.55rem; letter-spacing:0.12em; color:rgba(255,255,255,0.5); }
+        .c2-topbar-left {
+          display:flex;
+          align-items:center;
+          gap:0.55rem;
+          font-size:0.57rem;
+          letter-spacing:0.16em;
+        }
+        .c2-topbar-right {
+          display:flex;
+          align-items:center;
+          gap:0.8rem;
+          font-size:0.55rem;
+          letter-spacing:0.12em;
+          color:rgba(255,255,255,0.5);
+        }
         :root.light .c2-topbar-right { color:rgba(0,0,0,0.5); }
         .c2-led {
           width:7px; height:7px; border-radius:999px; background:#00ffaa;
           box-shadow:0 0 10px rgba(0,255,170,0.65);
           animation:sdPulse 2s ease-in-out infinite;
         }
-        @media(max-width:860px){ .c2-topbar-right span:nth-child(1){display:none;} }
-        @media(max-width:640px){ .c2-topbar-right span:nth-child(3){display:none;} }
+
         .c2-sidebar {
-          width:220px; flex-shrink:0; background:rgba(0,0,0,0.45); padding:1.25rem;
+          grid-area:sidebar;
+          min-width:0;
+          background:rgba(0,0,0,0.45);
+          padding:1.15rem;
           border-right:1px solid rgba(255,255,255,0.07);
-          display:flex; flex-direction:column; gap:0.6rem; overflow-y:auto;
-          margin-top:40px;
+          display:flex;
+          flex-direction:column;
         }
-        :root.light .c2-sidebar { background:rgba(0,0,0,0.04); border-right:1px solid rgba(0,0,0,0.09); }
-        @media(max-width:640px){ .c2-sidebar { width:160px; } }
+        :root.light .c2-sidebar {
+          background:rgba(0,0,0,0.04);
+          border-right:1px solid rgba(0,0,0,0.09);
+        }
+        .c2-sidebar-label {
+          margin-bottom:0.85rem;
+          font-size:0.58rem;
+          letter-spacing:0.14em;
+        }
+        .c2-node-list {
+          display:flex;
+          flex-direction:column;
+          gap:0.6rem;
+          overflow-y:auto;
+          min-height:0;
+          padding-right:0.15rem;
+        }
         .c2-node {
-          padding:0.75rem; border:1px solid rgba(255,255,255,0.05);
-          border-radius:6px; cursor:pointer; transition:all 0.2s ease;
+          padding:0.72rem;
+          border:1px solid rgba(255,255,255,0.06);
+          border-radius:6px;
+          cursor:pointer;
+          transition:all 0.2s ease;
+          background:transparent;
+          color:inherit;
+          text-align:left;
+          font:inherit;
         }
         .c2-node:hover:not(.c2-node-active) { background:rgba(255,255,255,0.03); }
         .c2-node-active { background:rgba(227,27,84,0.1)!important; border-color:#E31B54!important; }
         :root.light .c2-node { border:1px solid rgba(0,0,0,0.1); }
         :root.light .c2-node:hover:not(.c2-node-active) { background:rgba(0,0,0,0.04); }
+        .c2-node-id { font-size:0.55rem; opacity:0.4; }
+        .c2-node-title { font-weight:700; font-size:0.88rem; line-height:1.2; margin-top:0.08rem; }
+        .c2-node-status { font-size:0.65rem; margin-top:0.2rem; }
+        .c2-node-coord { font-size:0.55rem; margin-top:0.25rem; }
+
         .c2-radar {
-          flex:1; background:radial-gradient(circle at center,#0a0a14 0%,#020206 100%);
-          position:relative; display:flex; align-items:center; justify-content:center; overflow:hidden;
-          margin-top:40px;
+          grid-area:radar;
+          background:radial-gradient(circle at center,#0a0a14 0%,#020206 100%);
+          position:relative;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          overflow:hidden;
+          min-width:0;
         }
         :root.light .c2-radar { background:linear-gradient(135deg,#e2e5ef 0%,#d5d9e8 100%); }
+
         .gov-flow-root {
           width:100%;
           height:100%;
           overflow:auto;
-          padding:1.2rem;
+          padding:1rem;
         }
         .gov-flow-board {
           position:relative;
           width:100%;
-          min-width:920px;
+          min-width:880px;
           height:100%;
-          min-height:560px;
+          min-height:540px;
           border:1px solid rgba(255,255,255,0.08);
           border-radius:12px;
           background:
@@ -3815,6 +4156,8 @@ export default function SoftwareDemo() {
             linear-gradient(145deg,rgba(0,0,0,0.45),rgba(0,0,0,0.2));
           overflow:hidden;
         }
+        .gov-flow-board-desktop { display:block; }
+        .gov-flow-mobile { display:none; }
         :root.light .gov-flow-board {
           border:1px solid rgba(0,0,0,0.12);
           background:
@@ -3916,16 +4259,161 @@ export default function SoftwareDemo() {
           line-height:1.25;
         }
         :root.light .gov-item { color:rgba(0,0,0,0.6); border-left:2px solid rgba(227,27,84,0.45); }
-        @media(max-width:900px){
-          .gov-flow-root { padding:0.8rem; }
-          .gov-flow-board { min-width:860px; min-height:520px; }
+        .gov-card-mobile {
+          position:relative;
+          width:100%;
+          min-width:0;
+          min-height:0;
+          height:auto;
+          left:auto;
+          top:auto;
+          padding:0.7rem 0.75rem;
+        }
+
+        .c2-stats {
+          grid-area:stats;
+          min-width:0;
+          background:rgba(0,0,0,0.45);
+          padding:1.1rem;
+          border-left:1px solid rgba(255,255,255,0.07);
+          display:flex;
+          flex-direction:column;
+          gap:0.35rem;
+          overflow-y:auto;
+        }
+        :root.light .c2-stats { background:rgba(0,0,0,0.04); border-left:1px solid rgba(0,0,0,0.09); }
+        .c2-divider { width:100%; height:1px; background:rgba(255,255,255,0.07); margin:0.6rem 0; }
+        :root.light .c2-divider { background:rgba(0,0,0,0.09); }
+        .c2-events {
+          margin-top:0.9rem;
+          border:1px solid rgba(255,255,255,0.08);
+          border-radius:8px;
+          padding:0.55rem;
+          background:rgba(255,255,255,0.02);
+        }
+        :root.light .c2-events {
+          border:1px solid rgba(0,0,0,0.09);
+          background:rgba(255,255,255,0.5);
+        }
+        .c2-event-row {
+          display:flex;
+          align-items:baseline;
+          gap:0.45rem;
+          padding:0.18rem 0;
+        }
+        .c2-event-ts { font-size:0.52rem; color:rgba(255,255,255,0.3); flex-shrink:0; }
+        :root.light .c2-event-ts { color:rgba(0,0,0,0.34); }
+        .c2-event-msg { font-size:0.56rem; color:rgba(255,255,255,0.64); flex:1; }
+        :root.light .c2-event-msg { color:rgba(0,0,0,0.58); }
+        .c2-event-lvl { font-size:0.5rem; letter-spacing:0.12em; font-weight:700; flex-shrink:0; }
+        .c2-status-foot { margin-top:auto; padding-top:1.2rem; }
+
+        @media(max-width:1200px){
+          .c2-panel {
+            grid-template-columns:minmax(190px, 220px) minmax(0, 1fr) minmax(190px, 220px);
+          }
+          .gov-flow-board { min-width:820px; }
+        }
+        @media(max-width:960px){
+          .c2-panel {
+            grid-template-columns:1fr;
+            grid-template-rows:auto auto minmax(0, 1fr) auto;
+            grid-template-areas:
+              "topbar"
+              "sidebar"
+              "radar"
+              "stats";
+          }
+          .c2-topbar {
+            height:auto;
+            padding:0.65rem 0.75rem;
+            flex-wrap:wrap;
+            align-items:flex-start;
+            gap:0.4rem 0.8rem;
+          }
+          .c2-topbar-left {
+            font-size:0.52rem;
+            letter-spacing:0.14em;
+            flex:1 1 100%;
+          }
+          .c2-topbar-right {
+            font-size:0.5rem;
+            gap:0.55rem;
+          }
+          .c2-sidebar {
+            border-right:none;
+            border-top:1px solid rgba(255,255,255,0.07);
+            border-bottom:1px solid rgba(255,255,255,0.07);
+            padding:0.7rem;
+          }
+          :root.light .c2-sidebar {
+            border-top:1px solid rgba(0,0,0,0.09);
+            border-bottom:1px solid rgba(0,0,0,0.09);
+          }
+          .c2-sidebar-label {
+            margin-bottom:0.55rem;
+            font-size:0.52rem;
+          }
+          .c2-node-list {
+            flex-direction:row;
+            overflow-x:auto;
+            overflow-y:hidden;
+            gap:0.5rem;
+            padding-bottom:0.1rem;
+          }
+          .c2-node-list::-webkit-scrollbar { display:none; }
+          .c2-node {
+            min-width:172px;
+            flex:0 0 172px;
+            padding:0.65rem;
+          }
+          .c2-radar { min-height:360px; }
+          .gov-flow-root { padding:0.7rem; }
+          .gov-flow-board-desktop { display:none; }
+          .gov-flow-mobile {
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:0.55rem;
+            width:100%;
+          }
+          .gov-card-mobile .gov-card-head { font-size:0.58rem; margin-bottom:0.45rem; }
+          .gov-card-mobile .gov-item { font-size:0.6rem; }
+          .c2-stats {
+            border-left:none;
+            border-top:1px solid rgba(255,255,255,0.07);
+            padding:0.7rem;
+            display:grid;
+            grid-template-columns:repeat(2, minmax(0, 1fr));
+            gap:0.36rem 0.7rem;
+            overflow:visible;
+          }
+          :root.light .c2-stats { border-top:1px solid rgba(0,0,0,0.09); }
+          .c2-stats > .c2-divider {
+            grid-column:1/-1;
+            margin:0.35rem 0;
+          }
+          .c2-events {
+            grid-column:1/-1;
+            margin-top:0.35rem;
+          }
+          .c2-status-foot {
+            grid-column:1/-1;
+            margin-top:0.1rem;
+            padding-top:0.4rem;
+          }
         }
         @media(max-width:640px){
-          .gov-flow-root { padding:0.6rem; }
-          .gov-flow-board { min-width:780px; min-height:500px; }
-          .gov-card { min-width:180px; min-height:150px; padding:0.65rem 0.72rem; }
-          .gov-card-head { font-size:0.62rem; margin-bottom:0.55rem; }
-          .gov-item { font-size:0.62rem; }
+          .c2-topbar-right span:nth-child(1){display:none;}
+          .c2-topbar-right span:nth-child(3){display:none;}
+          .c2-node { min-width:158px; flex-basis:158px; }
+          .c2-radar { min-height:320px; }
+          .gov-flow-mobile { grid-template-columns:1fr; }
+          .c2-stats { grid-template-columns:1fr; }
+          .c2-event-row {
+            display:grid;
+            grid-template-columns:auto 1fr auto;
+            align-items:start;
+          }
         }
         .c2-grid {
           position:absolute;
@@ -4323,9 +4811,218 @@ export default function SoftwareDemo() {
           background:radial-gradient(circle at 20% 10%, rgba(96,165,250,0.1), transparent 40%);
         }
         :root.light .infra-map-stage {
-          --sdemo-crosshair-color: rgba(15,23,42,0.8);
+          --sdemo-crosshair-color: rgba(255,255,255,0.92);
           border-left:1px solid rgba(0,0,0,0.08);
           border-right:1px solid rgba(0,0,0,0.08);
+        }
+        .infra-map-stage.infra-map-stage-modal-open .sdemo-crosshair-layer {
+          display:none;
+        }
+        .infra-map-stage.infra-map-stage-modal-open,
+        .infra-map-stage.infra-map-stage-modal-open * {
+          cursor:auto !important;
+        }
+        .infra-map-stage.infra-map-stage-modal-open .infra-leaflet-map,
+        .infra-map-stage.infra-map-stage-modal-open .infra-leaflet-map * {
+          pointer-events:none !important;
+        }
+        @keyframes infraModalOverlayIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes infraModalPanelIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(10px);
+            filter: blur(4px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            filter: blur(0);
+          }
+        }
+        .infra-limited-modal-wrap {
+          position:absolute;
+          inset:0;
+          z-index:520;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:1rem;
+          background:rgba(0,0,0,0.42);
+          backdrop-filter:blur(3px);
+          -webkit-backdrop-filter:blur(3px);
+          animation:infraModalOverlayIn 0.2s ease both;
+        }
+        .infra-limited-modal {
+          position:relative;
+          width:min(92%, 540px);
+          border:1px solid rgba(255,255,255,0.1);
+          border-radius:16px;
+          background:linear-gradient(165deg, rgba(12,12,18,0.96) 0%, rgba(6,6,10,0.97) 100%);
+          box-shadow:
+            0 24px 80px rgba(0,0,0,0.6),
+            0 0 0 1px rgba(255,255,255,0.03) inset,
+            0 1px 0 rgba(255,255,255,0.04) inset;
+          padding:1.24rem 1.14rem 1.08rem;
+          overflow:hidden;
+          animation:infraModalPanelIn 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        .infra-limited-accent {
+          position:absolute;
+          top:0;
+          left:0;
+          right:0;
+          height:2px;
+          background:linear-gradient(90deg, transparent 0%, #E31B54 22%, #E31B54 78%, transparent 100%);
+          opacity:0.75;
+        }
+        .infra-limited-close {
+          position:absolute;
+          top:0.72rem;
+          right:0.74rem;
+          width:30px;
+          height:30px;
+          border-radius:8px;
+          border:1px solid rgba(255,255,255,0.14);
+          background:rgba(255,255,255,0.04);
+          color:rgba(255,255,255,0.7);
+          cursor:pointer;
+          font-size:1rem;
+          line-height:1;
+          font-weight:500;
+          transition:all 0.2s ease;
+        }
+        .infra-limited-close:hover {
+          border-color:rgba(255,255,255,0.26);
+          background:rgba(255,255,255,0.08);
+          color:rgba(255,255,255,0.96);
+        }
+        .infra-limited-close:focus-visible,
+        .infra-limited-btn:focus-visible {
+          outline:none;
+          box-shadow:0 0 0 2px rgba(227,27,84,0.35);
+        }
+        .infra-limited-eyebrow {
+          display:flex;
+          align-items:center;
+          gap:0.46rem;
+          font-size:0.56rem;
+          letter-spacing:0.2em;
+          text-transform:uppercase;
+          color:rgba(255,255,255,0.34);
+          margin-bottom:0.45rem;
+          padding-right:2rem;
+        }
+        .infra-limited-eyebrow-dot {
+          width:6px;
+          height:6px;
+          border-radius:999px;
+          background:#E31B54;
+          box-shadow:0 0 8px rgba(227,27,84,0.7);
+          flex-shrink:0;
+        }
+        .infra-limited-title {
+          margin:0;
+          font-size:clamp(1.12rem, 2vw, 1.42rem);
+          font-weight:700;
+          letter-spacing:-0.02em;
+          line-height:1.16;
+          background:linear-gradient(135deg, #f1f5f9 0%, rgba(241,245,249,0.66) 100%);
+          -webkit-background-clip:text;
+          -webkit-text-fill-color:transparent;
+          background-clip:text;
+        }
+        .infra-limited-desc {
+          margin:0.64rem 0 0;
+          font-size:0.8rem;
+          line-height:1.63;
+          color:rgba(255,255,255,0.54);
+        }
+        .infra-limited-actions {
+          margin-top:1rem;
+          display:flex;
+          flex-wrap:wrap;
+          gap:0.58rem;
+        }
+        .infra-limited-btn {
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          text-decoration:none;
+          border-radius:10px;
+          border:1px solid rgba(227,27,84,0.54);
+          background:#E31B54;
+          color:#fff;
+          font-size:0.64rem;
+          letter-spacing:0.1em;
+          font-weight:600;
+          text-transform:uppercase;
+          padding:0.6rem 0.88rem;
+          transition:all 0.2s ease;
+        }
+        .infra-limited-btn:hover {
+          background:#c91449;
+          border-color:#c91449;
+          transform:translateY(-1px);
+          box-shadow:0 6px 18px rgba(227,27,84,0.32);
+        }
+        .infra-limited-btn-ghost {
+          border-color:rgba(255,255,255,0.13);
+          background:rgba(255,255,255,0.03);
+          color:rgba(255,255,255,0.84);
+        }
+        .infra-limited-btn-ghost:hover {
+          border-color:rgba(255,255,255,0.28);
+          background:rgba(255,255,255,0.08);
+          box-shadow:none;
+          transform:translateY(-1px);
+        }
+        :root.light .infra-limited-modal-wrap {
+          background:rgba(0,0,0,0.16);
+        }
+        :root.light .infra-limited-modal {
+          border:1px solid rgba(0,0,0,0.12);
+          background:linear-gradient(165deg, rgba(255,255,255,0.97) 0%, rgba(248,248,252,0.98) 100%);
+          box-shadow:
+            0 24px 80px rgba(0,0,0,0.12),
+            0 0 0 1px rgba(0,0,0,0.03) inset;
+        }
+        :root.light .infra-limited-close {
+          border:1px solid rgba(0,0,0,0.11);
+          background:rgba(0,0,0,0.04);
+          color:rgba(0,0,0,0.56);
+        }
+        :root.light .infra-limited-close:hover {
+          border-color:rgba(0,0,0,0.2);
+          background:rgba(0,0,0,0.07);
+          color:rgba(0,0,0,0.82);
+        }
+        :root.light .infra-limited-eyebrow { color:rgba(0,0,0,0.34); }
+        :root.light .infra-limited-title {
+          background:linear-gradient(135deg, #0f172a 0%, rgba(15,23,42,0.68) 100%);
+          -webkit-background-clip:text;
+          background-clip:text;
+        }
+        :root.light .infra-limited-desc { color:rgba(0,0,0,0.57); }
+        :root.light .infra-limited-btn {
+          color:#fff;
+          background:#E31B54;
+          border-color:#E31B54;
+        }
+        :root.light .infra-limited-btn:hover {
+          background:#c91449;
+          border-color:#c91449;
+        }
+        :root.light .infra-limited-btn-ghost {
+          border-color:rgba(0,0,0,0.11);
+          color:rgba(0,0,0,0.74);
+          background:rgba(0,0,0,0.03);
+        }
+        :root.light .infra-limited-btn-ghost:hover {
+          border-color:rgba(0,0,0,0.18);
+          background:rgba(0,0,0,0.06);
         }
         @media (pointer:fine) {
           .infra-map-stage.crosshair-enabled,
@@ -4351,6 +5048,20 @@ export default function SoftwareDemo() {
           :root.light .infra-map-stage {
             border-top:1px solid rgba(0,0,0,0.08);
             border-bottom:1px solid rgba(0,0,0,0.08);
+          }
+        }
+        @media(max-width:640px){
+          .infra-limited-modal-wrap { padding:0.72rem; }
+          .infra-limited-modal { width:100%; padding:0.95rem 0.84rem 0.88rem; }
+          .infra-limited-eyebrow { font-size:0.52rem; letter-spacing:0.16em; }
+          .infra-limited-title { font-size:1.04rem; }
+          .infra-limited-desc { font-size:0.72rem; }
+          .infra-limited-actions { gap:0.45rem; }
+          .infra-limited-btn {
+            width:100%;
+            justify-content:center;
+            padding:0.52rem 0.74rem;
+            font-size:0.58rem;
           }
         }
         .infra-leaflet-map {
@@ -4969,15 +5680,144 @@ export default function SoftwareDemo() {
         .infra-list-name { font-size:0.7rem; color:rgba(255,255,255,0.8); }
         :root.light .infra-list-name { color:rgba(0,0,0,0.75); }
 
-        .blank-panel {
+        .command-panel {
+          align-items:center;
+          justify-content:center;
           background:
-            radial-gradient(circle at 10% 10%, rgba(227,27,84,0.14), transparent 35%),
-            linear-gradient(150deg,#04040a 0%, #020207 100%);
+            radial-gradient(900px 420px at 12% 0%, rgba(227,27,84,0.22), transparent 64%),
+            linear-gradient(160deg,#04040a 0%, #080713 56%, #03030a 100%);
+          padding:0.95rem;
         }
-        :root.light .blank-panel {
+        :root.light .command-panel {
           background:
-            radial-gradient(circle at 10% 10%, rgba(227,27,84,0.08), transparent 35%),
-            linear-gradient(150deg,#eef1f8 0%, #e8ebf2 100%);
+            radial-gradient(900px 420px at 12% 0%, rgba(227,27,84,0.12), transparent 64%),
+            linear-gradient(160deg,#eef1f8 0%, #e4e8f2 56%, #e9edf6 100%);
+        }
+        .command-shell {
+          position:relative;
+          z-index:2;
+          width:min(100%, 920px);
+          border:1px solid rgba(255,255,255,0.12);
+          border-radius:14px;
+          background:linear-gradient(145deg,rgba(0,0,0,0.42),rgba(0,0,0,0.18));
+          box-shadow:0 18px 40px rgba(0,0,0,0.32);
+          display:flex;
+          flex-direction:column;
+          gap:0.95rem;
+          padding:1rem;
+          overflow:auto;
+        }
+        :root.light .command-shell {
+          border:1px solid rgba(0,0,0,0.12);
+          background:linear-gradient(145deg,rgba(255,255,255,0.9),rgba(255,255,255,0.67));
+          box-shadow:0 10px 24px rgba(15,23,42,0.12);
+        }
+        .command-header {
+          display:flex;
+          align-items:flex-start;
+          justify-content:space-between;
+          gap:0.8rem;
+          flex-wrap:wrap;
+        }
+        .command-kicker {
+          font-size:0.55rem;
+          letter-spacing:0.2em;
+          color:#E31B54;
+          margin-bottom:0.45rem;
+        }
+        .command-title {
+          margin:0;
+          font-size:clamp(1rem, 3vw, 1.35rem);
+          letter-spacing:-0.02em;
+        }
+        .command-desc {
+          margin:0.45rem 0 0;
+          max-width:560px;
+          font-size:0.72rem;
+          line-height:1.55;
+          color:rgba(255,255,255,0.68);
+        }
+        :root.light .command-desc { color:rgba(0,0,0,0.6); }
+        .command-stamp {
+          display:flex;
+          flex-direction:column;
+          gap:0.22rem;
+          text-align:right;
+          font-size:0.56rem;
+          letter-spacing:0.14em;
+          color:rgba(255,255,255,0.52);
+        }
+        :root.light .command-stamp { color:rgba(0,0,0,0.52); }
+        .command-grid {
+          display:grid;
+          grid-template-columns:repeat(3, minmax(0, 1fr));
+          gap:0.65rem;
+        }
+        .command-card {
+          border:1px solid rgba(255,255,255,0.1);
+          border-radius:10px;
+          background:linear-gradient(155deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015));
+          padding:0.72rem;
+        }
+        :root.light .command-card {
+          border:1px solid rgba(0,0,0,0.1);
+          background:linear-gradient(155deg,rgba(255,255,255,0.78),rgba(255,255,255,0.5));
+        }
+        .command-card-top {
+          display:flex;
+          align-items:baseline;
+          justify-content:space-between;
+          gap:0.4rem;
+          margin-bottom:0.58rem;
+        }
+        .command-card-top h4 {
+          margin:0;
+          font-size:0.8rem;
+          letter-spacing:0.02em;
+        }
+        .command-card-top span {
+          font-size:0.52rem;
+          letter-spacing:0.14em;
+          color:#f59e0b;
+        }
+        .command-items {
+          margin:0;
+          padding:0;
+          list-style:none;
+          display:flex;
+          flex-direction:column;
+          gap:0.38rem;
+        }
+        .command-items li {
+          font-size:0.66rem;
+          line-height:1.3;
+          color:rgba(255,255,255,0.72);
+          border-left:2px solid rgba(227,27,84,0.45);
+          padding-left:0.42rem;
+        }
+        :root.light .command-items li { color:rgba(0,0,0,0.62); }
+        .command-footer {
+          border-top:1px solid rgba(255,255,255,0.1);
+          padding-top:0.72rem;
+          font-size:0.57rem;
+          letter-spacing:0.15em;
+          color:rgba(255,255,255,0.42);
+        }
+        :root.light .command-footer {
+          border-top:1px solid rgba(0,0,0,0.1);
+          color:rgba(0,0,0,0.44);
+        }
+        @media(max-width:960px){
+          .command-shell { padding:0.8rem; }
+          .command-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+        }
+        @media(max-width:640px){
+          .command-panel { padding:0.7rem; }
+          .command-shell { padding:0.72rem; gap:0.75rem; }
+          .command-stamp { text-align:left; }
+          .command-grid { grid-template-columns:1fr; gap:0.55rem; }
+          .command-desc { font-size:0.66rem; }
+          .command-items li { font-size:0.62rem; }
         }
 
         .learn-panel {
@@ -5064,25 +5904,14 @@ export default function SoftwareDemo() {
           </div>
 
           <div className="sdemo-tabs" role="tablist">
-            {SOFTWARES.map((s, i) => (
-              <button
-                key={s.id}
-                role="tab"
-                aria-selected={i === active}
-                className={`sdemo-tab${i === active ? " active" : ""}`}
-                onClick={() => goto(i)}
-              >
-                <div className="sdemo-tab-top">
-                  <span className="sdemo-tab-tag">{s.tag}</span>
-                  <span className="sdemo-tab-status">{s.status}</span>
-                </div>
-                <span className="sdemo-tab-name">{s.name}</span>
-                <span className="sdemo-tab-industry">{s.industry}</span>
-                <div className="sdemo-tab-foot">
-                  <span className="sw-mono sdemo-tab-up">UPTIME {s.uptime}</span>
-                  <span className="sdemo-tab-open">Open</span>
-                </div>
-              </button>
+            {SOFTWARE_WINDOWS.map((software, i) => (
+              <SoftwareTab
+                key={software.id}
+                software={software}
+                index={i}
+                active={i === active}
+                onSelect={goto}
+              />
             ))}
           </div>
 
@@ -5092,13 +5921,13 @@ export default function SoftwareDemo() {
               <div className="sdemo-desc">{sw.desc}</div>
             </div>
             <div className="sdemo-nav">
-              <button className="sdemo-arrow" onClick={back} aria-label="Previous software">
+              <button type="button" className="sdemo-arrow" onClick={back} aria-label="Previous software">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <path d="M15 18l-6-6 6-6" />
                 </svg>
               </button>
-              <span className="sdemo-counter">{active + 1} / {SOFTWARES.length}</span>
-              <button className="sdemo-arrow" onClick={next} aria-label="Next software">
+              <span className="sdemo-counter">{active + 1} / {SOFTWARE_WINDOWS.length}</span>
+              <button type="button" className="sdemo-arrow" onClick={next} aria-label="Next software">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                   <path d="M9 18l6-6-6-6" />
                 </svg>
@@ -5113,12 +5942,13 @@ export default function SoftwareDemo() {
           </div>
 
           <div className="sdemo-dots">
-            {SOFTWARES.map((_, i) => (
+            {SOFTWARE_WINDOWS.map((software, i) => (
               <button
-                key={i}
+                type="button"
+                key={software.id}
                 className={`sdemo-dot${i === active ? " active" : ""}`}
                 onClick={() => goto(i)}
-                aria-label={`Software ${i + 1}`}
+                aria-label={`Software ${i + 1}: ${software.name}`}
               />
             ))}
           </div>
