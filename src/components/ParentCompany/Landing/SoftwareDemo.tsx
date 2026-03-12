@@ -1,5 +1,14 @@
 "use client";
-import { useState, useEffect, useRef, useCallback, useMemo, type MouseEvent as ReactMouseEvent, type ReactElement, type RefObject } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  useMemo,
+  type MouseEvent as ReactMouseEvent,
+  type ReactElement,
+  type RefObject,
+} from "react";
 import { gsap } from "gsap";
 
 function useGlitch(intervalMs = 4000) {
@@ -259,14 +268,14 @@ type ServiceFocusPayload = {
   detail: string;
 };
 
-type FeaturedSoftwareId = "government" | "infrastructure" | "command";
+type FeaturedSoftwareId = "government" | "domain" | "command";
 
 const LIMITED_ENVIRONMENT_LINKS: Record<FeaturedSoftwareId, { requestDemoHref: string }> = {
   government: {
     requestDemoHref: "#request-demo-government",
   },
-  infrastructure: {
-    requestDemoHref: "#request-demo-infrastructure",
+  domain: {
+    requestDemoHref: "#request-demo-domain",
   },
   command: {
     requestDemoHref: "#request-demo-command",
@@ -279,8 +288,8 @@ const LIMITED_ENVIRONMENT_DEFINITIONS: Record<FeaturedSoftwareId, { title: strin
     description:
       "A coordinated national services framework for the Philippines, built to eliminate fragmented agency workflows and deliver seamless citizen service.",
   },
-  infrastructure: {
-    title: "Nationwide Government Infrastructure Layers",
+  domain: {
+    title: "Philippine Strategic Domain Intelligence",
     description:
       "Satellite-grade Philippine map with coordinate-level beacons for Energy & Oil, Fluid Systems, Transport, Telecommunications, Healthcare, Bank & Finance, Food & Agriculture, Government, Defense facilities, Data Center, and Aerospace.",
   },
@@ -660,7 +669,7 @@ type InfrastructureAsset = {
   note: string;
 };
 
-type GovInfraLayerId = "industry" | "military";
+type GovInfraLayerId = "industry" | "military" | "adsb";
 type CriticalInfrastructureDomain =
   | "Enegy & Oil"
   | "Fluid Systems"
@@ -674,7 +683,8 @@ type CriticalInfrastructureDomain =
   | "Data Center"
   | "Aerospace";
 type CriticalInfraDomain = CriticalInfrastructureDomain;
-type InfraFilterLayerId = "military" | CriticalInfraDomain;
+type InfraFilterLayerId = "military" | "adsb" | CriticalInfraDomain;
+type AdsbTrackClass = "commercial" | "military";
 
 type GovInfrastructurePoint = {
   id: string;
@@ -693,6 +703,42 @@ type GovInfrastructurePoint = {
   lon: number;
   note: string;
   source: string;
+  heading?: number | null;
+  speed?: number | null;
+  altitude?: number | null;
+  onGround?: boolean;
+  adsbTrackClass?: AdsbTrackClass;
+  icao24?: string;
+  lastUpdateUnix?: number | null;
+};
+
+type AdsbFeedAircraft = {
+  id: string;
+  icao24: string;
+  callsign: string | null;
+  originCountry: string | null;
+  lat: number;
+  lon: number;
+  altitudeMeters: number | null;
+  velocityMps: number | null;
+  headingDeg: number | null;
+  verticalRateMps: number | null;
+  onGround: boolean;
+  squawk: string | null;
+  lastContact: number | null;
+};
+
+type AdsbFeedResponse = {
+  source?: string;
+  fetchedAt?: string;
+  timestamp?: number | null;
+  aircraft?: AdsbFeedAircraft[];
+};
+
+type AdsbTrackSample = {
+  lat: number;
+  lon: number;
+  t: number;
 };
 
 type ProvinceBoundaryFeature = {
@@ -707,6 +753,15 @@ const INFRA_DEFAULT_ZOOM = 9;
 const INFRA_MIN_ZOOM = 6;
 const INFRA_MAX_ZOOM = 18;
 const PHILIPPINE_BOUNDS = { minLat: 4, maxLat: 22.5, minLon: 116, maxLon: 127.5 };
+const ADSB_ULTRA_FAST_POLL_MS = 5000;
+const ADSB_FAST_POLL_MS = 15000;
+const ADSB_SLOW_POLL_MS = 60000;
+const ADSB_ULTRA_FAST_POLL_WINDOW_MS = 5 * 60 * 1000;
+const ADSB_FAST_POLL_WINDOW_MS = 10 * 60 * 1000;
+const ADSB_AUTO_PAUSE_AFTER_MS = 20 * 60 * 1000;
+const ADSB_TRACK_HISTORY_WINDOW_MS = 30 * 60 * 1000;
+const ADSB_TRACK_HISTORY_MAX_POINTS = 90;
+const ADSB_TRACK_POSITION_STEP_THRESHOLD = 0.00035;
 const INFRA_ZOOM_LEVELS = [
   { label: "Level 1", zoom: 6 },
   { label: "Level 2", zoom: 9 },
@@ -718,6 +773,13 @@ const INFRA_ZOOM_LEVELS = [
 const GOV_INFRA_LAYER_META: Record<GovInfraLayerId, { label: string; color: string; source: string }> = {
   military: { label: "Military", color: "#ef4444", source: "AFP and defense installation registry" },
   industry: { label: "Critical Infrastructure", color: "#facc15", source: "Curated strategic critical infrastructure registry" },
+  adsb: { label: "Aircraft", color: "#f8fafc", source: "Realtime ADS-B transponder feed (Philippine airspace)" },
+};
+
+const ADSB_TRACK_COLORS: Record<AdsbTrackClass, string> = {
+  commercial: "#f8fafc",
+  // Reserved for upcoming military aircraft integration.
+  military: "#facc15",
 };
 
 const CRITICAL_DOMAIN_GROUPS: Array<{ domain: CriticalInfraDomain; scope: string; color: string }> = [
@@ -859,32 +921,40 @@ const buildGovMarkerIcon = (L: any, color: string, active: boolean) => {
   });
 };
 
+const buildAdsbMarkerIcon = (
+  L: any,
+  color: string,
+  point: GovInfrastructurePoint,
+  active: boolean
+) => {
+  const size = active ? 34 : 28;
+  const trackClass = point.adsbTrackClass ?? "commercial";
+  const heading =
+    typeof point.heading === "number" && Number.isFinite(point.heading)
+      ? ((point.heading % 360) + 360) % 360
+      : 0;
+  return L.divIcon({
+    className: "infra-adsb-marker-shell",
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
+    html: `<span class="infra-adsb-aircraft${active ? " active" : ""}" data-track-class="${trackClass}" style="--infra-dot-color:${color};--infra-adsb-rotation:${heading}deg;"><svg class="infra-adsb-aircraft-glyph" viewBox="0 0 48 48" aria-hidden="true"><path d="M24 2.6C25 2.6 25.9 3.3 26.2 4.3L28.7 13.4L39.1 19C39.9 19.4 40.4 20.2 40.4 21.1V23.4C40.4 24.1 39.8 24.7 39.1 24.6L28 23.1L29.8 41.3C29.9 42.2 29.2 43 28.4 43H25.9L24 34.5L22.1 43H19.6C18.8 43 18.1 42.2 18.2 41.3L20 23.1L8.9 24.6C8.2 24.7 7.6 24.1 7.6 23.4V21.1C7.6 20.2 8.1 19.4 8.9 19L19.3 13.4L21.8 4.3C22.1 3.3 23 2.6 24 2.6Z"></path><path d="M16.8 30.9H31.2V33.6H16.8Z"></path></svg></span>`,
+  });
+};
+
 const getGovPointColor = (point: GovInfrastructurePoint) => {
+  if (point.layer === "adsb") return ADSB_TRACK_COLORS[point.adsbTrackClass ?? "commercial"];
   if (point.layer === "military") return GOV_INFRA_LAYER_META.military.color;
   if (point.domain) return CRITICAL_DOMAIN_COLORS[point.domain] ?? GOV_INFRA_LAYER_META.industry.color;
   return GOV_INFRA_LAYER_META.industry.color;
 };
 
-const bindGovTooltip = (marker: any, name: string) =>
+const bindGovTooltip = (marker: any, name: string, tooltipClassName = "infra-tooltip-layer") =>
   marker.bindTooltip(name, {
     direction: "top",
     offset: [0, -10],
     opacity: 0.97,
-    className: "infra-tooltip infra-tooltip-layer",
+    className: `infra-tooltip ${tooltipClassName}`,
   });
-
-const createInfraClusterLayer = (L: any) =>
-  L.markerClusterGroup({
-    chunkedLoading: true,
-    chunkInterval: 90,
-    chunkDelay: 50,
-    disableClusteringAtZoom: 13,
-    spiderfyOnMaxZoom: true,
-    showCoverageOnHover: false,
-  });
-
-const createInfraBeaconLayer = (L: any, compressed: boolean) =>
-  compressed ? createInfraClusterLayer(L) : L.layerGroup();
 
 const populateInfraLayer = (layer: any, markers: any[]) => {
   if (!layer || markers.length === 0) return;
@@ -901,16 +971,19 @@ const buildGovPointMarker = (
   onSelect: (point: GovInfrastructurePoint) => void
 ) => {
   const markerColor = getGovPointColor(point);
-  const baseIcon = buildGovMarkerIcon(L, markerColor, false);
-  const activeIcon = buildGovMarkerIcon(L, markerColor, true);
+  const iconBuilder =
+    point.layer === "adsb"
+      ? (active: boolean) => buildAdsbMarkerIcon(L, markerColor, point, active)
+      : (active: boolean) => buildGovMarkerIcon(L, markerColor, active);
+  const baseIcon = iconBuilder(false);
+  const activeIcon = iconBuilder(true);
 
-  // Keep beacon appearance consistent for both compressed and expanded modes.
   const marker = L.marker([point.lat, point.lon], {
     icon: baseIcon,
     keyboard: false,
   });
   (marker as any).__infraIcons = { base: baseIcon, active: activeIcon };
-  bindGovTooltip(marker, point.name);
+  bindGovTooltip(marker, point.name, point.layer === "adsb" ? "infra-tooltip-adsb" : "infra-tooltip-layer");
   marker.on("click", (event: any) => {
     event?.originalEvent?.stopPropagation?.();
     onSelect(point);
@@ -2716,6 +2789,7 @@ const CRITICAL_INFRASTRUCTURE_POINTS: GovInfrastructurePoint[] = [
 
 const DEFAULT_INFRA_FILTER_VISIBILITY: Record<InfraFilterLayerId, boolean> = {
   military: true,
+  adsb: true,
   ...CRITICAL_DOMAIN_ORDER.reduce(
     (acc, domain) => ({ ...acc, [domain]: true }),
     {} as Record<CriticalInfraDomain, boolean>
@@ -2724,6 +2798,7 @@ const DEFAULT_INFRA_FILTER_VISIBILITY: Record<InfraFilterLayerId, boolean> = {
 
 const CLEARED_INFRA_FILTER_VISIBILITY: Record<InfraFilterLayerId, boolean> = {
   military: false,
+  adsb: false,
   ...CRITICAL_DOMAIN_ORDER.reduce(
     (acc, domain) => ({ ...acc, [domain]: false }),
     {} as Record<CriticalInfraDomain, boolean>
@@ -2738,7 +2813,205 @@ const provinceMatches = (pointProvince: string, selectedProvince: string) => {
   return point === province || point.includes(province) || province.includes(point);
 };
 
-function InfrastructureIntelligence() {
+const isWithinPhilippineBounds = (lat: number, lon: number) =>
+  lat >= PHILIPPINE_BOUNDS.minLat &&
+  lat <= PHILIPPINE_BOUNDS.maxLat &&
+  lon >= PHILIPPINE_BOUNDS.minLon &&
+  lon <= PHILIPPINE_BOUNDS.maxLon;
+
+const formatAdsbAltitudeFeet = (altitudeMeters: number | null) =>
+  typeof altitudeMeters === "number" && Number.isFinite(altitudeMeters)
+    ? `${Math.round(altitudeMeters * 3.28084).toLocaleString("en-US")} ft`
+    : "N/A";
+
+const formatAdsbSpeedKnots = (velocityMps: number | null) =>
+  typeof velocityMps === "number" && Number.isFinite(velocityMps)
+    ? `${Math.round(velocityMps * 1.94384).toLocaleString("en-US")} kt`
+    : "N/A";
+
+const formatAdsbHeading = (headingDeg: number | null) =>
+  typeof headingDeg === "number" && Number.isFinite(headingDeg)
+    ? `${Math.round(headingDeg)}°`
+    : "N/A";
+
+const formatAdsbLocalTimestamp = (lastContactUnix: number | null) => {
+  if (typeof lastContactUnix !== "number" || !Number.isFinite(lastContactUnix)) return "Unknown";
+  return new Date(lastContactUnix * 1000).toLocaleString(undefined, {
+    hour12: false,
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+};
+
+const formatAdsbUpdatedAge = (lastContactUnix: number | null, nowUnixSeconds: number) => {
+  if (typeof lastContactUnix !== "number" || !Number.isFinite(lastContactUnix)) return "unknown";
+  return `${Math.max(0, Math.round(nowUnixSeconds - lastContactUnix))}s ago`;
+};
+
+type AdsbOperationalStatus = "Cruising" | "Parked" | "Signal lost";
+
+const resolveAdsbOperationalStatus = (
+  point: GovInfrastructurePoint,
+  nowUnixSeconds: number
+): AdsbOperationalStatus => {
+  if (point.onGround) return "Parked";
+  if (typeof point.lastUpdateUnix !== "number" || !Number.isFinite(point.lastUpdateUnix)) return "Signal lost";
+  const ageSeconds = Math.max(0, nowUnixSeconds - point.lastUpdateUnix);
+  if (ageSeconds > 120) return "Signal lost";
+  return "Cruising";
+};
+
+const ADSB_OPERATOR_BY_CALLSIGN_PREFIX: Record<string, string> = {
+  PAL: "Philippine Airlines",
+  CEB: "Cebu Pacific",
+  APG: "AirAsia Philippines",
+  SEJ: "AirSwift",
+};
+
+const resolveAdsbOperatorLabel = (callsign: string | null, originCountry: string | null) => {
+  if (!callsign) return originCountry ? `${originCountry} Operator` : "Unknown Operator";
+  const normalized = callsign.toUpperCase();
+  const prefix = normalized.slice(0, 3);
+  const airlineName = ADSB_OPERATOR_BY_CALLSIGN_PREFIX[prefix] ?? (originCountry ? `${originCountry} Airline` : "Unknown Operator");
+  return `${airlineName} - ${normalized} (Operator)`;
+};
+
+const buildAdsbPointNote = (aircraft: AdsbFeedAircraft, nowUnixSeconds: number) => {
+  const altitudeText = formatAdsbAltitudeFeet(aircraft.altitudeMeters);
+  const speedText = formatAdsbSpeedKnots(aircraft.velocityMps);
+  const headingText = formatAdsbHeading(aircraft.headingDeg);
+  const freshnessText = `Updated: ${formatAdsbUpdatedAge(aircraft.lastContact, nowUnixSeconds)}`;
+  return `ADS-B track in Philippine airspace · Altitude ${altitudeText} · Speed ${speedText} · Heading ${headingText} · ${freshnessText}.`;
+};
+
+const mapAdsbAircraftToGovPoint = (
+  aircraft: AdsbFeedAircraft,
+  sourceLabel: string,
+  nowUnixSeconds: number
+): GovInfrastructurePoint => {
+  const icao24 = aircraft.icao24.trim().toUpperCase();
+  const callsign = (aircraft.callsign ?? "").trim().toUpperCase();
+  const operatorLabel = resolveAdsbOperatorLabel(callsign.length > 0 ? callsign : null, aircraft.originCountry);
+  const displayName = callsign.length > 0 ? `${callsign} (${icao24})` : `ICAO ${icao24}`;
+  return {
+    id: aircraft.id,
+    layer: "adsb",
+    domain: "Aerospace",
+    name: displayName,
+    category: "commercial aircraft",
+    status: "Airborne",
+    region: "Philippine airspace",
+    province: "Philippine airspace",
+    municipality: "Airspace Sector",
+    contractor: operatorLabel,
+    year: null,
+    cost: null,
+    lat: aircraft.lat,
+    lon: aircraft.lon,
+    note: buildAdsbPointNote(aircraft, nowUnixSeconds),
+    source: sourceLabel,
+    heading: aircraft.headingDeg,
+    speed: aircraft.velocityMps,
+    altitude: aircraft.altitudeMeters,
+    onGround: aircraft.onGround,
+    adsbTrackClass: "commercial",
+    icao24,
+    lastUpdateUnix: aircraft.lastContact,
+  };
+};
+
+const ADSB_TRAJECTORY_BOUNDS = {
+  minLat: PHILIPPINE_BOUNDS.minLat - 8,
+  maxLat: PHILIPPINE_BOUNDS.maxLat + 8,
+  minLon: PHILIPPINE_BOUNDS.minLon - 8,
+  maxLon: PHILIPPINE_BOUNDS.maxLon + 8,
+};
+const ADSB_EARTH_RADIUS_METERS = 6371000;
+
+const toRadians = (degrees: number) => (degrees * Math.PI) / 180;
+const toDegrees = (radians: number) => (radians * 180) / Math.PI;
+
+const normalizeLongitude = (lon: number) => {
+  let output = lon;
+  while (output > 180) output -= 360;
+  while (output < -180) output += 360;
+  return output;
+};
+
+const projectPointByBearing = (
+  lat: number,
+  lon: number,
+  bearingDeg: number,
+  distanceMeters: number
+): [number, number] => {
+  const angularDistance = distanceMeters / ADSB_EARTH_RADIUS_METERS;
+  const bearing = toRadians(bearingDeg);
+  const latRad = toRadians(lat);
+  const lonRad = toRadians(lon);
+  const sinLat = Math.sin(latRad);
+  const cosLat = Math.cos(latRad);
+  const sinAngular = Math.sin(angularDistance);
+  const cosAngular = Math.cos(angularDistance);
+
+  const nextLatRad = Math.asin(
+    sinLat * cosAngular + cosLat * sinAngular * Math.cos(bearing)
+  );
+  const nextLonRad = lonRad + Math.atan2(
+    Math.sin(bearing) * sinAngular * cosLat,
+    cosAngular - sinLat * Math.sin(nextLatRad)
+  );
+
+  return [toDegrees(nextLatRad), normalizeLongitude(toDegrees(nextLonRad))];
+};
+
+const isWithinTrajectoryBounds = (lat: number, lon: number) =>
+  lat >= ADSB_TRAJECTORY_BOUNDS.minLat &&
+  lat <= ADSB_TRAJECTORY_BOUNDS.maxLat &&
+  lon >= ADSB_TRAJECTORY_BOUNDS.minLon &&
+  lon <= ADSB_TRAJECTORY_BOUNDS.maxLon;
+
+const buildProjectedTrajectoryLeg = (
+  startLat: number,
+  startLon: number,
+  headingDeg: number,
+  speedMps: number,
+  direction: 1 | -1,
+  maxSteps = 160,
+  stepSeconds = 90
+) => {
+  const output: [number, number][] = [];
+  let currentLat = startLat;
+  let currentLon = startLon;
+  const motionHeading = direction === 1 ? headingDeg : (headingDeg + 180) % 360;
+  const stepDistance = Math.max(1, speedMps * stepSeconds);
+
+  for (let index = 0; index < maxSteps; index += 1) {
+    const [nextLat, nextLon] = projectPointByBearing(currentLat, currentLon, motionHeading, stepDistance);
+    if (!isWithinTrajectoryBounds(nextLat, nextLon)) break;
+    output.push([nextLat, nextLon]);
+    currentLat = nextLat;
+    currentLon = nextLon;
+  }
+  return output;
+};
+
+const buildExpectedTrajectoryCoords = (point: GovInfrastructurePoint) => {
+  const headingDeg =
+    typeof point.heading === "number" && Number.isFinite(point.heading) ? point.heading : 0;
+  const speedMps =
+    typeof point.speed === "number" && Number.isFinite(point.speed) && point.speed > 12
+      ? point.speed
+      : 230;
+  const forwardLeg = buildProjectedTrajectoryLeg(point.lat, point.lon, headingDeg, speedMps, 1);
+  const center: [number, number] = [point.lat, point.lon];
+  return [center, ...forwardLeg];
+};
+
+function StrategicDomainIntelligence() {
   const [selectedGovPoint, setSelectedGovPoint] = useState<GovInfrastructurePoint | null>(null);
   const [activeProvinceId, setActiveProvinceId] = useState<string | null>(null);
   const [hoveredProvinceId, setHoveredProvinceId] = useState<string | null>(null);
@@ -2750,32 +3023,61 @@ function InfrastructureIntelligence() {
   } = useLimitedEnvironmentModal(false);
   const [c2FilterEnabled, setC2FilterEnabled] = useState(true);
   const [trackingEnabled, setTrackingEnabled] = useState(true);
-  const [beaconMode, setBeaconMode] = useState<"compressed" | "expanded">("expanded");
   const [layerVisibility, setLayerVisibility] = useState<Record<InfraFilterLayerId, boolean>>(
     DEFAULT_INFRA_FILTER_VISIBILITY
   );
   const [govLayerState, setGovLayerState] = useState<"loading" | "ready" | "error">("loading");
+  const [adsbLayerState, setAdsbLayerState] = useState<"loading" | "ready" | "error">("loading");
+  const [adsbAircraftPoints, setAdsbAircraftPoints] = useState<GovInfrastructurePoint[]>([]);
+  const [adsbLastUpdatedAt, setAdsbLastUpdatedAt] = useState<number | null>(null);
+  const [adsbActiveViewMs, setAdsbActiveViewMs] = useState(0);
+  const [adsbSessionPaused, setAdsbSessionPaused] = useState(false);
+  const [showAdsbSessionPauseModal, setShowAdsbSessionPauseModal] = useState(false);
+  const [isDocumentVisible, setIsDocumentVisible] = useState(true);
+  const [isInfraStageInViewport, setIsInfraStageInViewport] = useState(false);
   const [mapZoom, setMapZoom] = useState(INFRA_DEFAULT_ZOOM);
   const [selectedRegionCenter, setSelectedRegionCenter] = useState<[number, number] | null>(null);
   const [mapState, setMapState] = useState<"loading" | "ready" | "error">("loading");
 
-  const beaconModeRef = useRef<"compressed" | "expanded">("expanded");
   const mapStageRef = useRef<HTMLDivElement | null>(null);
   const mapHostRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<any>(null);
   const leafletRef = useRef<any>(null);
   const provinceShapeRefs = useRef<Record<string, any>>({});
   const provinceMetaRef = useRef<Record<string, ProvinceBoundaryFeature>>({});
-  const govLayerRefs = useRef<Record<GovInfraLayerId, any>>({ military: null, industry: null });
-  const govPointsByLayerRef = useRef<Record<GovInfraLayerId, GovInfrastructurePoint[]>>({
-    military: MILITARY_FACILITIES,
-    industry: CRITICAL_INFRASTRUCTURE_POINTS,
-  });
-  const govMarkersByLayerRef = useRef<Record<GovInfraLayerId, any[]>>({ military: [], industry: [] });
+  const govLayerRefs = useRef<Record<GovInfraLayerId, any>>({ military: null, industry: null, adsb: null });
   const govMarkersRef = useRef<Record<string, any>>({});
+  const adsbTrackHistoryRef = useRef<Record<string, AdsbTrackSample[]>>({});
+  const adsbFlightPathLayerRef = useRef<any>(null);
   const selectedGovKeyRef = useRef<string | null>(null);
-  const suppressAutoFocusOnNextSelectionSyncRef = useRef(false);
   const suppressNextMapClearRef = useRef(false);
+  const wheelZoomCooldownRef = useRef(0);
+  const pointerInsideMapStageRef = useRef(false);
+
+  useEffect(() => {
+    const syncDocumentVisibility = () => {
+      setIsDocumentVisible(document.visibilityState === "visible");
+    };
+    syncDocumentVisibility();
+    document.addEventListener("visibilitychange", syncDocumentVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", syncDocumentVisibility);
+    };
+  }, []);
+
+  useEffect(() => {
+    const target = mapStageRef.current;
+    if (!target) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInfraStageInViewport(entry.isIntersecting && entry.intersectionRatio >= 0.18);
+      },
+      { threshold: [0, 0.18, 0.35] }
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
 
   const criticalDomainCounts = useMemo(() => {
     const counts = CRITICAL_DOMAIN_GROUPS.reduce((acc, item) => {
@@ -2800,7 +3102,13 @@ function InfrastructureIntelligence() {
     [layerVisibility]
   );
 
-  const totalLivePoints = (layerVisibility.military ? MILITARY_FACILITIES.length : 0) + visibleCriticalCount;
+  const visibleAdsbCount = layerVisibility.adsb ? adsbAircraftPoints.length : 0;
+  const totalLivePoints =
+    (layerVisibility.military ? MILITARY_FACILITIES.length : 0) + visibleCriticalCount + visibleAdsbCount;
+  const activeFilterCount =
+    (layerVisibility.military ? 1 : 0) +
+    (layerVisibility.adsb ? 1 : 0) +
+    CRITICAL_DOMAIN_ORDER.filter((domain) => layerVisibility[domain]).length;
 
   const selectedGovDomain: CriticalInfrastructureDomain | null = selectedGovPoint
     ? selectedGovPoint.layer === "military"
@@ -2864,18 +3172,18 @@ function InfrastructureIntelligence() {
     ? selectedGovPoint.status
     : selectedProvinceStats
       ? String(selectedProvinceStats.militaryCount)
-      : String((layerVisibility.military ? 1 : 0) + CRITICAL_DOMAIN_ORDER.filter((domain) => layerVisibility[domain]).length);
+      : String(activeFilterCount);
 
   const selectedSummary = selectedGovPoint
     ? selectedGovPoint.note
     : selectedProvince
-      ? "Province boundary selected. Counts summarize mapped military and critical infrastructure points in this region."
-      : "Select a beacon for infrastructure detail, or click a province boundary for regional detail.";
+      ? "Province boundary selected. Counts summarize mapped military and critical domain points in this region."
+      : "Select a beacon for domain detail, or click a province boundary for regional detail.";
 
   const selectedSource = selectedGovPoint
     ? selectedGovPoint.source
     : selectedProvince
-      ? "Province boundary overlays and mapped infrastructure registry"
+      ? "Province boundary overlays and mapped domain registry"
       : "N/A";
 
   const selectedLocation = selectedGovPoint
@@ -2897,63 +3205,53 @@ function InfrastructureIntelligence() {
       : "N/A";
 
   const selectedYear = selectedGovPoint?.year ? String(selectedGovPoint.year) : "N/A";
+  const selectedIsAdsb = Boolean(selectedGovPoint && selectedGovPoint.layer === "adsb");
+  const selectedAdsbNowUnixSeconds = Math.floor(Date.now() / 1000);
+  const selectedAdsbStatus: AdsbOperationalStatus | null = selectedIsAdsb && selectedGovPoint
+    ? resolveAdsbOperationalStatus(selectedGovPoint, selectedAdsbNowUnixSeconds)
+    : null;
+  const selectedAdsbStatusLabel = selectedIsAdsb && selectedGovPoint
+    ? `${selectedAdsbStatus ?? "Signal lost"} (${selectedGovPoint.status})`
+    : "Signal lost";
+  const selectedAdsbMetrics = selectedIsAdsb && selectedGovPoint
+    ? [
+        { label: "Altitude", value: formatAdsbAltitudeFeet(selectedGovPoint.altitude ?? null), fullWidth: false },
+        { label: "Speed", value: formatAdsbSpeedKnots(selectedGovPoint.speed ?? null), fullWidth: false },
+        { label: "Heading", value: formatAdsbHeading(selectedGovPoint.heading ?? null), fullWidth: false },
+        { label: "ICAO24", value: selectedGovPoint.icao24 ?? "N/A", fullWidth: false },
+        { label: "Last updated", value: formatAdsbLocalTimestamp(selectedGovPoint.lastUpdateUnix ?? null), fullWidth: true },
+      ]
+    : [];
+  const adsbLastUpdatedLabel = adsbLastUpdatedAt
+    ? new Date(adsbLastUpdatedAt).toLocaleTimeString("en-US", { hour12: false })
+    : null;
   const activeZoomLevelIndex = nearestZoomLevelIndex(mapZoom);
   const disableProvinceHover = activeZoomLevelIndex >= INFRA_LEVEL3_INDEX;
-
-  useEffect(() => {
-    beaconModeRef.current = beaconMode;
-  }, [beaconMode]);
+  const adsbVisibilityEligible =
+    layerVisibility.adsb &&
+    isDocumentVisible &&
+    isInfraStageInViewport &&
+    !showLimitedEnvironmentModal;
+  const adsbPollingEnabled = adsbVisibilityEligible && !adsbSessionPaused;
+  const adsbPollIntervalMs = adsbActiveViewMs < ADSB_ULTRA_FAST_POLL_WINDOW_MS
+    ? ADSB_ULTRA_FAST_POLL_MS
+    : adsbActiveViewMs < ADSB_FAST_POLL_WINDOW_MS
+      ? ADSB_FAST_POLL_MS
+      : ADSB_SLOW_POLL_MS;
 
   const loadLeaflet = async () => {
-    const win = window as Window & { L?: any };
-    const injectStyle = (id: string, href: string) => {
-      if (document.getElementById(id)) return;
+    if (!document.getElementById("sdemo-leaflet-css")) {
       const link = document.createElement("link");
-      link.id = id;
+      link.id = "sdemo-leaflet-css";
       link.rel = "stylesheet";
-      link.href = href;
+      link.href = "/vendor/leaflet/leaflet.css";
       document.head.appendChild(link);
-    };
-    const injectScript = (id: string, src: string, errorText: string, validate: () => boolean) =>
-      new Promise<void>((resolve, reject) => {
-        if (validate()) {
-          resolve();
-          return;
-        }
-        const existing = document.getElementById(id) as HTMLScriptElement | null;
-        if (existing) {
-          existing.addEventListener("load", () => resolve(), { once: true });
-          existing.addEventListener("error", () => reject(new Error(errorText)), { once: true });
-          return;
-        }
-        const script = document.createElement("script");
-        script.id = id;
-        script.src = src;
-        script.onload = () => resolve();
-        script.onerror = () => reject(new Error(errorText));
-        document.head.appendChild(script);
-      });
+    }
 
-    injectStyle("sdemo-leaflet-css", "https://unpkg.com/leaflet@1.9.4/dist/leaflet.css");
-    await injectScript(
-      "sdemo-leaflet-js",
-      "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js",
-      "Leaflet failed to load",
-      () => Boolean(win.L)
-    );
-
-    if (!win.L) throw new Error("Leaflet unavailable");
-
-    injectStyle("sdemo-markercluster-css", "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css");
-    injectStyle("sdemo-markercluster-default-css", "https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css");
-    await injectScript(
-      "sdemo-markercluster-js",
-      "https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js",
-      "Leaflet marker cluster failed to load",
-      () => Boolean((win.L as any)?.markerClusterGroup)
-    );
-
-    return win.L;
+    const leafletModule = await import("leaflet");
+    const Leaflet = (leafletModule as { default?: any }).default ?? leafletModule;
+    if (!Leaflet) throw new Error("Leaflet unavailable");
+    return Leaflet;
   };
 
   useEffect(() => {
@@ -2971,6 +3269,11 @@ function InfrastructureIntelligence() {
           attributionControl: false,
           minZoom: INFRA_MIN_ZOOM,
           maxZoom: INFRA_MAX_ZOOM,
+          zoomSnap: 0,
+          zoomDelta: 0.25,
+          zoomAnimation: false,
+          fadeAnimation: false,
+          markerZoomAnimation: false,
           scrollWheelZoom: false,
           doubleClickZoom: false,
           boxZoom: false,
@@ -2983,7 +3286,6 @@ function InfrastructureIntelligence() {
         L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
           maxZoom: 19,
           attribution: "Imagery &copy; Esri",
-          // Keep previous tiles visible while zooming to avoid white flashes.
           updateWhenZooming: false,
           updateWhenIdle: true,
           keepBuffer: 6,
@@ -3048,11 +3350,6 @@ function InfrastructureIntelligence() {
           setSelectedRegionCenter(null);
         });
 
-        govPointsByLayerRef.current = {
-          military: MILITARY_FACILITIES,
-          industry: CRITICAL_INFRASTRUCTURE_POINTS,
-        };
-
         const syncTelemetry = () => {
           if (!alive) return;
           setMapZoom(map.getZoom());
@@ -3075,18 +3372,238 @@ function InfrastructureIntelligence() {
       abortController.abort();
       selectedGovKeyRef.current = null;
       leafletRef.current = null;
-      govPointsByLayerRef.current = { military: MILITARY_FACILITIES, industry: CRITICAL_INFRASTRUCTURE_POINTS };
-      govMarkersByLayerRef.current = { military: [], industry: [] };
       govMarkersRef.current = {};
-      govLayerRefs.current = { military: null, industry: null };
+      govLayerRefs.current = { military: null, industry: null, adsb: null };
+      adsbTrackHistoryRef.current = {};
+      if (mapInstanceRef.current && adsbFlightPathLayerRef.current && mapInstanceRef.current.hasLayer(adsbFlightPathLayerRef.current)) {
+        mapInstanceRef.current.removeLayer(adsbFlightPathLayerRef.current);
+      }
+      adsbFlightPathLayerRef.current = null;
       provinceShapeRefs.current = {};
       provinceMetaRef.current = {};
+      pointerInsideMapStageRef.current = false;
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!adsbPollingEnabled) return;
+
+    let lastTickMs = Date.now();
+    const timerId = window.setInterval(() => {
+      const nowMs = Date.now();
+      const elapsedMs = Math.max(0, nowMs - lastTickMs);
+      lastTickMs = nowMs;
+      setAdsbActiveViewMs((current) => Math.min(ADSB_AUTO_PAUSE_AFTER_MS, current + elapsedMs));
+    }, 1000);
+
+    return () => {
+      window.clearInterval(timerId);
+    };
+  }, [adsbPollingEnabled]);
+
+  useEffect(() => {
+    if (adsbSessionPaused) return;
+    if (adsbActiveViewMs < ADSB_AUTO_PAUSE_AFTER_MS) return;
+    setAdsbSessionPaused(true);
+    setShowAdsbSessionPauseModal(true);
+  }, [adsbActiveViewMs, adsbSessionPaused]);
+
+  useEffect(() => {
+    if (!adsbPollingEnabled) return;
+
+    let alive = true;
+    let timerId: number | null = null;
+    let activeRequestController: AbortController | null = null;
+
+    const scheduleNext = () => {
+      if (!alive) return;
+      timerId = window.setTimeout(syncAdsbFeed, adsbPollIntervalMs);
+    };
+
+    const syncAdsbFeed = async () => {
+      setAdsbLayerState((current) => (current === "ready" ? "ready" : "loading"));
+      activeRequestController?.abort();
+      activeRequestController = new AbortController();
+      try {
+        const response = await fetch(`/api/adsb/philippines?cadenceMs=${adsbPollIntervalMs}`, {
+          cache: "no-store",
+          signal: activeRequestController.signal,
+        });
+        if (!response.ok) {
+          throw new Error("ADS-B feed unavailable");
+        }
+        const payload = (await response.json()) as AdsbFeedResponse;
+        if (!alive) return;
+        const sourceLabel =
+          typeof payload.source === "string" && payload.source.trim().length > 0
+            ? payload.source
+            : GOV_INFRA_LAYER_META.adsb.source;
+        const aircraft = Array.isArray(payload.aircraft) ? payload.aircraft : [];
+        const nowUnixSeconds = Math.floor(Date.now() / 1000);
+        const mappedPoints = aircraft
+          .filter(
+            (entry): entry is AdsbFeedAircraft =>
+              typeof entry?.lat === "number" &&
+              Number.isFinite(entry.lat) &&
+              typeof entry?.lon === "number" &&
+              Number.isFinite(entry.lon)
+          )
+          .filter((entry) => isWithinPhilippineBounds(entry.lat, entry.lon))
+          .map((entry) => mapAdsbAircraftToGovPoint(entry, sourceLabel, nowUnixSeconds));
+
+        const nowMs = Date.now();
+        const cutoff = nowMs - ADSB_TRACK_HISTORY_WINDOW_MS;
+        const nextTrackHistory: Record<string, AdsbTrackSample[]> = {};
+
+        Object.entries(adsbTrackHistoryRef.current).forEach(([trackId, samples]) => {
+          const trimmedSamples = samples.filter((sample) => sample.t >= cutoff);
+          if (trimmedSamples.length === 0) return;
+          nextTrackHistory[trackId] = trimmedSamples;
+        });
+
+        mappedPoints.forEach((point) => {
+          const pointTs =
+            typeof point.lastUpdateUnix === "number" && Number.isFinite(point.lastUpdateUnix)
+              ? point.lastUpdateUnix * 1000
+              : nowMs;
+          const history = nextTrackHistory[point.id] ? [...nextTrackHistory[point.id]] : [];
+          const lastSample = history[history.length - 1];
+          const latDelta = lastSample ? Math.abs(lastSample.lat - point.lat) : Number.POSITIVE_INFINITY;
+          const lonDelta = lastSample ? Math.abs(lastSample.lon - point.lon) : Number.POSITIVE_INFINITY;
+          if (!lastSample || latDelta > ADSB_TRACK_POSITION_STEP_THRESHOLD || lonDelta > ADSB_TRACK_POSITION_STEP_THRESHOLD) {
+            history.push({ lat: point.lat, lon: point.lon, t: pointTs });
+          } else {
+            history[history.length - 1] = { lat: point.lat, lon: point.lon, t: pointTs };
+          }
+          nextTrackHistory[point.id] = history.slice(-ADSB_TRACK_HISTORY_MAX_POINTS);
+        });
+
+        adsbTrackHistoryRef.current = nextTrackHistory;
+
+        setAdsbAircraftPoints(mappedPoints);
+        setAdsbLayerState("ready");
+        setAdsbLastUpdatedAt(nowMs);
+      } catch (error) {
+        if (!alive) return;
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setAdsbLayerState("error");
+      } finally {
+        scheduleNext();
+      }
+    };
+
+    syncAdsbFeed();
+
+    return () => {
+      alive = false;
+      if (timerId !== null) {
+        window.clearTimeout(timerId);
+      }
+      activeRequestController?.abort();
+    };
+  }, [adsbPollingEnabled, adsbPollIntervalMs]);
+
+  useEffect(() => {
+    if (!selectedGovPoint || selectedGovPoint.layer !== "adsb") return;
+    const nextSelectedPoint = adsbAircraftPoints.find((point) => point.id === selectedGovPoint.id);
+    if (!nextSelectedPoint) {
+      setSelectedGovPoint(null);
+      return;
+    }
+    if (
+      selectedGovPoint.lastUpdateUnix === nextSelectedPoint.lastUpdateUnix &&
+      Math.abs(selectedGovPoint.lat - nextSelectedPoint.lat) < 0.0001 &&
+      Math.abs(selectedGovPoint.lon - nextSelectedPoint.lon) < 0.0001
+    ) {
+      return;
+    }
+    setSelectedGovPoint(nextSelectedPoint);
+  }, [adsbAircraftPoints, selectedGovPoint]);
+
+  useEffect(() => {
+    if (mapState !== "ready") return;
+    const map = mapInstanceRef.current;
+    const L = leafletRef.current;
+    if (!map || !L) return;
+
+    if (adsbFlightPathLayerRef.current && map.hasLayer(adsbFlightPathLayerRef.current)) {
+      map.removeLayer(adsbFlightPathLayerRef.current);
+    }
+    adsbFlightPathLayerRef.current = null;
+
+    if (!selectedGovPoint || selectedGovPoint.layer !== "adsb") return;
+    const trackSamples = adsbTrackHistoryRef.current[selectedGovPoint.id] ?? [];
+    const observedTrajectoryColor = "#38bdf8";
+    const expectedTrajectoryColor = "#f59e0b";
+    const trajectoryLayer = L.layerGroup();
+
+    const expectedTrajectory = buildExpectedTrajectoryCoords(selectedGovPoint);
+    let expectedPath: any = null;
+    if (expectedTrajectory.length >= 2) {
+      expectedPath = L.polyline(expectedTrajectory, {
+        color: expectedTrajectoryColor,
+        weight: 1.2,
+        opacity: 1,
+        dashArray: "8 9",
+        lineJoin: "round",
+        lineCap: "round",
+        interactive: false,
+        className: "infra-adsb-flight-path infra-adsb-trajectory-expected",
+      }).addTo(trajectoryLayer);
+    }
+
+    let observedPath: any = null;
+    if (trackSamples.length >= 2) {
+      const observedCoords = trackSamples.map((sample) => [sample.lat, sample.lon] as [number, number]);
+      const currentCoord: [number, number] = [selectedGovPoint.lat, selectedGovPoint.lon];
+      const lastObserved = observedCoords[observedCoords.length - 1];
+      if (!lastObserved || Math.abs(lastObserved[0] - currentCoord[0]) > 0.0001 || Math.abs(lastObserved[1] - currentCoord[1]) > 0.0001) {
+        observedCoords.push(currentCoord);
+      }
+      observedPath = L.polyline(observedCoords, {
+        color: observedTrajectoryColor,
+        weight: 1.35,
+        opacity: 1,
+        lineJoin: "round",
+        lineCap: "round",
+        interactive: false,
+        className: "infra-adsb-flight-path infra-adsb-trajectory-observed",
+      }).addTo(trajectoryLayer);
+    }
+
+    const crosshair = L.marker([selectedGovPoint.lat, selectedGovPoint.lon], {
+      icon: L.divIcon({
+        className: "infra-adsb-focus-shell",
+        iconSize: [72, 72],
+        iconAnchor: [36, 36],
+        html: `<span class="infra-adsb-focus-crosshair" aria-hidden="true"><span class="infra-adsb-focus-ring"></span><span class="infra-adsb-focus-arm arm-n"></span><span class="infra-adsb-focus-arm arm-s"></span><span class="infra-adsb-focus-arm arm-w"></span><span class="infra-adsb-focus-arm arm-e"></span></span>`,
+      }),
+      keyboard: false,
+      interactive: false,
+      zIndexOffset: -480,
+    }).addTo(trajectoryLayer);
+
+    trajectoryLayer.addTo(map);
+    expectedPath?.bringToBack?.();
+    observedPath?.bringToBack?.();
+    crosshair.bringToBack?.();
+    adsbFlightPathLayerRef.current = trajectoryLayer;
+  }, [mapState, selectedGovPoint, adsbAircraftPoints]);
+
+  useEffect(() => {
+    if (mapState !== "ready") return;
+    const map = mapInstanceRef.current;
+    if (!map || !selectedGovPoint || selectedGovPoint.layer !== "adsb") return;
+    map.flyTo(
+      [selectedGovPoint.lat, selectedGovPoint.lon],
+      INFRA_ZOOM_LEVELS[INFRA_LEVEL3_INDEX].zoom,
+      { duration: 0.8 }
+    );
+  }, [mapState, selectedGovPoint]);
 
   useEffect(() => {
     if (mapState !== "ready" || !trackingEnabled || showLimitedEnvironmentModal) return;
@@ -3251,24 +3768,25 @@ function InfrastructureIntelligence() {
     const L = leafletRef.current;
     if (!map || !L) return;
 
-    const compressed = beaconMode === "compressed";
     const nextGovLayers: Record<GovInfraLayerId, any> = {
-      military: createInfraBeaconLayer(L, compressed),
-      industry: createInfraBeaconLayer(L, compressed),
+      military: L.layerGroup(),
+      industry: L.layerGroup(),
+      adsb: L.layerGroup(),
     };
-    const nextGovMarkersByLayer: Record<GovInfraLayerId, any[]> = { military: [], industry: [] };
+    const nextGovMarkersByLayer: Record<GovInfraLayerId, any[]> = { military: [], industry: [], adsb: [] };
     const nextGovMarkers: Record<string, any> = {};
 
     const activeCriticalDomains = new Set(
       CRITICAL_DOMAIN_ORDER.filter((domain) => layerVisibility[domain])
     );
     const visiblePointsByLayer: Record<GovInfraLayerId, GovInfrastructurePoint[]> = {
-      military: layerVisibility.military ? govPointsByLayerRef.current.military : [],
-      industry: govPointsByLayerRef.current.industry.filter(
+      military: layerVisibility.military ? MILITARY_FACILITIES : [],
+      industry: CRITICAL_INFRASTRUCTURE_POINTS.filter(
         (point) =>
           point.domain &&
           activeCriticalDomains.has(point.domain)
       ),
+      adsb: layerVisibility.adsb ? adsbAircraftPoints : [],
     };
 
     const onSelectPoint = (selectedPoint: GovInfrastructurePoint) => {
@@ -3279,7 +3797,7 @@ function InfrastructureIntelligence() {
       setSelectedGovPoint(selectedPoint);
     };
 
-    (["military", "industry"] as GovInfraLayerId[]).forEach((layerId) => {
+    (["military", "industry", "adsb"] as GovInfraLayerId[]).forEach((layerId) => {
       visiblePointsByLayer[layerId].forEach((point) => {
         const marker = buildGovPointMarker(L, point, onSelectPoint);
         const markerKey = `${layerId}:${point.id}`;
@@ -3289,7 +3807,7 @@ function InfrastructureIntelligence() {
       populateInfraLayer(nextGovLayers[layerId], nextGovMarkersByLayer[layerId]);
     });
 
-    (["military", "industry"] as GovInfraLayerId[]).forEach((layerId) => {
+    (["military", "industry", "adsb"] as GovInfraLayerId[]).forEach((layerId) => {
       const currentLayer = govLayerRefs.current[layerId];
       if (currentLayer && map.hasLayer(currentLayer)) {
         map.removeLayer(currentLayer);
@@ -3300,10 +3818,8 @@ function InfrastructureIntelligence() {
     });
 
     govLayerRefs.current = nextGovLayers;
-    govMarkersByLayerRef.current = nextGovMarkersByLayer;
     govMarkersRef.current = nextGovMarkers;
-    selectedGovKeyRef.current = null;
-  }, [beaconMode, layerVisibility, mapState, govLayerState]);
+  }, [layerVisibility, mapState, govLayerState, adsbAircraftPoints]);
 
   useEffect(() => {
     if (mapState !== "ready") return;
@@ -3321,6 +3837,12 @@ function InfrastructureIntelligence() {
 
   useEffect(() => {
     if (!selectedGovPoint) return;
+    if (selectedGovPoint.layer === "adsb") {
+      if (!layerVisibility.adsb) {
+        setSelectedGovPoint(null);
+      }
+      return;
+    }
     if (selectedGovPoint.layer === "military") {
       if (!layerVisibility.military) {
         setSelectedGovPoint(null);
@@ -3357,7 +3879,6 @@ function InfrastructureIntelligence() {
 
     if (!selectedGovPoint) {
       selectedGovKeyRef.current = null;
-      suppressAutoFocusOnNextSelectionSyncRef.current = false;
       return;
     }
 
@@ -3371,16 +3892,16 @@ function InfrastructureIntelligence() {
     applyMarkerVisual(marker, true);
     selectedGovKeyRef.current = markerKey;
 
-    if (suppressAutoFocusOnNextSelectionSyncRef.current) {
-      suppressAutoFocusOnNextSelectionSyncRef.current = false;
+    if (selectedGovPoint.layer === "adsb") {
+      marker.openTooltip?.();
       return;
     }
 
-    const layerGroup = govLayerRefs.current[selectedGovPoint.layer];
-    if (layerGroup?.zoomToShowLayer) {
-      layerGroup.zoomToShowLayer(marker, () => marker.openTooltip());
+    if (previousKey === markerKey) {
       return;
     }
+
+    marker.openTooltip?.();
 
     const map = mapInstanceRef.current;
     if (!map) return;
@@ -3389,13 +3910,16 @@ function InfrastructureIntelligence() {
       INFRA_ZOOM_LEVELS[nearestZoomLevelIndex(Math.max(map.getZoom(), 10))].zoom,
       { duration: 0.9 }
     );
-  }, [selectedGovPoint, beaconMode, layerVisibility, mapState, govLayerState]);
+  }, [selectedGovPoint, layerVisibility, mapState, govLayerState, adsbAircraftPoints]);
 
   const resetViewport = () => {
     const map = mapInstanceRef.current;
     if (!map) return;
     map.setView(INFRA_DEFAULT_CENTER, INFRA_DEFAULT_ZOOM, { animate: true, duration: 0.8 });
     setLayerVisibility({ ...DEFAULT_INFRA_FILTER_VISIBILITY });
+    setAdsbActiveViewMs(0);
+    setAdsbSessionPaused(false);
+    setShowAdsbSessionPauseModal(false);
     setHoveredProvinceId(null);
     setActiveProvinceId(null);
     setSelectedGovPoint(null);
@@ -3418,20 +3942,127 @@ function InfrastructureIntelligence() {
     setZoomLevel(activeZoomLevelIndex + step);
   };
 
+  useEffect(() => {
+    const stage = mapStageRef.current;
+    if (!stage) return;
+
+    const markInside = () => {
+      pointerInsideMapStageRef.current = true;
+    };
+    const markOutside = () => {
+      pointerInsideMapStageRef.current = false;
+    };
+
+    stage.addEventListener("mouseenter", markInside);
+    stage.addEventListener("mouseleave", markOutside);
+    window.addEventListener("blur", markOutside);
+
+    return () => {
+      stage.removeEventListener("mouseenter", markInside);
+      stage.removeEventListener("mouseleave", markOutside);
+      window.removeEventListener("blur", markOutside);
+      pointerInsideMapStageRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleWindowWheelCapture = (event: WheelEvent) => {
+      if (showLimitedEnvironmentModal) return;
+      const stage = mapStageRef.current;
+      const target = event.target;
+      const targetInsideStage = Boolean(stage && target instanceof Node && stage.contains(target));
+      if (!pointerInsideMapStageRef.current && !targetInsideStage) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (mapState !== "ready") return;
+
+      const now = performance.now();
+      if (now - wheelZoomCooldownRef.current < 16) return;
+      wheelZoomCooldownRef.current = now;
+
+      const map = mapInstanceRef.current;
+      if (!map) return;
+
+      const deltaModeScale =
+        event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? window.innerHeight : 1;
+      const normalizedDeltaY = event.deltaY * deltaModeScale;
+      if (normalizedDeltaY === 0) return;
+
+      const currentZoom = map.getZoom();
+      const wheelDeltaZoom = -normalizedDeltaY * 0.01;
+      const deltaZoom = Math.max(-0.9, Math.min(0.9, wheelDeltaZoom));
+      const nextZoom = Math.max(INFRA_MIN_ZOOM, Math.min(INFRA_MAX_ZOOM, currentZoom + deltaZoom));
+      if (Math.abs(nextZoom - currentZoom) < 0.0001) return;
+      map.setZoom(nextZoom, { animate: false });
+    };
+
+    window.addEventListener("wheel", handleWindowWheelCapture, { capture: true, passive: false });
+    return () => {
+      window.removeEventListener("wheel", handleWindowWheelCapture, true);
+    };
+  }, [mapState, showLimitedEnvironmentModal]);
+
   const toggleLayer = (layer: InfraFilterLayerId) => {
-    setLayerVisibility((prev) => ({ ...prev, [layer]: !(prev[layer] ?? false) }));
+    setLayerVisibility((prev) => {
+      const nextValue = !(prev[layer] ?? false);
+      if (layer === "adsb" && nextValue) {
+        setAdsbActiveViewMs(0);
+        setAdsbSessionPaused(false);
+        setShowAdsbSessionPauseModal(false);
+      }
+      if (layer === "adsb" && !nextValue) {
+        setShowAdsbSessionPauseModal(false);
+      }
+      return { ...prev, [layer]: nextValue };
+    });
   };
 
   const clearFilters = () => {
     setLayerVisibility(CLEARED_INFRA_FILTER_VISIBILITY);
+    setShowAdsbSessionPauseModal(false);
     setSelectedGovPoint(null);
     setSelectedRegionCenter(null);
   };
 
+  const visibleGovernmentPointCount = totalLivePoints - visibleAdsbCount;
+  const adsbPausedBySessionCap = layerVisibility.adsb && adsbSessionPaused;
+  const adsbPausedOffscreen = layerVisibility.adsb && !adsbSessionPaused && !adsbVisibilityEligible;
+  const adsbPaused = adsbPausedBySessionCap || adsbPausedOffscreen;
+  const showAdsbLoadingScreen =
+    mapState === "ready" &&
+    layerVisibility.adsb &&
+    !adsbPaused &&
+    adsbLayerState === "loading" &&
+    (!adsbLastUpdatedAt || adsbAircraftPoints.length === 0);
+  const mapChipStatus =
+    govLayerState === "error" || (layerVisibility.adsb && !adsbPaused && adsbLayerState === "error")
+      ? "error"
+      : govLayerState === "loading" || (layerVisibility.adsb && !adsbPaused && adsbLayerState === "loading" && !adsbLastUpdatedAt)
+        ? "loading"
+        : "ready";
+  const mapChipLabel =
+    govLayerState === "loading"
+      ? "Loading government layers..."
+      : govLayerState === "error"
+        ? "Government dataset unavailable"
+      : !layerVisibility.adsb
+          ? `${visibleGovernmentPointCount.toLocaleString("en-US")} GOVERNMENT POINTS LIVE`
+          : adsbPausedBySessionCap
+            ? `${totalLivePoints.toLocaleString("en-US")} LIVE TRACKS · ADS-B PAUSED (20M SESSION CAP)`
+          : adsbPausedOffscreen
+            ? `${totalLivePoints.toLocaleString("en-US")} LIVE TRACKS · ADS-B PAUSED (OFFSCREEN)`
+          : adsbLayerState === "loading" && !adsbLastUpdatedAt
+            ? "Syncing ADS-B aircraft feed..."
+          : adsbLayerState === "error"
+              ? `${visibleGovernmentPointCount.toLocaleString("en-US")} GOVERNMENT POINTS LIVE · ADS-B OFFLINE`
+              : `${totalLivePoints.toLocaleString("en-US")} LIVE TRACKS · ${visibleAdsbCount.toLocaleString("en-US")} AIRCRAFT · ${Math.round(adsbPollIntervalMs / 1000)}S POLL${adsbLastUpdatedLabel ? ` · UPDATED ${adsbLastUpdatedLabel}` : ""}`;
+
   return (
     <div className={`sw-panel infra-panel${showLimitedEnvironmentModal ? " sw-panel-modal-open" : ""}`}>
       <div className="infra-topbar">
-        <div className="sw-mono infra-topbar-title">PHILIPPINE STRATEGIC INFRASTRUCTURE INTELLIGENCE</div>
+        <div className="sw-mono infra-topbar-title">PHILIPPINE STRATEGIC DOMAIN INTELLIGENCE</div>
         <div className="infra-topbar-center">
           {mapState === "ready" && (
             <div className="infra-map-zoom-simple" role="group" aria-label="Map zoom control">
@@ -3484,17 +4115,6 @@ function InfrastructureIntelligence() {
           >
             {c2FilterEnabled ? "C2 ON" : "C2 OFF"}
           </button>
-          <button
-            type="button"
-            className={`infra-beacon-toggle${beaconMode === "compressed" ? " active" : ""}`}
-            onClick={() => {
-              suppressAutoFocusOnNextSelectionSyncRef.current = true;
-              setBeaconMode((prev) => (prev === "compressed" ? "expanded" : "compressed"));
-            }}
-            aria-label="Toggle beacon grouping"
-          >
-            {beaconMode === "compressed" ? "GROUP" : "UNGROUP"}
-          </button>
           <button type="button" onClick={clearFilters} className="infra-clear-filters">CLEAR FILTERS</button>
           <button type="button" onClick={resetViewport} className="infra-reset">RESET</button>
         </div>
@@ -3505,76 +4125,100 @@ function InfrastructureIntelligence() {
           <div className="sw-mono sw-dim" style={{ fontSize: "0.58rem", letterSpacing: "0.18em", marginBottom: "0.4rem" }}>
             SELECTION_DETAILS
           </div>
-          <h3 className="infra-title">{selectedTitle}</h3>
-          <div className="infra-meta-line">
-            <span style={{ color: selectedLayerColor }}>{selectedLayerLabel}</span>
-            {selectedMeta.map((entry) => (
-              <span key={entry}>{entry}</span>
-            ))}
-          </div>
-
-          <div className="infra-stats-grid">
-            <div>
-              <div className="sw-mono sw-dim infra-k">{selectedPrimaryLabel}</div>
-              <div className="infra-v">{selectedPrimaryValue}</div>
-            </div>
-            <div>
-              <div className="sw-mono sw-dim infra-k">{selectedSecondaryLabel}</div>
-              <div className="infra-v">{selectedSecondaryValue}</div>
-            </div>
-          </div>
-
-          <p className="infra-note">{selectedSummary}</p>
-          <div className="sw-mono sw-dim infra-source-tag">SOURCE: {selectedSource}</div>
-
-          <div className="infra-detail-grid">
-            <div>
-              <div className="sw-mono sw-dim infra-k">LOCATION</div>
-              <div className="infra-v">{selectedLocation}</div>
-            </div>
-            <div>
-              <div className="sw-mono sw-dim infra-k">COORDINATES</div>
-              <div className="infra-v">{selectedCoordinates}</div>
-            </div>
-            <div>
-              <div className="sw-mono sw-dim infra-k">OPERATOR</div>
-              <div className="infra-v">{selectedOperator}</div>
-            </div>
-            <div>
-              <div className="sw-mono sw-dim infra-k">PROGRAM YEAR</div>
-              <div className="infra-v">{selectedYear}</div>
-            </div>
-          </div>
-
-          {selectedProvinceStats?.topDomains?.length ? (
-            <div className="infra-region-breakdown">
-              <div className="sw-mono sw-dim" style={{ fontSize: "0.54rem", letterSpacing: "0.14em" }}>
-                REGION DOMAIN BREAKDOWN
+          {selectedIsAdsb && selectedGovPoint ? (
+            <>
+              <div className="infra-adsb-title-row">
+                <span className={`infra-adsb-status-line status-${(selectedAdsbStatus ?? "Signal lost").toLowerCase().replace(" ", "-")}`}>
+                  <span className="infra-adsb-status-dot" aria-hidden="true" />
+                  <span className="infra-adsb-status-label">{selectedAdsbStatusLabel}</span>
+                </span>
+                <h3 className="infra-title">{selectedTitle}</h3>
               </div>
-              <div className="infra-domain-tags">
-                {selectedProvinceStats.topDomains.map((entry) => (
-                  <div key={entry.domain} className="infra-domain-tag">
-                    <span>{entry.domain}</span>
-                    <span className="sw-mono">{entry.count.toLocaleString("en-US")}</span>
+              <div className="infra-adsb-track-class">{selectedGovPoint.category}</div>
+              <div className="infra-adsb-operator">{selectedOperator}</div>
+              <div className="infra-adsb-airspace">Philippine airspace</div>
+              <div className="infra-adsb-metrics-grid">
+                {selectedAdsbMetrics.map((metric) => (
+                  <div key={metric.label} className={`infra-adsb-metric${metric.fullWidth ? " full" : ""}`}>
+                    <div className="sw-mono sw-dim infra-k">{metric.label}</div>
+                    <div className="infra-v">{metric.value}</div>
                   </div>
                 ))}
               </div>
-            </div>
-          ) : null}
+              <div className="sw-mono sw-dim infra-source-tag">SOURCE: {selectedSource}</div>
+            </>
+          ) : (
+            <>
+              <h3 className="infra-title">{selectedTitle}</h3>
+              <div className="infra-meta-line">
+                <span style={{ color: selectedLayerColor }}>{selectedLayerLabel}</span>
+                {selectedMeta.map((entry) => (
+                  <span key={entry}>{entry}</span>
+                ))}
+              </div>
+
+              <div className="infra-stats-grid">
+                <div>
+                  <div className="sw-mono sw-dim infra-k">{selectedPrimaryLabel}</div>
+                  <div className="infra-v">{selectedPrimaryValue}</div>
+                </div>
+                <div>
+                  <div className="sw-mono sw-dim infra-k">{selectedSecondaryLabel}</div>
+                  <div className="infra-v">{selectedSecondaryValue}</div>
+                </div>
+              </div>
+
+              <p className="infra-note">{selectedSummary}</p>
+              <div className="sw-mono sw-dim infra-source-tag">SOURCE: {selectedSource}</div>
+
+              <div className="infra-detail-grid">
+                <div>
+                  <div className="sw-mono sw-dim infra-k">LOCATION</div>
+                  <div className="infra-v">{selectedLocation}</div>
+                </div>
+                <div>
+                  <div className="sw-mono sw-dim infra-k">COORDINATES</div>
+                  <div className="infra-v">{selectedCoordinates}</div>
+                </div>
+                <div>
+                  <div className="sw-mono sw-dim infra-k">OPERATOR</div>
+                  <div className="infra-v">{selectedOperator}</div>
+                </div>
+                <div>
+                  <div className="sw-mono sw-dim infra-k">PROGRAM YEAR</div>
+                  <div className="infra-v">{selectedYear}</div>
+                </div>
+              </div>
+
+              {selectedProvinceStats?.topDomains?.length ? (
+                <div className="infra-region-breakdown">
+                  <div className="sw-mono sw-dim" style={{ fontSize: "0.54rem", letterSpacing: "0.14em" }}>
+                    REGION DOMAIN BREAKDOWN
+                  </div>
+                  <div className="infra-domain-tags">
+                    {selectedProvinceStats.topDomains.map((entry) => (
+                      <div key={entry.domain} className="infra-domain-tag">
+                        <span>{entry.domain}</span>
+                        <span className="sw-mono">{entry.count.toLocaleString("en-US")}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </>
+          )}
         </aside>
 
         <div
           ref={mapStageRef}
-          className={`infra-map-stage${showLimitedEnvironmentModal ? "" : " crosshair-enabled"}${c2FilterEnabled ? " infra-map-stage-c2" : ""}${showLimitedEnvironmentModal ? " infra-map-stage-modal-open" : ""}`}
+          className={`infra-map-stage${showLimitedEnvironmentModal ? "" : " crosshair-enabled"}${c2FilterEnabled ? " infra-map-stage-c2" : ""}${activeZoomLevelIndex === INFRA_LEVEL3_INDEX ? " infra-map-stage-level3" : ""}${showLimitedEnvironmentModal ? " infra-map-stage-modal-open" : ""}`}
         >
           <div ref={mapHostRef} className="infra-leaflet-map" />
           <Crosshair color="var(--sdemo-crosshair-color, rgba(255,255,255,0.86))" containerRef={mapStageRef} />
           {mapState === "ready" && (
-            <div className={`infra-gov-chip ${govLayerState}`}>
+            <div className={`infra-gov-chip ${mapChipStatus}`}>
               <span className="sw-mono">
-                {govLayerState === "loading" && "Loading government layers..."}
-                {govLayerState === "ready" && `${totalLivePoints.toLocaleString("en-US")} GOVERNMENT POINTS LIVE`}
-                {govLayerState === "error" && "Government dataset unavailable"}
+                {mapChipLabel}
               </span>
             </div>
           )}
@@ -3585,6 +4229,12 @@ function InfrastructureIntelligence() {
               </span>
             </div>
           )}
+          {showAdsbLoadingScreen && (
+            <div className="infra-adsb-loading-screen" role="status" aria-live="polite">
+              <span className="infra-adsb-loading-spinner" aria-hidden="true" />
+              <span className="sw-mono infra-adsb-loading-text">Fetching live ADS-B feed...</span>
+            </div>
+          )}
         </div>
 
         <aside className="infra-filters-panel">
@@ -3592,6 +4242,28 @@ function InfrastructureIntelligence() {
             MAP_LAYERS
           </div>
           <div className="infra-layer-list">
+            <label className={`infra-layer-item${layerVisibility.adsb ? " active" : ""}`}>
+              <span className="infra-layer-toggle-shell infra-layer-toggle-shell-adsb">
+                <input
+                  className="infra-layer-toggle-adsb"
+                  type="checkbox"
+                  checked={Boolean(layerVisibility.adsb)}
+                  onChange={() => toggleLayer("adsb")}
+                  aria-label="Toggle aircraft layer"
+                />
+                <i
+                  className={`bi ${layerVisibility.adsb ? "bi-airplane-fill" : "bi-airplane"} infra-layer-aircraft-icon`}
+                  aria-hidden="true"
+                />
+              </span>
+              <span className="infra-layer-copy">
+                <span className="infra-layer-text">{GOV_INFRA_LAYER_META.adsb.label}</span>
+              </span>
+              <span className="sw-mono infra-layer-count">
+                {adsbLayerState === "error" ? "OFFLINE" : adsbAircraftPoints.length.toLocaleString("en-US")}
+              </span>
+            </label>
+
             <label className={`infra-layer-item${layerVisibility.military ? " active" : ""}`}>
               <input
                 className="infra-layer-toggle"
@@ -3631,18 +4303,30 @@ function InfrastructureIntelligence() {
           </div>
         </aside>
       </div>
+      {showAdsbSessionPauseModal && (
+        <div className="infra-adsb-session-modal-wrap" role="dialog" aria-modal="true" aria-label="ADS-B session paused notice">
+          <div className="infra-adsb-session-modal">
+            <div className="sw-mono infra-adsb-session-modal-kicker">ADS-B SESSION PAUSED</div>
+            <h4 className="infra-adsb-session-modal-title">Live aircraft data paused after 20 minutes.</h4>
+            <p className="infra-adsb-session-modal-note">To continue live tracking, reload the site.</p>
+            <button type="button" className="infra-adsb-session-modal-btn" onClick={() => window.location.reload()}>
+              Reload Site
+            </button>
+          </div>
+        </div>
+      )}
       {!showLimitedEnvironmentModal && (
         <LimitedEnvironmentNoticeStrip
-          label="Infrastructure Intelligence"
+          label="Strategic Domain Intelligence"
           onClick={openLimitedEnvironmentModal}
         />
       )}
       {showLimitedEnvironmentModal && (
         <LimitedEnvironmentModal
-          surfaceLabel="Infrastructure Intelligence"
-          definitionTitle={LIMITED_ENVIRONMENT_DEFINITIONS.infrastructure.title}
-          definitionDescription={LIMITED_ENVIRONMENT_DEFINITIONS.infrastructure.description}
-          requestDemoHref={LIMITED_ENVIRONMENT_LINKS.infrastructure.requestDemoHref}
+          surfaceLabel="Strategic Domain Intelligence"
+          definitionTitle={LIMITED_ENVIRONMENT_DEFINITIONS.domain.title}
+          definitionDescription={LIMITED_ENVIRONMENT_DEFINITIONS.domain.description}
+          requestDemoHref={LIMITED_ENVIRONMENT_LINKS.domain.requestDemoHref}
           isClosing={isLimitedEnvironmentClosing}
           onClose={closeLimitedEnvironmentModal}
         />
@@ -3777,7 +4461,7 @@ function LearnMoreCard() {
 }
 
 type SoftwareWindowDefinition = {
-  id: "government" | "infrastructure" | "command" | "learn";
+  id: "government" | "domain" | "command" | "learn";
   tag: string;
   name: string;
   industry: string;
@@ -3798,12 +4482,12 @@ const SOFTWARE_WINDOWS: SoftwareWindowDefinition[] = [
     component: GovernmentSystemsWindow,
   },
   {
-    id: "infrastructure", tag: "02", name: "Infrastructure Intelligence", industry: "National Infrastructure",
-    tagline: "Nationwide Government Infrastructure Layers",
-    desc: "Satellite-grade Philippine map with coordinate-level beacons for Enegy & Oil, Fluid Systems, Transport, Telecommunications, Healthcare, Bank & Finance, Food & agriculture, Government, Defense facilities, Data Center, and Aerospace.",
+    id: "domain", tag: "02", name: "Strategic Domain Intelligence", industry: "National Domain Operations",
+    tagline: "Philippine Strategic Domain Intelligence",
+    desc: "Satellite-grade Philippine map with coordinate-level beacons for Enegy & Oil, Fluid Systems, Transport, Telecommunications, Healthcare, Bank & Finance, Food & agriculture, Government, Defense facilities, Data Center, and Aerospace, plus realtime ADS-B aircraft tracks in Philippine airspace.",
     status: "MAPPED",
     uptime: "99.91%",
-    component: InfrastructureIntelligence,
+    component: StrategicDomainIntelligence,
   },
   {
     id: "command", tag: "03", name: "Command & Control", industry: "Coordination",
@@ -3902,6 +4586,10 @@ export default function SoftwareDemo() {
         @keyframes sdemoTabOrbit {
           0% { background-position: 0% 0%; }
           100% { background-position: 200% 0%; }
+        }
+        @keyframes infraSpin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
 
         .sdemo-root {
@@ -4828,18 +5516,6 @@ export default function SoftwareDemo() {
           background:rgba(13,148,136,0.22);
           box-shadow:0 0 0 1px rgba(45,212,191,0.24), 0 0 10px rgba(45,212,191,0.24);
         }
-        .infra-zoom-controls .infra-beacon-toggle {
-          width:auto;
-          padding:0 0.56rem;
-          font-size:0.55rem;
-          letter-spacing:0.12em;
-        }
-        .infra-zoom-controls .infra-beacon-toggle.active {
-          border-color:rgba(56,189,248,0.62);
-          color:#bae6fd;
-          background:rgba(2,132,199,0.22);
-          box-shadow:0 0 0 1px rgba(56,189,248,0.26), 0 0 10px rgba(56,189,248,0.24);
-        }
         .infra-zoom-controls > span {
           min-width:46px;
           text-align:center;
@@ -4862,12 +5538,6 @@ export default function SoftwareDemo() {
           color:#0f766e;
           background:rgba(13,148,136,0.16);
           box-shadow:0 0 0 1px rgba(13,148,136,0.2), 0 0 8px rgba(13,148,136,0.15);
-        }
-        :root.light .infra-zoom-controls .infra-beacon-toggle.active {
-          border-color:rgba(2,132,199,0.44);
-          color:#0c4a6e;
-          background:rgba(2,132,199,0.15);
-          box-shadow:0 0 0 1px rgba(2,132,199,0.2), 0 0 8px rgba(2,132,199,0.12);
         }
         :root.light .infra-zoom-controls > span { color:rgba(0,0,0,0.55); }
         .infra-map-zoom-simple {
@@ -5033,6 +5703,7 @@ export default function SoftwareDemo() {
           --sdemo-crosshair-color: rgba(255,255,255,0.86);
           position:relative;
           overflow:hidden;
+          overscroll-behavior:contain;
           border-left:1px solid rgba(255,255,255,0.07);
           border-right:1px solid rgba(255,255,255,0.07);
           background:radial-gradient(circle at 20% 10%, rgba(96,165,250,0.1), transparent 40%);
@@ -5471,11 +6142,20 @@ export default function SoftwareDemo() {
         .infra-leaflet-map .leaflet-tile {
           outline:1px solid transparent;
         }
+        .infra-leaflet-map .leaflet-zoom-animated {
+          transform:translateZ(0);
+          backface-visibility:hidden;
+          will-change:transform;
+        }
+        .infra-leaflet-map .leaflet-tile-container {
+          transform:translateZ(0);
+          will-change:transform;
+        }
         .infra-map-stage.infra-map-stage-c2 .infra-leaflet-map .leaflet-tile-pane {
-          filter:grayscale(0.24) saturate(0.56) contrast(1.32) brightness(0.7) hue-rotate(140deg);
+          filter:grayscale(0.12) saturate(0.84) contrast(1.14) brightness(0.86) hue-rotate(22deg);
         }
         .infra-map-stage.infra-map-stage-c2 .infra-leaflet-map .leaflet-overlay-pane {
-          filter:contrast(1.12) saturate(1.08);
+          filter:contrast(1.04) saturate(1.02);
         }
         .infra-c2-hud {
           position:absolute;
@@ -5577,6 +6257,40 @@ export default function SoftwareDemo() {
           color:rgba(255,255,255,0.62);
         }
         :root.light .infra-map-label { color:rgba(0,0,0,0.56); }
+        .infra-adsb-loading-screen {
+          position:absolute;
+          inset:0;
+          z-index:460;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          justify-content:center;
+          gap:0.7rem;
+          pointer-events:none;
+          background:linear-gradient(165deg, rgba(2,6,23,0.72), rgba(2,6,23,0.4));
+          backdrop-filter:blur(3px);
+        }
+        :root.light .infra-adsb-loading-screen {
+          background:linear-gradient(165deg, rgba(241,245,249,0.78), rgba(241,245,249,0.46));
+        }
+        .infra-adsb-loading-spinner {
+          width:30px;
+          height:30px;
+          border-radius:999px;
+          border:2px solid rgba(255,255,255,0.22);
+          border-top-color:#38bdf8;
+          animation:infraSpin 0.85s linear infinite;
+        }
+        :root.light .infra-adsb-loading-spinner {
+          border-color:rgba(15,23,42,0.22);
+          border-top-color:#0284c7;
+        }
+        .infra-adsb-loading-text {
+          font-size:0.6rem;
+          letter-spacing:0.14em;
+          color:rgba(255,255,255,0.78);
+        }
+        :root.light .infra-adsb-loading-text { color:rgba(15,23,42,0.7); }
         .infra-gov-chip {
           position:absolute;
           top:0.8rem;
@@ -5614,6 +6328,10 @@ export default function SoftwareDemo() {
           color:#991b1b;
         }
         .infra-gov-marker-shell {
+          background:transparent;
+          border:none;
+        }
+        .infra-adsb-marker-shell {
           background:transparent;
           border:none;
         }
@@ -5667,6 +6385,121 @@ export default function SoftwareDemo() {
           --infra-pulse-to:1.9;
           animation-duration:1.2s;
         }
+        .infra-adsb-aircraft {
+          --infra-adsb-scale: 1;
+          --infra-adsb-zoom-scale: 1;
+          position:relative;
+          width:100%;
+          height:100%;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          transform:rotate(var(--infra-adsb-rotation, 0deg)) scale(calc(var(--infra-adsb-scale) * var(--infra-adsb-zoom-scale)));
+          transform-origin:50% 50%;
+          transition:transform 0.2s ease, filter 0.2s ease, opacity 0.2s ease, color 0.2s ease;
+          filter:drop-shadow(0 0 10px rgba(255,255,255,0.42)) drop-shadow(0 3px 10px rgba(2,6,23,0.62));
+          animation:infraGlowBreath 1.7s ease-in-out infinite;
+          opacity:0.98;
+          color:var(--infra-dot-color);
+        }
+        .infra-adsb-aircraft::after {
+          content:"";
+          position:absolute;
+          inset:2px;
+          border-radius:999px;
+          border:0.9px solid var(--infra-dot-color);
+          --infra-pulse-from:0.74;
+          --infra-pulse-to:1.64;
+          animation:infraPulseRing 1.75s ease-out infinite;
+        }
+        .infra-adsb-aircraft-glyph {
+          position:relative;
+          z-index:2;
+          width:86%;
+          height:86%;
+          fill:currentColor;
+          color:var(--infra-dot-color);
+          filter:drop-shadow(0 0 9px var(--infra-dot-color));
+        }
+        .infra-adsb-aircraft.active {
+          --infra-adsb-scale: 1.14;
+          filter:drop-shadow(0 0 16px var(--infra-dot-color)) drop-shadow(0 3px 12px rgba(2,6,23,0.72));
+          opacity:1;
+        }
+        .infra-adsb-aircraft.active::after {
+          border-color:var(--infra-dot-color);
+          --infra-pulse-to:1.86;
+          animation-duration:1.2s;
+        }
+        .infra-adsb-aircraft[data-track-class="military"] {
+          color:${ADSB_TRACK_COLORS.military};
+          --infra-dot-color:${ADSB_TRACK_COLORS.military};
+        }
+        .infra-map-stage.infra-map-stage-level3 .infra-adsb-aircraft {
+          --infra-adsb-zoom-scale: 1.08;
+        }
+        .infra-adsb-focus-shell {
+          background:transparent;
+          border:none;
+          pointer-events:none !important;
+        }
+        .infra-adsb-focus-crosshair {
+          position:relative;
+          width:72px;
+          height:72px;
+          display:block;
+          pointer-events:none !important;
+        }
+        .infra-adsb-focus-ring {
+          position:absolute;
+          inset:0;
+          border-radius:999px;
+          border:1px solid rgba(255,255,255,0.68);
+          box-shadow:0 0 0 1px rgba(15,23,42,0.45), 0 0 14px rgba(255,255,255,0.3);
+          background:radial-gradient(circle at center, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.04) 42%, transparent 56%);
+        }
+        .infra-adsb-focus-arm {
+          position:absolute;
+          background:rgba(255,255,255,0.72);
+          border-radius:999px;
+          pointer-events:none !important;
+        }
+        .infra-adsb-focus-arm.arm-n {
+          left:50%;
+          top:6px;
+          width:1px;
+          height:15px;
+          transform:translateX(-50%);
+        }
+        .infra-adsb-focus-arm.arm-s {
+          left:50%;
+          bottom:6px;
+          width:1px;
+          height:15px;
+          transform:translateX(-50%);
+        }
+        .infra-adsb-focus-arm.arm-w {
+          top:50%;
+          left:6px;
+          width:15px;
+          height:1px;
+          transform:translateY(-50%);
+        }
+        .infra-adsb-focus-arm.arm-e {
+          top:50%;
+          right:6px;
+          width:15px;
+          height:1px;
+          transform:translateY(-50%);
+        }
+        :root.light .infra-adsb-focus-ring {
+          border-color:rgba(15,23,42,0.5);
+          box-shadow:0 0 0 1px rgba(255,255,255,0.75), 0 0 12px rgba(15,23,42,0.18);
+          background:radial-gradient(circle at center, rgba(15,23,42,0.08) 0%, rgba(15,23,42,0.02) 42%, transparent 56%);
+        }
+        :root.light .infra-adsb-focus-arm {
+          background:rgba(15,23,42,0.54);
+        }
         .infra-asset-beacon {
           position:relative;
           width:100%;
@@ -5714,6 +6547,24 @@ export default function SoftwareDemo() {
         .infra-leaflet-map .leaflet-tooltip-pane {
           z-index:10020 !important;
         }
+        .infra-leaflet-map .infra-adsb-flight-path {
+          filter:none;
+        }
+        .infra-leaflet-map .infra-adsb-trajectory-observed {
+          filter:drop-shadow(0 0 6px rgba(56,189,248,0.45));
+        }
+        .infra-leaflet-map .infra-adsb-trajectory-expected {
+          filter:drop-shadow(0 0 6px rgba(245,158,11,0.45));
+        }
+        :root.light .infra-leaflet-map .infra-adsb-flight-path {
+          filter:none;
+        }
+        :root.light .infra-leaflet-map .infra-adsb-trajectory-observed {
+          filter:drop-shadow(0 0 5px rgba(14,165,233,0.3));
+        }
+        :root.light .infra-leaflet-map .infra-adsb-trajectory-expected {
+          filter:drop-shadow(0 0 5px rgba(217,119,6,0.3));
+        }
         .infra-leaflet-map .leaflet-tooltip.infra-tooltip {
           --infra-tooltip-glow: rgba(34,211,238,0.26);
           z-index:10021 !important;
@@ -5745,6 +6596,11 @@ export default function SoftwareDemo() {
           border-color:rgba(34,211,238,0.66);
           color:#cffafe;
         }
+        .infra-leaflet-map .leaflet-tooltip.infra-tooltip.infra-tooltip-adsb {
+          --infra-tooltip-glow: rgba(96,165,250,0.36);
+          border-color:rgba(96,165,250,0.66);
+          color:#dbeafe;
+        }
         .infra-leaflet-map .leaflet-tooltip-top.infra-tooltip::before {
           border-top-color:rgba(3,8,20,0.92);
         }
@@ -5775,30 +6631,6 @@ export default function SoftwareDemo() {
         }
         :root.light .infra-leaflet-map .leaflet-tooltip-right.infra-tooltip::before {
           border-right-color:rgba(255,255,255,0.96);
-        }
-        .infra-leaflet-map .marker-cluster-small,
-        .infra-leaflet-map .marker-cluster-medium,
-        .infra-leaflet-map .marker-cluster-large {
-          background:rgba(2,6,23,0.68);
-          border:1px solid rgba(148,163,184,0.5);
-        }
-        .infra-leaflet-map .marker-cluster div {
-          background:rgba(2,6,23,0.88);
-          color:#f8fafc;
-          font-family:ui-monospace, Menlo, monospace;
-          font-size:0.68rem;
-          border:1px solid rgba(255,255,255,0.12);
-        }
-        :root.light .infra-leaflet-map .marker-cluster-small,
-        :root.light .infra-leaflet-map .marker-cluster-medium,
-        :root.light .infra-leaflet-map .marker-cluster-large {
-          background:rgba(255,255,255,0.75);
-          border:1px solid rgba(0,0,0,0.16);
-        }
-        :root.light .infra-leaflet-map .marker-cluster div {
-          background:rgba(255,255,255,0.92);
-          color:#0f172a;
-          border:1px solid rgba(0,0,0,0.16);
         }
         .infra-leaflet-map .leaflet-control-zoom a {
           background:rgba(0,0,0,0.42);
@@ -5955,6 +6787,52 @@ export default function SoftwareDemo() {
         :root.light .infra-layer-item .infra-layer-toggle:focus-visible {
           box-shadow:0 0 0 1px rgba(0,0,0,0.18), 0 0 0 3px rgba(0,0,0,0.08);
         }
+        .infra-layer-toggle-shell-adsb {
+          position:relative;
+          width:16px;
+          height:16px;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+        }
+        .infra-layer-toggle-adsb {
+          position:absolute;
+          inset:0;
+          margin:0;
+          opacity:0;
+          cursor:pointer;
+        }
+        .infra-layer-aircraft-icon {
+          font-size:12px;
+          line-height:1;
+          transform:rotate(14deg);
+          color:rgba(17,24,39,0.9);
+          -webkit-text-stroke:0.35px rgba(255,255,255,0.58);
+          text-shadow:0 0 1px rgba(255,255,255,0.28);
+          transition:color 0.18s ease, text-shadow 0.18s ease;
+          pointer-events:none;
+        }
+        .infra-layer-toggle-adsb:checked + .infra-layer-aircraft-icon {
+          color:#ffffff;
+          -webkit-text-stroke:0;
+          text-shadow:0 0 7px rgba(255,255,255,0.45);
+        }
+        .infra-layer-toggle-adsb:focus-visible + .infra-layer-aircraft-icon {
+          text-shadow:0 0 0 2px rgba(56,189,248,0.38);
+        }
+        :root.light .infra-layer-aircraft-icon {
+          color:rgba(15,23,42,0.75);
+          -webkit-text-stroke:0.28px rgba(255,255,255,0.8);
+          text-shadow:none;
+        }
+        :root.light .infra-layer-toggle-adsb:checked + .infra-layer-aircraft-icon {
+          color:#000000;
+          -webkit-text-stroke:0;
+          text-shadow:0 0 4px rgba(0,0,0,0.22);
+        }
+        :root.light .infra-layer-toggle-adsb:focus-visible + .infra-layer-aircraft-icon {
+          text-shadow:0 0 0 2px rgba(14,116,144,0.34);
+        }
         :root.light .infra-layer-text { color:rgba(0,0,0,0.74); }
         :root.light .infra-layer-count { color:rgba(0,0,0,0.52); }
         .infra-region-breakdown {
@@ -5990,6 +6868,99 @@ export default function SoftwareDemo() {
           font-weight:700;
           line-height:1.2;
           margin:0;
+        }
+        .infra-adsb-title-row {
+          display:flex;
+          flex-direction:column;
+          align-items:flex-start;
+          gap:0.56rem;
+        }
+        .infra-adsb-status-line {
+          display:inline-flex;
+          align-items:center;
+          gap:0.28rem;
+          padding:0;
+          font-size:0.54rem;
+          letter-spacing:0.11em;
+          color:rgba(255,255,255,0.82);
+        }
+        .infra-adsb-status-label {
+          line-height:1;
+        }
+        .infra-adsb-status-dot {
+          width:0.36rem;
+          height:0.36rem;
+          border-radius:999px;
+          background:currentColor;
+          box-shadow:0 0 8px currentColor;
+        }
+        .infra-adsb-status-line.status-cruising {
+          color:#4ade80;
+        }
+        .infra-adsb-status-line.status-parked {
+          color:#fbbf24;
+        }
+        .infra-adsb-status-line.status-signal-lost {
+          color:#f87171;
+        }
+        :root.light .infra-adsb-status-line {
+          color:rgba(15,23,42,0.8);
+        }
+        :root.light .infra-adsb-status-line.status-cruising {
+          color:#166534;
+        }
+        :root.light .infra-adsb-status-line.status-parked {
+          color:#92400e;
+        }
+        :root.light .infra-adsb-status-line.status-signal-lost {
+          color:#991b1b;
+        }
+        .infra-adsb-track-class {
+          margin-top:0.08rem;
+          font-size:0.68rem;
+          letter-spacing:0.09em;
+          text-transform:lowercase;
+          color:rgba(255,255,255,0.68);
+        }
+        .infra-adsb-operator {
+          margin-top:0.1rem;
+          font-size:0.76rem;
+          font-weight:600;
+          line-height:1.3;
+          color:rgba(255,255,255,0.9);
+        }
+        .infra-adsb-airspace {
+          margin-top:0.36rem;
+          font-size:0.7rem;
+          letter-spacing:0.08em;
+          text-transform:uppercase;
+          color:rgba(148,163,184,0.92);
+        }
+        .infra-adsb-metrics-grid {
+          margin-top:0.46rem;
+          display:grid;
+          grid-template-columns:repeat(2, minmax(0, 1fr));
+          gap:0.45rem;
+        }
+        .infra-adsb-metric {
+          border:1px solid rgba(255,255,255,0.1);
+          border-radius:8px;
+          padding:0.34rem 0.4rem;
+          background:rgba(255,255,255,0.03);
+        }
+        .infra-adsb-metric.full {
+          grid-column:1 / -1;
+        }
+        .infra-adsb-metric .infra-v {
+          font-size:0.72rem;
+          line-height:1.3;
+        }
+        :root.light .infra-adsb-track-class { color:rgba(15,23,42,0.58); }
+        :root.light .infra-adsb-operator { color:rgba(15,23,42,0.8); }
+        :root.light .infra-adsb-airspace { color:rgba(15,23,42,0.62); }
+        :root.light .infra-adsb-metric {
+          border-color:rgba(0,0,0,0.12);
+          background:rgba(255,255,255,0.55);
         }
         .infra-meta-line {
           display:flex;
@@ -6072,6 +7043,74 @@ export default function SoftwareDemo() {
         .infra-list-type { font-size:0.55rem; letter-spacing:0.14em; flex-shrink:0; }
         .infra-list-name { font-size:0.7rem; color:rgba(255,255,255,0.8); }
         :root.light .infra-list-name { color:rgba(0,0,0,0.75); }
+        .infra-adsb-session-modal-wrap {
+          position:absolute;
+          inset:0;
+          z-index:1200;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          padding:1rem;
+          background:rgba(2,6,23,0.64);
+          backdrop-filter:blur(4px);
+          -webkit-backdrop-filter:blur(4px);
+        }
+        .infra-adsb-session-modal {
+          width:min(100%, 420px);
+          border:1px solid rgba(248,113,113,0.38);
+          border-radius:12px;
+          background:linear-gradient(165deg, rgba(2,6,23,0.95), rgba(15,23,42,0.92));
+          box-shadow:0 18px 40px rgba(2,6,23,0.52);
+          padding:1rem;
+          display:flex;
+          flex-direction:column;
+          gap:0.65rem;
+        }
+        .infra-adsb-session-modal-kicker {
+          font-size:0.58rem;
+          letter-spacing:0.18em;
+          color:rgba(248,113,113,0.94);
+        }
+        .infra-adsb-session-modal-title {
+          margin:0;
+          font-size:0.98rem;
+          line-height:1.25;
+          color:rgba(255,255,255,0.92);
+        }
+        .infra-adsb-session-modal-note {
+          margin:0;
+          font-size:0.72rem;
+          line-height:1.5;
+          color:rgba(255,255,255,0.66);
+        }
+        .infra-adsb-session-modal-btn {
+          margin-top:0.2rem;
+          border:1px solid #E31B54;
+          border-radius:8px;
+          background:#E31B54;
+          color:#fff;
+          font-size:0.64rem;
+          letter-spacing:0.14em;
+          text-transform:uppercase;
+          font-weight:700;
+          padding:0.62rem 0.86rem;
+          cursor:pointer;
+        }
+        .infra-adsb-session-modal-btn:hover {
+          background:#c91449;
+          border-color:#c91449;
+        }
+        :root.light .infra-adsb-session-modal-wrap {
+          background:rgba(241,245,249,0.7);
+        }
+        :root.light .infra-adsb-session-modal {
+          border-color:rgba(185,28,28,0.22);
+          background:linear-gradient(165deg, rgba(255,255,255,0.96), rgba(248,250,252,0.94));
+          box-shadow:0 14px 36px rgba(15,23,42,0.18);
+        }
+        :root.light .infra-adsb-session-modal-title { color:rgba(15,23,42,0.88); }
+        :root.light .infra-adsb-session-modal-note { color:rgba(15,23,42,0.66); }
+        :root.light .infra-adsb-session-modal-kicker { color:#b91c1c; }
 
         .command-panel {
           align-items:center;

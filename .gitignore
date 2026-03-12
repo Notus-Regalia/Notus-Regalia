@@ -37,6 +37,11 @@ lerna-debug.log*
 .env.test.local
 .env.production.local
 
+# Local secret credentials
+src/utils/credentials.json
+src/utils/credentials.local.json
+!src/utils/credentials.example.json
+
 # Vercel
 .vercel
 
