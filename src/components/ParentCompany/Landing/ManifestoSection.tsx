@@ -76,7 +76,7 @@ export default function ManifestoSection() {
 
         .quote-text {
           font-family: 'Inter', system-ui, sans-serif;
-          font-size: clamp(1.75rem, 4vw, 2.75rem);
+          font-size: clamp(2.2rem, 4.8vw, 3.45rem);
           line-height: 1.15;
           font-weight: 700;
           letter-spacing: -0.02em;

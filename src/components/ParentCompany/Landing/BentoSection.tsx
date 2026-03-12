@@ -151,7 +151,7 @@ export default function WhatWeDoBentoSection() {
           align-items: center;
           gap: 0.5rem;
           margin-bottom: 0.9rem;
-          font-size: 0.62rem;
+          font-size: 0.74rem;
           font-family: ui-monospace, Menlo, monospace;
           letter-spacing: 0.24em;
           text-transform: uppercase;
@@ -161,7 +161,7 @@ export default function WhatWeDoBentoSection() {
 
         .whatwedo-title {
           margin: 0 0 0.75rem;
-          font-size: clamp(1.75rem, 4vw, 2.75rem);
+          font-size: clamp(2.2rem, 4.8vw, 3.45rem);
           font-weight: 700;
           letter-spacing: -0.02em;
           line-height: 1.15;
@@ -181,7 +181,7 @@ export default function WhatWeDoBentoSection() {
           margin: 0;
           width: 100%;
           max-width: none;
-          font-size: 0.9rem;
+          font-size: clamp(1.02rem, 1.45vw, 1.24rem);
           line-height: 1.7;
           color: rgba(255, 255, 255, 0.4);
           font-family: ui-sans-serif, system-ui, sans-serif;
@@ -435,12 +435,11 @@ export default function WhatWeDoBentoSection() {
           <header className="whatwedo-header">
             <span className="whatwedo-eyebrow">
               <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#E31B54" }} />
-              What We Do
+              Core Systems Engineering
             </span>
-            <h2 className="whatwedo-title">Core Systems We Engineer</h2>
+            <h2 className="whatwedo-title">Systems Engineered for High-Stakes Operations. </h2>
             <p className="whatwedo-subtitle">
-              We design and deliver integrated systems that convert complexity into
-              command-grade clarity.
+              We engineer software, intelligence systems, and operational platforms designed to support demanding workflows, high-value decisions, and real-world execution.
             </p>
             <div className="whatwedo-rule" />
           </header>

@@ -456,27 +456,27 @@ export default function IndustrySection() {
         <div className="about-section-header reveal-up" style={{ transitionDelay: "0ms" }}>
           <span style={{
             display: "inline-flex", alignItems: "center", gap: "0.5rem",
-            fontSize: "0.62rem", fontFamily: "ui-monospace, Menlo, monospace",
+            fontSize: "0.74rem", fontFamily: "ui-monospace, Menlo, monospace",
             textTransform: "uppercase" as const, letterSpacing: "0.24em",
             fontWeight: 700, color: "#E31B54", marginBottom: "1rem"
           }}>
             <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#E31B54", flexShrink: 0 }} />
-            Our Presence throughout Critical Industries
+            Sectors We Serve
           </span>
           <h2 style={{
-            fontSize: "clamp(1.75rem, 4vw, 2.75rem)", fontWeight: 700,
+            fontSize: "clamp(2.2rem, 4.8vw, 3.45rem)", fontWeight: 700,
             letterSpacing: "-0.02em", lineHeight: 1.15,
             background: "var(--text-gradient, linear-gradient(135deg,#f1f5f9 0%,rgba(241,245,249,.7) 100%))",
             WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
             backgroundClip: "text", marginBottom: "0.75rem"
           }}>
-            Industries We Serve.
+            Our Presence throughout Critical Industries.
           </h2>
           <p style={{
-            fontSize: "0.9rem", lineHeight: 1.7, color: "rgba(255,255,255,0.4)",
+            fontSize: "clamp(1.02rem, 1.45vw, 1.24rem)", lineHeight: 1.72, color: "rgba(255,255,255,0.4)",
             fontFamily: "ui-sans-serif, system-ui, sans-serif"
           }}>
-            Built for the environments where precision is non-negotiable and failure is not an option.
+            From infrastructure and public systems to defense-adjacent and mission-critical operations, we build for environments where failure is not an option.
           </p>
           <div style={{
             width: 48, height: 2, background: "#E31B54",

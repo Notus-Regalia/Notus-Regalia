@@ -421,7 +421,7 @@ export default function FrameworkSection() {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-          font-size: 0.62rem;
+          font-size: 0.74rem;
           font-family: ui-monospace, Menlo, monospace;
           text-transform: uppercase;
           letter-spacing: 0.24em;
@@ -441,7 +441,7 @@ export default function FrameworkSection() {
           50%      { box-shadow: 0 0 14px rgba(227,27,84,1); }
         }
         .fw-heading {
-          font-size: clamp(1.75rem, 3vw, 2.75rem);
+          font-size: clamp(2.2rem, 4.8vw, 3.45rem);
           font-family: 'Inter', system-ui, sans-serif;
           font-weight: 700;
           letter-spacing: -0.02em;
@@ -460,7 +460,7 @@ export default function FrameworkSection() {
           margin: 1rem 0;
         }
         .fw-desc {
-          font-size: 0.9rem;
+          font-size: clamp(1.02rem, 1.45vw, 1.24rem);
           line-height: 1.7;
           color: rgba(255,255,255,0.4);
           font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
@@ -772,14 +772,14 @@ export default function FrameworkSection() {
             <div className="fw-left">
               <span className="fw-eyebrow">
                 <span className="fw-eyebrow-dot" />
-                Intelligence Architecture Framework
+                Our Architecture Framework
               </span>
 
-              <h2 className="fw-heading">Layer by layer. Until it moves as one.</h2>
+              <h2 className="fw-heading">How It Comes Together.</h2>
               <div className="fw-rule" />
 
               <p className="fw-desc">
-                Raw signals don’t stay raw. They move through structured layers of intelligence, alignment, and control — until the system responds with purpose.
+                Behind every interface is a connected architecture of data, logic, automation, and operational design. Engineered to function as one cohesive system.
               </p>
 
               {/* Live layer roster */}

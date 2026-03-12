@@ -293,9 +293,15 @@ const LIMITED_ENVIRONMENT_DEFINITIONS: Record<FeaturedSoftwareId, { title: strin
 
 const LIMITED_MODAL_CLOSE_DURATION_MS = 280;
 
-function useLimitedEnvironmentModal(initialOpen = true) {
+function useLimitedEnvironmentModal(initialOpen = false) {
   const [isOpen, setIsOpen] = useState(initialOpen);
   const [isClosing, setIsClosing] = useState(false);
+
+  const open = useCallback(() => {
+    if (isOpen && !isClosing) return;
+    setIsClosing(false);
+    setIsOpen(true);
+  }, [isOpen, isClosing]);
 
   const close = useCallback(() => {
     if (!isOpen || isClosing) return;
@@ -311,7 +317,7 @@ function useLimitedEnvironmentModal(initialOpen = true) {
     return () => window.clearTimeout(timerId);
   }, [isClosing]);
 
-  return { isOpen, isClosing, close };
+  return { isOpen, isClosing, open, close };
 }
 
 type GovFlowCard = (typeof GOV_FLOW_CARDS)[number];
@@ -399,6 +405,25 @@ function LimitedEnvironmentModal({
         </div>
       </div>
     </div>
+  );
+}
+
+function LimitedEnvironmentNoticeStrip({
+  label,
+  onClick,
+}: {
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="infra-limited-notice"
+      onClick={onClick}
+      aria-label={`Open limited environment notice for ${label}`}
+    >
+      <span className="infra-limited-notice-title">Notice</span>
+    </button>
   );
 }
 
@@ -496,8 +521,9 @@ function GovernmentSystemsWindow() {
   const {
     isOpen: showLimitedEnvironmentModal,
     isClosing: isLimitedEnvironmentClosing,
+    open: openLimitedEnvironmentModal,
     close: closeLimitedEnvironmentModal,
-  } = useLimitedEnvironmentModal(true);
+  } = useLimitedEnvironmentModal(false);
   const glitch = useGlitch();
   const time = useClock();
   const [serviceFocus, setServiceFocus] = useState(active.focus);
@@ -599,6 +625,12 @@ function GovernmentSystemsWindow() {
           </div>
         </div>
       </aside>
+      {!showLimitedEnvironmentModal && (
+        <LimitedEnvironmentNoticeStrip
+          label="Government Systems"
+          onClick={openLimitedEnvironmentModal}
+        />
+      )}
       {showLimitedEnvironmentModal && (
         <LimitedEnvironmentModal
           surfaceLabel="Government Systems"
@@ -2713,8 +2745,9 @@ function InfrastructureIntelligence() {
   const {
     isOpen: showLimitedEnvironmentModal,
     isClosing: isLimitedEnvironmentClosing,
+    open: openLimitedEnvironmentModal,
     close: closeLimitedEnvironmentModal,
-  } = useLimitedEnvironmentModal(true);
+  } = useLimitedEnvironmentModal(false);
   const [c2FilterEnabled, setC2FilterEnabled] = useState(true);
   const [trackingEnabled, setTrackingEnabled] = useState(true);
   const [beaconMode, setBeaconMode] = useState<"compressed" | "expanded">("expanded");
@@ -3598,6 +3631,12 @@ function InfrastructureIntelligence() {
           </div>
         </aside>
       </div>
+      {!showLimitedEnvironmentModal && (
+        <LimitedEnvironmentNoticeStrip
+          label="Infrastructure Intelligence"
+          onClick={openLimitedEnvironmentModal}
+        />
+      )}
       {showLimitedEnvironmentModal && (
         <LimitedEnvironmentModal
           surfaceLabel="Infrastructure Intelligence"
@@ -3638,8 +3677,9 @@ function CommandControlWindow() {
   const {
     isOpen: showLimitedEnvironmentModal,
     isClosing: isLimitedEnvironmentClosing,
+    open: openLimitedEnvironmentModal,
     close: closeLimitedEnvironmentModal,
-  } = useLimitedEnvironmentModal(true);
+  } = useLimitedEnvironmentModal(false);
   const time = useClock();
 
   return (
@@ -3681,6 +3721,12 @@ function CommandControlWindow() {
           Reserve this space for mission timeline, command approvals, and inter-agency escalation pathways.
         </div>
       </div>
+      {!showLimitedEnvironmentModal && (
+        <LimitedEnvironmentNoticeStrip
+          label="Command and Control"
+          onClick={openLimitedEnvironmentModal}
+        />
+      )}
       {showLimitedEnvironmentModal && (
         <LimitedEnvironmentModal
           surfaceLabel="Command and Control"
@@ -3699,11 +3745,18 @@ function LearnMoreCard() {
   const {
     isOpen: showLimitedEnvironmentModal,
     isClosing: isLimitedEnvironmentClosing,
+    open: openLimitedEnvironmentModal,
     close: closeLimitedEnvironmentModal,
-  } = useLimitedEnvironmentModal(true);
+  } = useLimitedEnvironmentModal(false);
 
   return (
     <div className={`sw-panel command-panel${showLimitedEnvironmentModal ? " sw-panel-modal-open" : ""}`}>
+      {!showLimitedEnvironmentModal && (
+        <LimitedEnvironmentNoticeStrip
+          label="Platform Overview"
+          onClick={openLimitedEnvironmentModal}
+        />
+      )}
       {showLimitedEnvironmentModal && (
         <LimitedEnvironmentModal
           surfaceLabel="Platform Overview"
@@ -3789,16 +3842,8 @@ function SoftwareTab({
       className={`sdemo-tab${active ? " active" : ""}`}
       onClick={() => onSelect(index)}
     >
-      <div className="sdemo-tab-top">
-        <span className="sdemo-tab-tag">{software.tag}</span>
-        <span className="sdemo-tab-status">{software.status}</span>
-      </div>
       <span className="sdemo-tab-name">{software.name}</span>
       <span className="sdemo-tab-industry">{software.industry}</span>
-      <div className="sdemo-tab-foot">
-        <span className="sw-mono sdemo-tab-up">UPTIME {software.uptime}</span>
-        <span className="sdemo-tab-open">Open</span>
-      </div>
     </button>
   );
 }
@@ -3853,6 +3898,10 @@ export default function SoftwareDemo() {
         @keyframes infraTooltipGlow {
           0%,100% { box-shadow:0 0 0 1px rgba(148,163,184,0.3), 0 10px 24px rgba(2,6,23,0.56), 0 0 10px var(--infra-tooltip-glow, rgba(34,211,238,0.2)); }
           50% { box-shadow:0 0 0 1px rgba(148,163,184,0.52), 0 10px 24px rgba(2,6,23,0.62), 0 0 18px var(--infra-tooltip-glow, rgba(34,211,238,0.34)); }
+        }
+        @keyframes sdemoTabOrbit {
+          0% { background-position: 0% 0%; }
+          100% { background-position: 200% 0%; }
         }
 
         .sdemo-root {
@@ -3915,7 +3964,7 @@ export default function SoftwareDemo() {
         @media(min-width:768px){ .sdemo-header { flex-direction:row; align-items:flex-end; justify-content:space-between; gap:2rem; margin-bottom:3rem; } }
         .sdemo-eyebrow {
           display:inline-flex; align-items:center; gap:0.5rem;
-          font-size:0.62rem; text-transform:uppercase; letter-spacing:0.24em;
+          font-size:0.74rem; text-transform:uppercase; letter-spacing:0.24em;
           font-weight:700; color:#E31B54; margin-bottom:1rem;
         }
         .sdemo-eyebrow-dot {
@@ -3923,7 +3972,7 @@ export default function SoftwareDemo() {
           animation: sdPulse 2s ease-in-out infinite;
         }
         .sdemo-heading {
-          font-size:clamp(1.75rem,4vw,2.75rem); font-weight:700;
+          font-size:clamp(2.2rem,4.8vw,3.45rem); font-weight:700;
           letter-spacing:-0.02em; line-height:1.15;
           font-family:'Inter',system-ui,sans-serif;
           background: var(--text-gradient, linear-gradient(135deg,#f1f5f9 0%,rgba(241,245,249,.7) 100%));
@@ -3936,7 +3985,7 @@ export default function SoftwareDemo() {
         .sdemo-rule { width:40px; height:2px; background:#E31B54; border-radius:999px; box-shadow:0 0 8px rgba(227,27,84,0.5); margin-top:1rem; }
         .sdemo-header-desc {
           max-width:min(100%, 540px);
-          font-size:0.82rem;
+          font-size:clamp(1.02rem,1.45vw,1.24rem);
           line-height:1.65;
           color:rgba(255,255,255,0.4);
           font-family:'Inter',ui-sans-serif,system-ui,sans-serif;
@@ -3944,7 +3993,6 @@ export default function SoftwareDemo() {
         :root.light .sdemo-header-desc { color:rgba(0,0,0,0.45); }
         @media(min-width:768px){
           .sdemo-header-desc {
-            font-size:0.88rem;
             line-height:1.75;
             text-align:right;
           }
@@ -3952,18 +4000,18 @@ export default function SoftwareDemo() {
 
         .sdemo-tabs {
           display:flex;
-          gap:0.65rem;
-          margin-bottom:2rem;
+          gap:0.85rem;
+          margin-bottom:2.3rem;
           overflow-x:auto;
           overflow-y:hidden;
           scrollbar-width:none;
-          padding-bottom:0.2rem;
+          padding-bottom:0.3rem;
         }
         @media(min-width:960px){
           .sdemo-tabs {
             display:grid;
-            grid-template-columns:repeat(4,minmax(160px,1fr));
-            gap:0.8rem;
+            grid-template-columns:repeat(4,minmax(190px,1fr));
+            gap:1rem;
             overflow:visible;
             padding-bottom:0;
           }
@@ -3971,63 +4019,107 @@ export default function SoftwareDemo() {
         .sdemo-tabs::-webkit-scrollbar { display:none; }
 
         .sdemo-tab {
-          min-width:220px;
-          flex:0 0 220px;
+          min-width:248px;
+          flex:0 0 248px;
           display:flex;
           flex-direction:column;
-          gap:0.28rem;
-          padding:0.85rem 0.9rem;
-          border:1px solid rgba(255,255,255,0.09);
-          background:linear-gradient(155deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015));
+          justify-content:center;
+          gap:0.44rem;
+          min-height:94px;
+          padding:1.02rem 1.08rem;
+          border:1px solid rgba(255,255,255,0.14);
+          background:linear-gradient(160deg,rgba(255,255,255,0.08),rgba(255,255,255,0.018));
           cursor:pointer;
           text-align:left;
           position:relative;
-          transition:all 0.24s cubic-bezier(0.16,1,0.3,1);
-          border-radius:10px;
+          transition:transform 0.24s cubic-bezier(0.16,1,0.3,1), border-color 0.24s ease, background 0.24s ease, box-shadow 0.24s ease;
+          border-radius:14px;
           white-space:normal;
-          backdrop-filter: blur(8px);
+          backdrop-filter: blur(10px) saturate(130%);
+          -webkit-backdrop-filter: blur(10px) saturate(130%);
+          box-shadow:0 10px 26px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05);
+        }
+        .sdemo-tab > * {
+          position:relative;
+          z-index:1;
         }
         @media(min-width:960px){
           .sdemo-tab {
             min-width:0;
             flex:1 1 auto;
-            padding:0.95rem 1rem;
+            min-height:102px;
+            padding:1.1rem 1.2rem;
           }
         }
         .sdemo-tab:hover {
-          transform:translateY(-2px);
-          border-color:rgba(227,27,84,0.45);
-          background:linear-gradient(155deg,rgba(227,27,84,0.14),rgba(227,27,84,0.04));
+          transform:translateY(-4px);
+          border-color:rgba(255,255,255,0.02);
+          background:linear-gradient(160deg,rgba(227,27,84,0.18),rgba(227,27,84,0.06));
+          box-shadow:0 16px 34px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
         }
         .sdemo-tab.active {
-          border-color:rgba(227,27,84,0.75);
-          background:linear-gradient(155deg,rgba(227,27,84,0.2),rgba(227,27,84,0.06));
-          box-shadow:0 14px 34px rgba(0,0,0,0.28), inset 0 0 0 1px rgba(255,255,255,0.04);
+          border-color:rgba(255,255,255,0.02);
+          background:linear-gradient(160deg,rgba(227,27,84,0.24),rgba(227,27,84,0.08));
+          box-shadow:0 20px 38px rgba(0,0,0,0.34), inset 0 0 0 1px rgba(255,255,255,0.06);
         }
+        .sdemo-tab:focus-visible {
+          outline:none;
+          border-color:rgba(255,255,255,0.02);
+          box-shadow:0 0 0 2px rgba(227,27,84,0.45), 0 16px 34px rgba(0,0,0,0.28);
+        }
+        .sdemo-tab::before {
+          content:'';
+          position:absolute;
+          inset:0;
+          border-radius:inherit;
+          padding:1px;
+          z-index:0;
+          background:linear-gradient(90deg,
+            rgba(0,255,166,0.0) 0%,
+            rgba(0,255,166,0.9) 15%,
+            rgba(255,215,0,0.7) 30%,
+            rgba(236,72,153,0.7) 45%,
+            rgba(147,51,234,0.7) 60%,
+            rgba(59,130,246,0.6) 75%,
+            rgba(0,255,166,0.0) 90%);
+          background-size:200% 100%;
+          animation:sdemoTabOrbit 3s linear infinite;
+          opacity:0;
+          pointer-events:none;
+          transition:opacity 0.3s ease;
+          -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite:xor;
+          mask-composite:exclude;
+        }
+        .sdemo-tab:hover::before,
+        .sdemo-tab.active::before { opacity:1; }
         .sdemo-tab::after {
           content:'';
           position:absolute;
-          top:0;
+          top:1px;
           left:0;
           right:0;
-          height:1px;
+          height:2px;
           background:linear-gradient(90deg,rgba(227,27,84,0),rgba(227,27,84,0.8),rgba(227,27,84,0));
-          transform:scaleX(0.2);
+          transform:scaleX(0.22);
           opacity:0;
           transition:all 0.25s ease;
         }
         .sdemo-tab.active::after { transform:scaleX(1); opacity:1; }
         :root.light .sdemo-tab {
-          border:1px solid rgba(0,0,0,0.12);
-          background:linear-gradient(155deg,rgba(255,255,255,0.75),rgba(255,255,255,0.45));
+          border:1px solid rgba(15,23,42,0.15);
+          background:linear-gradient(160deg,rgba(255,255,255,0.84),rgba(255,255,255,0.56));
+          box-shadow:0 8px 24px rgba(15,23,42,0.09), inset 0 1px 0 rgba(255,255,255,0.6);
         }
         :root.light .sdemo-tab:hover {
-          border-color:rgba(227,27,84,0.42);
-          background:linear-gradient(155deg,rgba(227,27,84,0.12),rgba(227,27,84,0.04));
+          border-color:rgba(255,255,255,0.02);
+          background:linear-gradient(160deg,rgba(227,27,84,0.16),rgba(227,27,84,0.06));
         }
         :root.light .sdemo-tab.active {
-          background:linear-gradient(155deg,rgba(227,27,84,0.17),rgba(227,27,84,0.06));
-          box-shadow:0 10px 20px rgba(0,0,0,0.08);
+          border-color:rgba(255,255,255,0.02);
+          background:linear-gradient(160deg,rgba(227,27,84,0.21),rgba(227,27,84,0.08));
+          box-shadow:0 12px 28px rgba(2,6,23,0.14);
         }
 
         .sdemo-tab-top {
@@ -4055,16 +4147,31 @@ export default function SoftwareDemo() {
           background:rgba(4,120,87,0.1);
           border:1px solid rgba(4,120,87,0.22);
         }
-        .sdemo-tab-name { font-size:0.8rem; font-weight:600; color:rgba(255,255,255,0.42); transition:color 0.2s ease; }
+        .sdemo-tab-name {
+          font-size:0.92rem;
+          font-weight:700;
+          letter-spacing:0.01em;
+          line-height:1.25;
+          color:rgba(255,255,255,0.62);
+          transition:color 0.2s ease;
+        }
+        @media(min-width:960px){ .sdemo-tab-name { font-size:0.98rem; } }
         :root.light .sdemo-tab-name { color:rgba(0,0,0,0.45); }
         .sdemo-tab.active .sdemo-tab-name,
         .sdemo-tab:hover .sdemo-tab-name { color:rgba(255,255,255,0.9); }
         :root.light .sdemo-tab.active .sdemo-tab-name,
         :root.light .sdemo-tab:hover .sdemo-tab-name { color:rgba(0,0,0,0.9); }
-        .sdemo-tab-industry { font-size:0.58rem; letter-spacing:0.14em; text-transform:uppercase; color:rgba(255,255,255,0.18); transition:color 0.2s ease; }
+        .sdemo-tab-industry {
+          font-size:0.64rem;
+          letter-spacing:0.16em;
+          text-transform:uppercase;
+          font-weight:600;
+          color:rgba(255,255,255,0.27);
+          transition:color 0.2s ease;
+        }
         :root.light .sdemo-tab-industry { color:rgba(0,0,0,0.28); }
-        .sdemo-tab.active .sdemo-tab-industry { color:rgba(227,27,84,0.7); }
-        .sdemo-tab:hover .sdemo-tab-industry { color:rgba(255,255,255,0.35); }
+        .sdemo-tab.active .sdemo-tab-industry { color:rgba(227,27,84,0.84); }
+        .sdemo-tab:hover .sdemo-tab-industry { color:rgba(255,255,255,0.46); }
         :root.light .sdemo-tab:hover .sdemo-tab-industry { color:rgba(0,0,0,0.45); }
         .sdemo-tab-foot {
           margin-top:0.45rem;
@@ -4977,6 +5084,83 @@ export default function SoftwareDemo() {
             transform: scale(0.97) translateY(12px);
             filter: blur(2px);
           }
+        }
+        .infra-limited-notice {
+          position:absolute;
+          left:1rem;
+          bottom:1rem;
+          z-index:260;
+          width:auto;
+          min-width:108px;
+          min-height:40px;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          padding:0.52rem 0.9rem;
+          border:1px solid rgba(227,27,84,0.52);
+          border-radius:12px;
+          background:linear-gradient(160deg, rgba(16,12,20,0.95), rgba(7,7,11,0.92));
+          box-shadow:0 12px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+          color:#f8fafc;
+          text-align:center;
+          cursor:pointer;
+          transition:transform 0.22s cubic-bezier(0.16,1,0.3,1), border-color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+        }
+        .infra-limited-notice::before {
+          content:"";
+          position:absolute;
+          top:0;
+          left:0.55rem;
+          right:0.55rem;
+          height:1px;
+          background:linear-gradient(90deg, transparent, rgba(227,27,84,0.9), transparent);
+          opacity:0.9;
+          pointer-events:none;
+        }
+        .infra-limited-notice:hover {
+          transform:translateY(-2px);
+          border-color:rgba(227,27,84,0.72);
+          background:linear-gradient(160deg, rgba(22,14,22,0.96), rgba(10,8,12,0.95));
+          box-shadow:0 14px 32px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        .infra-limited-notice:focus-visible {
+          outline:none;
+          box-shadow:0 0 0 2px rgba(227,27,84,0.4), 0 14px 30px rgba(0,0,0,0.42);
+        }
+        .infra-limited-notice-title {
+          font-family:'Inter', ui-sans-serif, system-ui, sans-serif;
+          font-size:0.74rem;
+          letter-spacing:0.06em;
+          color:rgba(255,255,255,0.94);
+          font-weight:700;
+          line-height:1;
+        }
+        :root.light .infra-limited-notice {
+          border:1px solid rgba(227,27,84,0.44);
+          background:linear-gradient(160deg, rgba(255,255,255,0.97), rgba(244,245,250,0.95));
+          color:#0f172a;
+          box-shadow:0 10px 24px rgba(15,23,42,0.14), inset 0 1px 0 rgba(255,255,255,0.85);
+        }
+        :root.light .infra-limited-notice::before {
+          background:linear-gradient(90deg, transparent, rgba(227,27,84,0.85), transparent);
+        }
+        :root.light .infra-limited-notice:hover {
+          border-color:rgba(227,27,84,0.6);
+          background:linear-gradient(160deg, rgba(255,255,255,0.99), rgba(241,243,248,0.98));
+          box-shadow:0 12px 26px rgba(15,23,42,0.16), inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+        :root.light .infra-limited-notice-title { color:rgba(15,23,42,0.92); }
+        @media(max-width:640px){
+          .infra-limited-notice {
+            left:0.72rem;
+            right:auto;
+            bottom:0.72rem;
+            width:auto;
+            min-width:96px;
+            min-height:38px;
+            padding:0.48rem 0.78rem;
+          }
+          .infra-limited-notice-title { font-size:0.68rem; }
         }
         .infra-limited-modal-wrap {
           position:absolute;
@@ -6075,13 +6259,13 @@ export default function SoftwareDemo() {
             <div>
               <div className="sdemo-eyebrow">
                 <span className="sdemo-eyebrow-dot" />
-                Platform Suite
+                System Demonstration
               </div>
-              <h2 className="sdemo-heading">Featured System Demo</h2>
+              <h2 className="sdemo-heading">Complex Systems. Clear Interfaces.</h2>
               <div className="sdemo-rule" />
             </div>
             <p className="sdemo-header-desc">
-              Four strategic modules built for public coordination, infrastructure visibility, and high-stakes national operations.
+              Explore how our products translate deep technical capability into usable, intuitive, and decision-ready interfaces.
             </p>
           </div>
 

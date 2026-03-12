@@ -12,37 +12,45 @@ const CARDS = [
     id: "01",
     label: "Absolute Command",
     tagline: "Strategic Apex",
-    desc: "When systems think and interfaces unify, control becomes absolute. We engineer coherence — so you lead with certainty in every environment.",
+    desc: "When systems think and interfaces unify, control becomes decisive. We engineer coherence across complexity so you can lead with clarity, speed, and certainty.",
     bg: "#0a0a0a",
     accent: "#E31B54",
     textColor: "#ffffff",
     stat: "100%",
     statLabel: "Decision Authority",
-    icon: "bi-trophy-fill",
   },
   {
     id: "02",
-    label: "Intelligence",
+    label: "Engineered Intelligence",
     tagline: "Information Warfare",
-    desc: "We know the landscape before decisions are made. Through data, analysis, and predictive systems, every action is prepared — and every advantage engineered.",
-    bg: "#E31B54",
+    desc: "We reveal the landscape before decisions are made. Through data, analysis, and predictive systems, we turn information into foresight and advantage into design.",
+    bg: "#000000",
     accent: "#ffffff",
     textColor: "#ffffff",
     stat: "∞",
     statLabel: "Signal Range",
-    icon: "bi-cpu-fill",
   },
   {
     id: "03",
-    label: "Operations",
+    label: "Operational Precision",
     tagline: "Execution Engine",
-    desc: "Where strategy becomes reality. Converting intent into outcome with discipline, speed, and accountability. No ambiguity. No excuses. Only results.",
+    desc: "Where strategy becomes action. We convert intent into measurable outcomes through disciplined systems, rapid execution, and uncompromising accountability.",
     bg: "#0a0a0a",
     accent: "#E31B54",
     textColor: "#ffffff",
     stat: "0ms",
     statLabel: "Tolerance for Delay",
-    icon: "bi-lightning-charge-fill",
+  },
+  {
+    id: "04",
+    label: "Integrated Architecture",
+    tagline: "System Cohesion",
+    desc: "We connect intelligence, interfaces, and operations into unified ecosystems that move as one—reducing friction, increasing visibility, and strengthening control.",
+    bg: "#000000",
+    accent: "#ffffff",
+    textColor: "#ffffff",
+    stat: "1X",
+    statLabel: "System Unity",
   },
 ];
 
@@ -92,28 +100,38 @@ export default function StackingCards() {
     };
   }, [isMobile]);
 
-  const getCardStyle = (index) => {
+  const getCardStyle = (index: number) => {
     const p = progress;
-    if (index === 0) {
-      const scale = 1 - Math.min(p, 0.5) * 0.06;
-      const brightness = 1 - Math.min(p, 0.5) * 0.4;
-      return { transform: `scale(${scale})`, filter: `brightness(${brightness})`, zIndex: 1 };
+    const cardCount = CARDS.length;
+    if (cardCount <= 1) return { zIndex: 1 };
+
+    const clamp01 = (value: number) => Math.min(Math.max(value, 0), 1);
+    const easeOutCubic = (value: number) => 1 - Math.pow(1 - value, 3);
+    const transitionCount = cardCount - 1;
+    const step = 1 / transitionCount;
+    const transitionSpan = step * 0.86;
+
+    const inStart = index === 0 ? 0 : (index - 1) * step;
+    const inRaw = index === 0 ? 1 : clamp01((p - inStart) / transitionSpan);
+    const inEased = index === 0 ? 1 : easeOutCubic(inRaw);
+    const queuedGap = 12;
+    const queuedDepth = Math.max(0, index - 1) * 8;
+    const translateY = index === 0 ? 0 : (1 - inEased) * (100 + queuedGap + queuedDepth);
+
+    let scale = 1;
+    let brightness = 1;
+    if (index < cardCount - 1) {
+      const outStart = index * step;
+      const outRaw = clamp01((p - outStart) / transitionSpan);
+      scale = 1 - outRaw * 0.06;
+      brightness = 1 - outRaw * 0.55;
     }
-    if (index === 1) {
-      const raw = Math.min(Math.max(p / 0.45, 0), 1);
-      const eased = 1 - Math.pow(1 - raw, 3);
-      const translateY = (1 - eased) * 100;
-      const scale = p > 0.5 ? 1 - (p - 0.5) * 0.06 : 1;
-      const brightness = p > 0.5 ? 1 - (p - 0.5) * 0.8 : 1;
-      return { transform: `translateY(${translateY}%) scale(${scale})`, filter: `brightness(${brightness})`, zIndex: 2 };
-    }
-    if (index === 2) {
-      const raw = Math.min(Math.max((p - 0.5) / 0.45, 0), 1);
-      const eased = 1 - Math.pow(1 - raw, 3);
-      const translateY = (1 - eased) * 100;
-      return { transform: `translateY(${translateY}%)`, zIndex: 3 };
-    }
-    return {};
+
+    return {
+      transform: `translateY(${translateY}%) scale(${scale})`,
+      filter: `brightness(${brightness})`,
+      zIndex: index + 1,
+    };
   };
 
   const getMobileCardStyle = (index: number) => {
@@ -127,7 +145,7 @@ export default function StackingCards() {
         ? "translateY(118%) scale(0.98)"
         : active
           ? "translateY(0) scale(1)"
-          : `translateY(${14 + queuedOffset * 10}px) scale(${1 - queuedOffset * 0.04})`,
+          : `translateY(${38 + queuedOffset * 18}px) scale(${1 - queuedOffset * 0.04})`,
       opacity: dropped ? 0 : queued ? Math.max(0.35, 0.88 - queuedOffset * 0.24) : 1,
       pointerEvents: active ? "auto" : "none",
     };
@@ -144,10 +162,7 @@ export default function StackingCards() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=Space+Mono:wght@400;700&display=swap');
-        @import url('https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css');
-
-        .sc-outer { height: 400vh; }
+        .sc-outer { height: 500vh; }
 
         .sc-pinned {
           height: 100vh;
@@ -213,7 +228,7 @@ export default function StackingCards() {
           inset: 0;
           border-radius: 20px;
           will-change: transform, filter;
-          box-shadow: 0 40px 80px rgba(0,0,0,0.45), 0 0 0 0.75px rgba(255,255,255,0.06);
+          box-shadow: 0 40px 80px rgba(0,0,0,0.45);
           isolation: isolate;
           overflow: hidden;
         }
@@ -226,8 +241,8 @@ export default function StackingCards() {
           border-radius: 19px;
           padding: clamp(1.75rem, 4vw, 3.5rem);
           display: grid;
-          grid-template-rows: auto 1fr auto;
-          gap: 1.25rem;
+          grid-template-rows: minmax(0, 1fr) auto;
+          gap: 1rem;
           overflow: hidden;
           position: relative;
           z-index: 1;
@@ -246,67 +261,18 @@ export default function StackingCards() {
           z-index: 0;
         }
 
-        /* ── Corner accents ── */
-        .sc-corner-tl-h, .sc-corner-tl-v,
-        .sc-corner-br-h, .sc-corner-br-v {
-          position: absolute;
-          pointer-events: none;
-          border-radius: 999px;
-          transition: opacity 0.4s ease, width 0.4s ease, height 0.4s ease;
-          z-index: 5;
-        }
-        /* Top-left — always visible */
-        .sc-corner-tl-h { top: 0; left: 0; width: 44px; height: 2px; }
-        .sc-corner-tl-v { top: 0; left: 0; width: 2px; height: 44px; }
-        /* Bottom-right — appears on hover */
-        .sc-corner-br-h { bottom: 0; right: 0; width: 36px; height: 2px; opacity: 0; }
-        .sc-corner-br-v { bottom: 0; right: 0; width: 2px; height: 36px; opacity: 0; }
-        .sc-card-wrap:hover .sc-corner-br-h,
-        .sc-card-wrap:hover .sc-corner-br-v { opacity: 1; }
-
-        /* ── Top row ── */
-        .sc-card-top {
-          position: relative;
-          z-index: 2;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-
-        .sc-id {
-          font-family: 'Space Mono', monospace;
-          font-size: 0.6rem;
-          letter-spacing: 0.2em;
-          text-transform: uppercase;
-          padding: 0.3rem 0.85rem;
-          border-radius: 100px;
-          font-weight: 700;
-        }
-
-        .sc-icon-badge {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 36px;
-          height: 36px;
-          border-radius: 10px;
-          font-size: 1.1rem;
-          transition: transform 0.3s ease;
-        }
-        .sc-card-wrap:hover .sc-icon-badge { transform: translateY(-4px); }
-
         /* ── Middle ── */
         .sc-card-mid {
           position: relative;
           z-index: 2;
           display: flex;
           flex-direction: column;
-          justify-content: flex-end;
+          justify-content: flex-start;
           gap: 0.35rem;
         }
 
         .sc-tagline {
-          font-family: 'Space Mono', monospace;
+          font-family: ui-monospace, Menlo, monospace;
           font-size: 0.6rem;
           letter-spacing: 0.24em;
           text-transform: uppercase;
@@ -318,18 +284,20 @@ export default function StackingCards() {
           display: flex;
           align-items: center;
           gap: 0.75rem;
-          overflow: hidden;
+          overflow: visible;
+          padding-bottom: 0.12em;
         }
 
         .sc-title {
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: clamp(3rem, 11vw, 6.5rem);
-          line-height: 0.92;
-          letter-spacing: 0.01em;
+          font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+          font-size: clamp(2.35rem, 8.5vw, 4.8rem);
+          line-height: 1.02;
+          letter-spacing: -0.02em;
+          font-weight: 800;
           flex-shrink: 0;
           transition: letter-spacing 0.45s cubic-bezier(0.4,0,0.2,1);
         }
-        .sc-card-wrap:hover .sc-title { letter-spacing: 0.03em; }
+        .sc-card-wrap:hover .sc-title { letter-spacing: -0.01em; }
 
         /* Red extending line — same as Overview */
         .sc-title-rule {
@@ -358,12 +326,12 @@ export default function StackingCards() {
         }
 
         .sc-desc {
-          font-family: 'DM Serif Display', serif;
+          font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
           font-size: clamp(0.8rem, 1.4vw, 0.95rem);
           line-height: 1.7;
           opacity: 0.6;
           max-width: 58ch;
-          font-style: italic;
+          font-style: normal;
           flex: 1;
           transition: transform 0.3s ease, opacity 0.3s ease;
         }
@@ -381,14 +349,15 @@ export default function StackingCards() {
         .sc-card-wrap:hover .sc-stat { transform: translateY(-4px); }
 
         .sc-stat-num {
-          font-family: 'Bebas Neue', sans-serif;
+          font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
           font-size: clamp(1.8rem, 5vw, 3rem);
           line-height: 1;
-          letter-spacing: 0.02em;
+          letter-spacing: -0.02em;
+          font-weight: 800;
         }
 
         .sc-stat-label {
-          font-family: 'Space Mono', monospace;
+          font-family: ui-monospace, Menlo, monospace;
           font-size: 0.55rem;
           letter-spacing: 0.16em;
           text-transform: uppercase;
@@ -402,7 +371,7 @@ export default function StackingCards() {
           position: absolute;
           bottom: 0.75rem;
           right: 0.75rem;
-          font-family: 'Space Mono', monospace;
+          font-family: ui-monospace, Menlo, monospace;
           font-size: 0.5rem;
           letter-spacing: 0.18em;
           text-transform: uppercase;
@@ -417,20 +386,20 @@ export default function StackingCards() {
 
         /* ── Section header ── */
         .sc-section-header {
-          padding: 8rem 2rem 4rem;
+          padding: 8rem 2rem 3.4rem;
           position: relative;
           z-index: 1;
         }
-        @media(min-width:640px)  { .sc-section-header { padding: 8rem 4rem 4rem; } }
-        @media(min-width:768px)  { .sc-section-header { padding: 8rem 6rem 4rem; } }
-        @media(min-width:1280px) { .sc-section-header { padding: 8rem 8rem 4rem; } }
-        @media(min-width:1536px) { .sc-section-header { padding: 8rem 12rem 4rem; } }
+        @media(min-width:640px)  { .sc-section-header { padding: 8rem 4rem 3.2rem; } }
+        @media(min-width:768px)  { .sc-section-header { padding: 8rem 6rem 2.2rem; } }
+        @media(min-width:1280px) { .sc-section-header { padding: 8rem 8rem 2.1rem; } }
+        @media(min-width:1536px) { .sc-section-header { padding: 8rem 12rem 2.1rem; } }
 
         .sc-eyebrow {
           display: inline-flex;
           align-items: center;
           gap: 0.5rem;
-          font-size: 0.62rem;
+          font-size: 0.74rem;
           font-family: ui-monospace, Menlo, monospace;
           text-transform: uppercase;
           letter-spacing: 0.24em;
@@ -451,7 +420,7 @@ export default function StackingCards() {
         }
 
         .sc-heading {
-          font-size: clamp(1.75rem, 4vw, 2.75rem);
+          font-size: clamp(2.2rem, 4.8vw, 3.45rem);
           font-weight: 700;
           letter-spacing: -0.02em;
           line-height: 1.15;
@@ -463,7 +432,7 @@ export default function StackingCards() {
         }
 
         .sc-subheading {
-          font-size: 0.9rem;
+          font-size: clamp(1.02rem, 1.45vw, 1.24rem);
           line-height: 1.7;
           color: rgba(255,255,255,0.4);
           font-family: ui-sans-serif, system-ui, sans-serif;
@@ -483,7 +452,7 @@ export default function StackingCards() {
           bottom: 2.5rem;
           left: 50%;
           transform: translateX(-50%);
-          font-family: 'Space Mono', monospace;
+          font-family: ui-monospace, Menlo, monospace;
           font-size: 0.6rem;
           letter-spacing: 0.2em;
           text-transform: uppercase;
@@ -517,7 +486,7 @@ export default function StackingCards() {
             padding: 5rem 1rem 2rem;
           }
           .sc-subheading {
-            font-size: 0.82rem;
+            font-size: 0.96rem;
             line-height: 1.6;
             max-width: 60ch;
           }
@@ -549,7 +518,7 @@ export default function StackingCards() {
           .sc-card-wrap {
             position: absolute;
             inset: 0;
-            box-shadow: 0 24px 48px rgba(0,0,0,0.35), 0 0 0 0.75px rgba(255,255,255,0.06);
+            box-shadow: 0 24px 48px rgba(0,0,0,0.35);
             transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1), opacity 220ms ease;
             touch-action: pan-y;
           }
@@ -561,17 +530,12 @@ export default function StackingCards() {
             justify-content: flex-start;
             gap: 0.55rem;
           }
-          .sc-icon-badge {
-            width: 30px;
-            height: 30px;
-            font-size: 0.95rem;
-          }
           .sc-tagline {
             font-size: 0.52rem;
           }
           .sc-title {
-            font-size: clamp(2rem, 11vw, 3.2rem);
-            line-height: 0.96;
+            font-size: clamp(1.55rem, 8.4vw, 2.45rem);
+            line-height: 1.04;
           }
           .sc-title-rule {
             max-width: 100%;
@@ -602,7 +566,7 @@ export default function StackingCards() {
           .sc-mobile-swipe-hint {
             position: static;
             pointer-events: none;
-            font-family: 'Space Mono', monospace;
+            font-family: ui-monospace, Menlo, monospace;
             font-size: 0.48rem;
             letter-spacing: 0.16em;
             text-transform: uppercase;
@@ -643,13 +607,6 @@ export default function StackingCards() {
             background: #E31B54;
             box-shadow: 0 0 8px rgba(227,27,84,0.55);
           }
-          .sc-card-wrap:hover .sc-corner-br-h,
-          .sc-card-wrap:hover .sc-corner-br-v {
-            opacity: 0;
-          }
-          .sc-card-wrap:hover .sc-icon-badge {
-            transform: none;
-          }
           .sc-card-wrap:hover .sc-title {
             letter-spacing: 0.01em;
           }
@@ -668,14 +625,11 @@ export default function StackingCards() {
           .sc-card-wrap:hover .sc-index-tag {
             opacity: 1;
           }
-          .sc-icon-badge,
           .sc-title,
           .sc-title-rule,
           .sc-desc,
           .sc-stat,
-          .sc-index-tag,
-          .sc-corner-br-h,
-          .sc-corner-br-v {
+          .sc-index-tag {
             transition: none !important;
             animation: none !important;
           }
@@ -698,11 +652,11 @@ export default function StackingCards() {
       <div className="sc-section-header">
         <span className="sc-eyebrow">
           <span className="sc-eyebrow-dot" />
-          What We Do
+          What We Deliver
         </span>
-        <h2 className="sc-heading">What We Can Offer You.</h2>
+        <h2 className="sc-heading">Capabilities We Offer.</h2>
         <p className="sc-subheading">
-          In an advancing world defined by complexity, precision is not optional — it is required.
+          From intelligence processing to mission-critical platforms, we provide the systems, structure, and technical foundation organizations need to operate with confidence.
         </p>
         <div className="sc-heading-rule" />
       </div>
@@ -742,21 +696,6 @@ export default function StackingCards() {
             <div className="sc-glow" />
             {CARDS.map((card, i) => {
               const isLight = card.bg === "#f5f0e8";
-              const isDark = card.bg === "#0a0a0a";
-              const isRed = card.bg === "#E31B54";
-
-              const cornerColor = isLight
-                ? "rgba(227,27,84,0.55)"
-                : "rgba(255,255,255,0.35)";
-
-              const idBg = isRed
-                ? "rgba(255,255,255,0.18)"
-                : "rgba(227,27,84,0.12)";
-              const idColor = card.accent;
-
-              const iconBg = isLight
-                ? "rgba(227,27,84,0.1)"
-                : "rgba(255,255,255,0.1)";
 
               const titleRuleGradient = isLight
                 ? "linear-gradient(90deg, #E31B54, rgba(227,27,84,0.2))"
@@ -784,32 +723,11 @@ export default function StackingCards() {
                     if (!isMobile) setHoveredCard(null);
                   }}
                 >
-
-                  {/* Corner accents — top-left (always) */}
-                  <div className="sc-corner-tl-h" style={{ background: `linear-gradient(90deg, ${cornerColor}, transparent)` }} />
-                  <div className="sc-corner-tl-v" style={{ background: `linear-gradient(to bottom, ${cornerColor}, transparent)` }} />
-                  {/* Corner accents — bottom-right (hover) */}
-                  <div className="sc-corner-br-h" style={{ background: `linear-gradient(270deg, ${cornerColor}, transparent)` }} />
-                  <div className="sc-corner-br-v" style={{ background: `linear-gradient(to top, ${cornerColor}, transparent)` }} />
-
                   {/* Card inner surface */}
                   <div
                     className="sc-card"
                     style={{ background: card.bg, color: card.textColor }}
                   >
-                    {/* Top row */}
-                    <div className="sc-card-top">
-                      <span className="sc-id" style={{ background: idBg, color: idColor }}>
-                        Unit {card.id}
-                      </span>
-                      <div
-                        className="sc-icon-badge"
-                        style={{ background: iconBg, color: card.accent }}
-                      >
-                        <i className={`bi ${card.icon}`} />
-                      </div>
-                    </div>
-
                     {/* Middle */}
                     <div className="sc-card-mid">
                       <span className="sc-tagline" style={{ color: card.textColor }}>
