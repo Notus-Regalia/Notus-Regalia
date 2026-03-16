@@ -86,6 +86,7 @@ function DisclosureTooltip() {
   const [active, setActive] = useState(false);
   const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
   const ref = useRef<HTMLSpanElement>(null);
+  const tooltipRef = useRef<HTMLSpanElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const calcPos = useCallback(() => {
@@ -96,7 +97,7 @@ function DisclosureTooltip() {
     const pad = 12;
     const clampedLeft = Math.max(pad + tooltipW / 2, Math.min(rawLeft, window.innerWidth - pad - tooltipW / 2));
     setTooltipPos({
-      top: rect.top + window.scrollY - 10,
+      top: Math.max(12, rect.top - 10),
       left: clampedLeft,
     });
   }, []);
@@ -121,11 +122,25 @@ function DisclosureTooltip() {
   useEffect(() => {
     if (!visible) return;
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) closeTooltip();
+      const target = e.target as Node;
+      if (ref.current?.contains(target)) return;
+      if (tooltipRef.current?.contains(target)) return;
+      closeTooltip();
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [visible, closeTooltip]);
+
+  useEffect(() => {
+    if (!visible) return;
+    const recalc = () => calcPos();
+    window.addEventListener('scroll', recalc, true);
+    window.addEventListener('resize', recalc);
+    return () => {
+      window.removeEventListener('scroll', recalc, true);
+      window.removeEventListener('resize', recalc);
+    };
+  }, [visible, calcPos]);
 
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
@@ -135,6 +150,22 @@ function DisclosureTooltip() {
     left: tooltipPos.left,
     transform: visible ? 'translate(-50%, calc(-100% - 10px))' : 'translate(-50%, calc(-100% - 4px))',
   };
+
+  const tooltipNode = (
+    <span
+      ref={tooltipRef}
+      className={`sc-disclosure-tooltip${visible ? ' sc-disclosure-tooltip-visible' : ''}`}
+      style={tooltipStyle}
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => { if (!active) setVisible(false); }}
+    >
+      <span className="sc-disclosure-arrow" />
+      All investor names, logos, and related information are disclosed with prior written consent and in accordance with governing agreements and applicable confidentiality obligations.
+      {' '}Refer to the{' '}
+      <a href="#" className="sc-disclosure-link" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}>Disclosure</a>
+      {' '}section under Information Tab to learn more.
+    </span>
+  );
 
   return (
     <span
@@ -148,13 +179,7 @@ function DisclosureTooltip() {
         <i className="bi bi-info-square sc-disclosure-icon" />
         <span className="sc-disclosure-label">Disclosure Agreement</span>
       </span>
-      <span className={`sc-disclosure-tooltip${visible ? ' sc-disclosure-tooltip-visible' : ''}`} style={tooltipStyle}>
-        <span className="sc-disclosure-arrow" />
-        All investor names, logos, and related information are disclosed with prior written consent and in accordance with governing agreements and applicable confidentiality obligations.
-        {' '}Refer to the{' '}
-        <a href="#" className="sc-disclosure-link" onClick={e => e.stopPropagation()}>Disclosure</a>
-        {' '}section under Information Tab to learn more.
-      </span>
+      {typeof window !== 'undefined' ? createPortal(tooltipNode, document.body) : null}
     </span>
   );
 }

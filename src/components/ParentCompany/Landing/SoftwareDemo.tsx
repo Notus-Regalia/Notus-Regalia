@@ -291,7 +291,7 @@ const LIMITED_ENVIRONMENT_DEFINITIONS: Record<FeaturedSoftwareId, { title: strin
   domain: {
     title: "Philippine Strategic Domain Intelligence",
     description:
-      "Satellite-grade Philippine map with coordinate-level beacons for Energy & Oil, Fluid Systems, Transport, Telecommunications, Healthcare, Bank & Finance, Food & Agriculture, Government, Defense facilities, Data Center, and Aerospace.",
+      "A satellite-grade intelligence and mapping platform for the Philippines, designed to deliver coordinate-precise visibility across critical infrastructure and strategic sectors. Powered by Open Source Intelligence (OSINT) fusion and field-validated reporting, it supports infrastructure awareness, risk monitoring, and strategic planning across energy, transport, telecom, healthcare, finance, agriculture, government, data centers, aerospace, and related domains. Actual deployment iterations will expand into predictive risk modeling, real-time anomaly detection, infrastructure dependency analysis, and multi-domain operational intelligence.",
   },
   command: {
     title: "Reserved Command Surface",
@@ -341,6 +341,9 @@ function LimitedEnvironmentModal({
   secondaryLabel = "Request a Demo",
   secondaryHref,
   showPrimaryIcon = true,
+  showPrimaryAction = true,
+  showSecondaryAction = true,
+  showDisclaimer = true,
   isClosing,
   onClose,
 }: {
@@ -353,6 +356,9 @@ function LimitedEnvironmentModal({
   secondaryLabel?: string;
   secondaryHref?: string;
   showPrimaryIcon?: boolean;
+  showPrimaryAction?: boolean;
+  showSecondaryAction?: boolean;
+  showDisclaimer?: boolean;
   isClosing: boolean;
   onClose: () => void;
 }) {
@@ -361,12 +367,22 @@ function LimitedEnvironmentModal({
     event.currentTarget.style.setProperty(xVar, `${event.clientX - rect.left}px`);
     event.currentTarget.style.setProperty(yVar, `${event.clientY - rect.top}px`);
   };
-  const resolvedSecondaryHref = secondaryHref ?? requestDemoHref;
+  const resolvedSecondaryHref = showSecondaryAction ? (secondaryHref ?? requestDemoHref) : undefined;
+
+  const hasSecondaryAction = Boolean(resolvedSecondaryHref);
+  const shouldShowActions = showPrimaryAction || hasSecondaryAction;
 
   return (
-    <div className={`infra-limited-modal-wrap${isClosing ? " closing" : ""}`} role="dialog" aria-modal="true" aria-label="Limited environment notice">
+    <div
+      className={`infra-limited-modal-wrap${isClosing ? " closing" : ""}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Limited environment notice"
+      onClick={onClose}
+    >
       <div
         className="infra-limited-modal"
+        onClick={(event) => event.stopPropagation()}
         onMouseMove={(event) => updateGlowPosition(event, "--modal-mx", "--modal-my")}
       >
         <div className="infra-limited-accent" />
@@ -376,42 +392,48 @@ function LimitedEnvironmentModal({
         </div>
         <h4 className="infra-limited-title">{definitionTitle}</h4>
         <p className="infra-limited-definition">{definitionDescription}</p>
-        <p className="infra-limited-desc">
-          <span className="infra-limited-disclaimer-title">Disclaimer</span>
-          <span className="infra-limited-disclaimer-label">Limited Environment Showcase</span>
-          A controlled demonstration environment is currently active. Full operational access is available through private briefing or licensed deployment.
-        </p>
-        <div className="infra-limited-actions">
-          {primaryHref ? (
-            <a
-              href={primaryHref}
-              className="infra-limited-btn"
-              onMouseMove={(event) => updateGlowPosition(event, "--btn-mx", "--btn-my")}
-            >
-              {primaryLabel}
-              {showPrimaryIcon ? <i className="bi bi-arrow-right-square" aria-hidden="true" /> : null}
-            </a>
-          ) : (
-            <button
-              type="button"
-              className="infra-limited-btn"
-              onClick={onClose}
-              onMouseMove={(event) => updateGlowPosition(event, "--btn-mx", "--btn-my")}
-            >
-              {primaryLabel}
-              {showPrimaryIcon ? <i className="bi bi-arrow-right-square" aria-hidden="true" /> : null}
-            </button>
-          )}
-          {resolvedSecondaryHref ? (
-            <a
-              href={resolvedSecondaryHref}
-              className="infra-limited-btn infra-limited-btn-ghost"
-              onMouseMove={(event) => updateGlowPosition(event, "--btn-mx", "--btn-my")}
-            >
-              {secondaryLabel}
-            </a>
-          ) : null}
-        </div>
+        {showDisclaimer ? (
+          <p className="infra-limited-desc">
+            <span className="infra-limited-disclaimer-title">Disclaimer</span>
+            <span className="infra-limited-disclaimer-label">Limited Environment Showcase</span>
+            A controlled demonstration environment is currently active. Full operational access is available through private briefing or licensed deployment.
+          </p>
+        ) : null}
+        {shouldShowActions ? (
+          <div className="infra-limited-actions">
+            {showPrimaryAction ? (
+              primaryHref ? (
+                <a
+                  href={primaryHref}
+                  className="infra-limited-btn"
+                  onMouseMove={(event) => updateGlowPosition(event, "--btn-mx", "--btn-my")}
+                >
+                  {primaryLabel}
+                  {showPrimaryIcon ? <i className="bi bi-arrow-right-square" aria-hidden="true" /> : null}
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  className="infra-limited-btn"
+                  onClick={onClose}
+                  onMouseMove={(event) => updateGlowPosition(event, "--btn-mx", "--btn-my")}
+                >
+                  {primaryLabel}
+                  {showPrimaryIcon ? <i className="bi bi-arrow-right-square" aria-hidden="true" /> : null}
+                </button>
+              )
+            ) : null}
+            {resolvedSecondaryHref ? (
+              <a
+                href={resolvedSecondaryHref}
+                className="infra-limited-btn infra-limited-btn-ghost"
+                onMouseMove={(event) => updateGlowPosition(event, "--btn-mx", "--btn-my")}
+              >
+                {secondaryLabel}
+              </a>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </div>
   );
@@ -420,18 +442,24 @@ function LimitedEnvironmentModal({
 function LimitedEnvironmentNoticeStrip({
   label,
   onClick,
+  iconOnly = false,
 }: {
   label: string;
   onClick: () => void;
+  iconOnly?: boolean;
 }) {
   return (
     <button
       type="button"
-      className="infra-limited-notice"
+      className={`infra-limited-notice${iconOnly ? " infra-limited-notice-icon-only" : ""}`}
       onClick={onClick}
       aria-label={`Open limited environment notice for ${label}`}
     >
-      <span className="infra-limited-notice-title">Notice</span>
+      {iconOnly ? (
+        <span className="infra-limited-notice-icon" aria-hidden="true">!</span>
+      ) : (
+        <span className="infra-limited-notice-title">Notice</span>
+      )}
     </button>
   );
 }
@@ -875,25 +903,30 @@ const toText = (value: unknown, fallback = "N/A") => {
   return normalized.length > 0 ? normalized : fallback;
 };
 
-const provincePolygonStyle = (active: boolean, hovered: boolean) => ({
-  color: active || hovered ? "#ffffff" : "rgba(255,255,255,0.36)",
-  weight: hovered ? 1.9 : active ? 1.5 : 0.75,
-  opacity: active || hovered ? 0.95 : 0.62,
-  fillColor: "#E31B54",
-  fillOpacity: hovered ? 0.18 : active ? 0.11 : 0,
-  dashArray: "",
-});
+const provincePolygonStyle = (active: boolean, hovered: boolean, disableHover: boolean = false) => {
+  // If hover is disabled, treat hovered as false
+  const effectiveHovered = disableHover ? false : hovered;
+  return {
+    color: active || effectiveHovered ? "#ffffff" : "rgba(255,255,255,0.36)",
+    weight: effectiveHovered ? 1.9 : active ? 1.5 : 0.75,
+    opacity: active || effectiveHovered ? 0.95 : 0.62,
+    fillColor: "#E31B54",
+    fillOpacity: effectiveHovered ? 0.18 : active ? 0.11 : 0,
+    dashArray: "",
+  };
+};
 
 const applyProvinceLayerStyles = (
   provinceLayers: Record<string, any>,
   activeProvinceId: string | null,
-  hoveredProvinceId: string | null
+  hoveredProvinceId: string | null,
+  disableHover: boolean = false
 ) => {
   Object.entries(provinceLayers).forEach(([provinceId, layer]) => {
     const hovered = hoveredProvinceId === provinceId;
     const active = activeProvinceId === provinceId;
-    layer.setStyle(provincePolygonStyle(active, hovered));
-    if (active || hovered) {
+    layer.setStyle(provincePolygonStyle(active, hovered, disableHover));
+    if (active || (!disableHover && hovered)) {
       if (typeof layer.bringToFront === "function") {
         layer.bringToFront();
       } else if (typeof layer.eachLayer === "function") {
@@ -3826,7 +3859,8 @@ function StrategicDomainIntelligence() {
     applyProvinceLayerStyles(
       provinceShapeRefs.current,
       activeProvinceId,
-      disableProvinceHover ? null : hoveredProvinceId
+      hoveredProvinceId,
+      disableProvinceHover
     );
   }, [mapState, activeProvinceId, hoveredProvinceId, disableProvinceHover]);
 
@@ -4111,9 +4145,9 @@ function StrategicDomainIntelligence() {
             type="button"
             className={`infra-filter-toggle${c2FilterEnabled ? " active" : ""}`}
             onClick={() => setC2FilterEnabled((prev) => !prev)}
-            aria-label="Toggle tactical command filter"
+            aria-label="Toggle ISR filter"
           >
-            {c2FilterEnabled ? "C2 ON" : "C2 OFF"}
+            {c2FilterEnabled ? "ISR ON" : "ISR OFF"}
           </button>
           <button type="button" onClick={clearFilters} className="infra-clear-filters">CLEAR FILTERS</button>
           <button type="button" onClick={resetViewport} className="infra-reset">RESET</button>
@@ -4207,6 +4241,24 @@ function StrategicDomainIntelligence() {
               ) : null}
             </>
           )}
+          <div className="infra-limited-sidebanner" role="note" aria-label="Limited functionality notice">
+            <button
+              type="button"
+              className="infra-limited-sidebanner-info"
+              aria-label="Open limited functionality information"
+              onClick={openLimitedEnvironmentModal}
+            >
+              !
+            </button>
+            <span className="sw-mono infra-limited-sidebanner-tag">DISCLAIMER</span>
+            <span className="infra-limited-sidebanner-label">Limited Functionality</span>
+            <p className="infra-limited-sidebanner-copy">
+              Full operational access is available through private briefing or licensed deployment.
+            </p>
+            <a href={LIMITED_ENVIRONMENT_LINKS.domain.requestDemoHref} className="infra-limited-sidebanner-cta">
+              Request a Demo
+            </a>
+          </div>
         </aside>
 
         <div
@@ -4315,18 +4367,15 @@ function StrategicDomainIntelligence() {
           </div>
         </div>
       )}
-      {!showLimitedEnvironmentModal && (
-        <LimitedEnvironmentNoticeStrip
-          label="Strategic Domain Intelligence"
-          onClick={openLimitedEnvironmentModal}
-        />
-      )}
       {showLimitedEnvironmentModal && (
         <LimitedEnvironmentModal
           surfaceLabel="Strategic Domain Intelligence"
           definitionTitle={LIMITED_ENVIRONMENT_DEFINITIONS.domain.title}
           definitionDescription={LIMITED_ENVIRONMENT_DEFINITIONS.domain.description}
           requestDemoHref={LIMITED_ENVIRONMENT_LINKS.domain.requestDemoHref}
+          showPrimaryAction={false}
+          showSecondaryAction={false}
+          showDisclaimer={false}
           isClosing={isLimitedEnvironmentClosing}
           onClose={closeLimitedEnvironmentModal}
         />
@@ -5806,6 +5855,25 @@ export default function SoftwareDemo() {
           font-weight:700;
           line-height:1;
         }
+        .infra-limited-notice-icon-only {
+          width:42px;
+          min-width:42px;
+          height:42px;
+          min-height:42px;
+          padding:0;
+          border-radius:999px;
+        }
+        .infra-limited-notice-icon-only::before {
+          left:0.32rem;
+          right:0.32rem;
+        }
+        .infra-limited-notice-icon {
+          font-family:'Inter', ui-sans-serif, system-ui, sans-serif;
+          font-size:1.12rem;
+          font-weight:700;
+          line-height:1;
+          color:inherit;
+        }
         :root.light .infra-limited-notice {
           border:1px solid rgba(227,27,84,0.44);
           background:linear-gradient(160deg, rgba(255,255,255,0.97), rgba(244,245,250,0.95));
@@ -5832,6 +5900,14 @@ export default function SoftwareDemo() {
             padding:0.48rem 0.78rem;
           }
           .infra-limited-notice-title { font-size:0.68rem; }
+          .infra-limited-notice-icon-only {
+            width:38px;
+            min-width:38px;
+            height:38px;
+            min-height:38px;
+            padding:0;
+          }
+          .infra-limited-notice-icon { font-size:1rem; }
         }
         .infra-limited-modal-wrap {
           position:absolute;
@@ -5941,6 +6017,8 @@ export default function SoftwareDemo() {
           line-height:1.63;
           font-family:'Inter',ui-sans-serif,system-ui,sans-serif;
           color:rgba(255,255,255,0.68);
+          text-align:justify;
+          text-justify:inter-word;
         }
         .infra-limited-desc {
           margin:1.08rem 0 0;
@@ -5950,6 +6028,8 @@ export default function SoftwareDemo() {
           line-height:1.63;
           font-family:'Inter',ui-sans-serif,system-ui,sans-serif;
           color:rgba(255,255,255,0.52);
+          text-align:justify;
+          text-justify:inter-word;
         }
         .infra-limited-disclaimer-label {
           display:block;
@@ -6152,10 +6232,15 @@ export default function SoftwareDemo() {
           will-change:transform;
         }
         .infra-map-stage.infra-map-stage-c2 .infra-leaflet-map .leaflet-tile-pane {
-          filter:grayscale(0.12) saturate(0.84) contrast(1.14) brightness(0.86) hue-rotate(22deg);
+          filter:grayscale(0.48) contrast(1.24) brightness(0.9) saturate(0.95) hue-rotate(168deg);
         }
         .infra-map-stage.infra-map-stage-c2 .infra-leaflet-map .leaflet-overlay-pane {
-          filter:contrast(1.04) saturate(1.02);
+          filter:grayscale(0.35) contrast(1.12) brightness(0.95) hue-rotate(166deg) saturate(1.08);
+        }
+        @keyframes infraIsrSweep {
+          0% { transform:translate3d(0,-10%,0); opacity:0.2; }
+          50% { transform:translate3d(0,3%,0); opacity:0.45; }
+          100% { transform:translate3d(0,16%,0); opacity:0.2; }
         }
         .infra-c2-hud {
           position:absolute;
@@ -6165,29 +6250,35 @@ export default function SoftwareDemo() {
           mix-blend-mode:normal;
         }
         .infra-c2-hud.grid-only .infra-c2-grid {
-          opacity:0.9;
+          opacity:0.78;
         }
         .infra-c2-grid {
           position:absolute;
           inset:0;
           z-index:3;
           background-image:
-            repeating-linear-gradient(0deg, rgba(255,255,255,0.48) 0 0.5px, transparent 0.5px 72px),
-            repeating-linear-gradient(90deg, rgba(255,255,255,0.48) 0 0.5px, transparent 0.5px 72px),
-            repeating-linear-gradient(0deg, rgba(255,255,255,0.75) 0 0.5px, transparent 0.5px 360px),
-            repeating-linear-gradient(90deg, rgba(255,255,255,0.75) 0 0.5px, transparent 0.5px 360px);
-          opacity:0.95;
+            linear-gradient(160deg, rgba(56,189,248,0.16), rgba(20,184,166,0.1) 46%, rgba(15,118,110,0.06)),
+            repeating-linear-gradient(0deg, rgba(148,163,184,0.16) 0 1px, transparent 1px 6px);
+          opacity:0.5;
+          mix-blend-mode:screen;
+          backdrop-filter:saturate(1.06);
+          -webkit-backdrop-filter:saturate(1.06);
         }
         .infra-c2-grid::after {
-          content:none;
+          content:"";
+          position:absolute;
+          inset:-22% -8%;
+          pointer-events:none;
+          background:radial-gradient(ellipse at 50% 0%, rgba(56,189,248,0.44), transparent 58%);
+          animation:infraIsrSweep 8.6s ease-in-out infinite;
         }
         .infra-c2-vignette {
           position:absolute;
           inset:0;
           z-index:1;
           background:
-            radial-gradient(circle at 50% 50%, transparent 48%, rgba(2,6,23,0.18) 78%, rgba(2,6,23,0.36) 100%),
-            linear-gradient(180deg, rgba(2,6,23,0.08), rgba(2,6,23,0.26));
+            radial-gradient(circle at 50% 50%, rgba(10,30,40,0.02) 42%, rgba(8,24,36,0.3) 84%, rgba(8,24,36,0.48) 100%),
+            linear-gradient(180deg, rgba(8,24,36,0.08), rgba(8,24,36,0.28));
         }
         .infra-c2-readout {
           position:absolute;
@@ -6210,21 +6301,26 @@ export default function SoftwareDemo() {
           mix-blend-mode:normal;
           opacity:1;
         }
-        :root.light .infra-c2-hud.grid-only .infra-c2-grid {
-          opacity:0.9;
+        :root.light .infra-map-stage.infra-map-stage-c2 .infra-leaflet-map .leaflet-tile-pane {
+          filter:grayscale(0.62) contrast(1.2) brightness(0.99) saturate(0.9) hue-rotate(158deg);
         }
+        :root.light .infra-map-stage.infra-map-stage-c2 .infra-leaflet-map .leaflet-overlay-pane {
+          filter:grayscale(0.5) contrast(1.1) brightness(1) hue-rotate(156deg) saturate(0.96);
+        }
+        :root.light .infra-c2-hud.grid-only .infra-c2-grid { opacity:0.66; }
         :root.light .infra-c2-grid {
           background-image:
-            repeating-linear-gradient(0deg, rgba(255,255,255,0.48) 0 0.5px, transparent 0.5px 72px),
-            repeating-linear-gradient(90deg, rgba(255,255,255,0.48) 0 0.5px, transparent 0.5px 72px),
-            repeating-linear-gradient(0deg, rgba(255,255,255,0.75) 0 0.5px, transparent 0.5px 360px),
-            repeating-linear-gradient(90deg, rgba(255,255,255,0.75) 0 0.5px, transparent 0.5px 360px);
-          opacity:0.95;
+            linear-gradient(165deg, rgba(14,116,144,0.1), rgba(6,182,212,0.05)),
+            repeating-linear-gradient(0deg, rgba(51,65,85,0.12) 0 1px, transparent 1px 6px);
+          opacity:0.55;
         }
-        :root.light .infra-c2-grid::after { content:none; }
+        :root.light .infra-c2-grid::after {
+          opacity:0.24;
+          background:radial-gradient(ellipse at 50% 0%, rgba(14,116,144,0.28), transparent 60%);
+        }
         :root.light .infra-c2-vignette {
           background:
-            radial-gradient(circle at 50% 50%, transparent 50%, rgba(15,23,42,0.06) 80%, rgba(15,23,42,0.16) 100%);
+            radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 48%, rgba(15,23,42,0.08) 82%, rgba(15,23,42,0.18) 100%);
         }
         :root.light .infra-leaflet-map,
         :root.light .infra-leaflet-map .leaflet-container {
@@ -6667,6 +6763,97 @@ export default function SoftwareDemo() {
           min-height:0;
           overflow-y:auto;
         }
+        .infra-limited-sidebanner {
+          margin-top:auto;
+          position:sticky;
+          bottom:0;
+          border:1px solid rgba(227,27,84,0.44);
+          border-radius:10px;
+          background:linear-gradient(168deg, rgba(14,10,18,0.96), rgba(8,8,12,0.94));
+          box-shadow:0 10px 24px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.04);
+          padding:0.62rem 0.68rem 0.72rem;
+          padding-right:2rem;
+          display:flex;
+          flex-direction:column;
+          gap:0.28rem;
+          z-index:2;
+          overflow:hidden;
+        }
+        .infra-limited-sidebanner-info {
+          position:absolute;
+          top:0.44rem;
+          right:0.44rem;
+          width:20px;
+          height:20px;
+          min-width:20px;
+          min-height:20px;
+          border-radius:999px;
+          border:1px solid rgba(227,27,84,0.6);
+          background:rgba(227,27,84,0.14);
+          color:rgba(255,255,255,0.92);
+          font-family:'Inter', ui-sans-serif, system-ui, sans-serif;
+          font-size:0.74rem;
+          font-weight:700;
+          line-height:1;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          cursor:pointer;
+          transition:all 0.2s ease;
+        }
+        .infra-limited-sidebanner-info:hover {
+          border-color:rgba(227,27,84,0.9);
+          background:rgba(227,27,84,0.26);
+          transform:translateY(-1px);
+        }
+        .infra-limited-sidebanner-info:focus-visible {
+          outline:none;
+          box-shadow:0 0 0 2px rgba(227,27,84,0.35);
+        }
+        .infra-limited-sidebanner-tag {
+          font-size:0.52rem;
+          letter-spacing:0.14em;
+          color:rgba(255,255,255,0.56);
+          line-height:1;
+        }
+        .infra-limited-sidebanner-label {
+          font-size:0.78rem;
+          line-height:1.2;
+          font-weight:650;
+          color:rgba(255,255,255,0.94);
+        }
+        .infra-limited-sidebanner-copy {
+          margin:0;
+          font-size:0.68rem;
+          line-height:1.4;
+          color:rgba(255,255,255,0.72);
+        }
+        .infra-limited-sidebanner-cta {
+          margin-top:0.32rem;
+          align-self:stretch;
+          text-decoration:none;
+          border-radius:8px;
+          border:1px solid rgba(227,27,84,0.6);
+          background:linear-gradient(160deg, rgba(227,27,84,0.9), rgba(201,20,73,0.92));
+          color:#fff;
+          font-size:0.62rem;
+          letter-spacing:0.12em;
+          font-weight:650;
+          text-transform:uppercase;
+          padding:0.44rem 0.62rem;
+          min-height:32px;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          text-align:center;
+          transition:all 0.2s ease;
+        }
+        .infra-limited-sidebanner-cta:hover {
+          border-color:rgba(227,27,84,0.92);
+          background:linear-gradient(160deg, rgba(227,27,84,0.98), rgba(182,15,62,0.96));
+          box-shadow:0 8px 20px rgba(227,27,84,0.26);
+          transform:translateY(-1px);
+        }
         .infra-filters-panel {
           gap:0.62rem;
           padding-left:0.72rem;
@@ -6675,11 +6862,45 @@ export default function SoftwareDemo() {
         }
         :root.light .infra-details-panel,
         :root.light .infra-filters-panel { background:rgba(0,0,0,0.03); }
+        :root.light .infra-limited-sidebanner {
+          border-color:rgba(227,27,84,0.36);
+          background:linear-gradient(168deg, rgba(255,255,255,0.98), rgba(245,246,250,0.95));
+          box-shadow:0 10px 22px rgba(15,23,42,0.12), inset 0 1px 0 rgba(255,255,255,0.9);
+        }
+        :root.light .infra-limited-sidebanner-info {
+          border-color:rgba(227,27,84,0.54);
+          background:rgba(227,27,84,0.1);
+          color:rgba(15,23,42,0.88);
+        }
+        :root.light .infra-limited-sidebanner-info:hover {
+          border-color:rgba(227,27,84,0.76);
+          background:rgba(227,27,84,0.16);
+        }
+        :root.light .infra-limited-sidebanner-tag { color:rgba(15,23,42,0.52); }
+        :root.light .infra-limited-sidebanner-label { color:rgba(15,23,42,0.9); }
+        :root.light .infra-limited-sidebanner-copy { color:rgba(15,23,42,0.68); }
+        :root.light .infra-limited-sidebanner-cta {
+          border-color:rgba(227,27,84,0.64);
+          color:#fff;
+        }
         @media(max-width:980px){
           .infra-details-panel,
           .infra-filters-panel {
             border-top:1px solid rgba(255,255,255,0.07);
             max-height:34vh;
+          }
+          .infra-limited-sidebanner {
+            position:static;
+            margin-top:0.7rem;
+          }
+          .infra-limited-sidebanner-info {
+            width:18px;
+            height:18px;
+            min-width:18px;
+            min-height:18px;
+            top:0.4rem;
+            right:0.4rem;
+            font-size:0.68rem;
           }
         }
         :root.light .infra-details-panel,
