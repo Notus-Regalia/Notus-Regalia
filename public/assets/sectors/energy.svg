@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Energy Infrastructure</title>
+  <desc id="desc">Abstract visual of energy grid monitoring and stability.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1b1204"/>
+      <stop offset="50%" stop-color="#422006"/>
+      <stop offset="100%" stop-color="#7c2d12"/>
+    </linearGradient>
+    <linearGradient id="pulse" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#fbbf24" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#fde047" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <g stroke="#fbbf24" stroke-opacity="0.35" stroke-width="3" fill="none">
+    <path d="M120 610H420L560 330L720 610L920 260L1110 610H1480"/>
+    <path d="M120 670H390L560 470L710 650L930 410L1110 670H1480"/>
+  </g>
+  <path d="M140 180H1460" stroke="url(#pulse)" stroke-width="3"/>
+  <g fill="#fde68a" fill-opacity="0.92">
+    <circle cx="560" cy="330" r="11"/>
+    <circle cx="920" cy="260" r="11"/>
+    <circle cx="1110" cy="610" r="11"/>
+  </g>
+  <polygon points="1320,230 1260,380 1330,380 1265,550 1400,340 1325,340" fill="#fde047" opacity="0.95"/>
+</svg>

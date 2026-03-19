@@ -6,6 +6,8 @@ const TABS = [
     id: "government",
     label: "Government",
     title: "Government Systems for Public Impact",
+    image: "/assets/sectors/government.svg",
+    imageAlt: "Government systems visual",
     description: "The Notus Regalia develops structured frameworks that support transparent governance and coordinated public services.",
     paragraphs: [
       "Government environments require reliability, accountability, and seamless collaboration across institutions. We design systems that organize information flow, clarify operational responsibilities, and strengthen the connection between policy and implementation.",
@@ -16,6 +18,8 @@ const TABS = [
     id: "defense",
     label: "Defense",
     title: "Built on Layered Authority for Command and Control",
+    image: "/assets/sectors/defense.svg",
+    imageAlt: "Defense command network visual",
     description: "Notus Regalia was forged with a singular intent — to design systems that endure in high-stakes environments.",
     paragraphs: [
       "In defense, clarity of command is not optional. It is foundational. We do not rely on intuition. We engineer frameworks. Structures built on layered authority — where decision rights are defined, execution is precise, and accountability is absolute. Power is distributed intentionally, escalation paths are clear, and mission-critical actions are concentrated where expertise matters most.",
@@ -26,6 +30,8 @@ const TABS = [
     id: "healthcare",
     label: "Healthcare",
     title: "Intelligence for Clinical Excellence and Human Performance",
+    image: "/assets/sectors/healthcare.svg",
+    imageAlt: "Healthcare intelligence visual",
     description: "The Notus Regalia exists to strengthen the systems that support patient care across every stage of treatment.",
     paragraphs: [
       "Our focus is not on trends or surface innovation. It is on improving workflows, reinforcing data integrity, and enabling healthcare professionals to deliver consistent, high-quality care. We build tools that integrate seamlessly into clinical environments, designed to enhance decision-making, optimize resource allocation, and ultimately improve patient outcomes.",
@@ -36,6 +42,8 @@ const TABS = [
     id: "enterprise",
     label: "Enterprise",
     title: "Operational Architecture for Modern Organizations",
+    image: "/assets/sectors/enterprise.svg",
+    imageAlt: "Enterprise operations visual",
     description: "The Notus Regalia develops structured systems that transform organizational complexity into coordinated performance.",
     paragraphs: [
       "Enterprises succeed when strategy, execution, and communication function as a unified framework. We create environments where processes are clearly defined, responsibilities are transparent, and decisions are supported by reliable information.",
@@ -46,6 +54,8 @@ const TABS = [
     id: "energy",
     label: "Energy",
     title: "Infrastructure Intelligence for the Energy Sector",
+    image: "/assets/sectors/energy.svg",
+    imageAlt: "Energy infrastructure visual",
     description: "The Notus Regalia builds systems that bring precision and resilience to critical energy infrastructure and operations.",
     paragraphs: [
       "Energy systems demand zero-tolerance reliability. We engineer monitoring frameworks, operational hierarchies, and decision support tools that keep infrastructure running at peak performance. From grid management to resource allocation, our systems are designed for environments where failure is not an option.",
@@ -56,6 +66,8 @@ const TABS = [
     id: "disaster",
     label: "Disaster Response",
     title: "Command Structures for Crisis and Disaster Response",
+    image: "/assets/sectors/disaster.svg",
+    imageAlt: "Disaster response command visual",
     description: "The Notus Regalia develops rapid-deployment frameworks that coordinate multi-agency disaster response with clarity and speed.",
     paragraphs: [
       "In disaster scenarios, fragmented command costs lives. We design unified response architectures that eliminate coordination gaps, accelerate resource deployment, and maintain situational awareness across all response teams. Our systems are built to function under pressure, in degraded environments, where every second of clarity counts.",
@@ -343,18 +355,29 @@ export default function IndustrySection() {
         }
 
         .content-panel {
-          height: 480px;
-          overflow: hidden;
+          width: 100%;
+          min-height: clamp(300px, 32vw, 430px);
+          overflow: visible;
           display: flex;
           flex-direction: column;
           justify-content: flex-start;
           align-items: flex-start;
         }
-        @media(max-width:1024px){ .content-panel { height: 540px; } }
-        @media(max-width:640px){  .content-panel { height: 620px; } }
+        @media(max-width:1024px){
+          .content-panel {
+            min-height: clamp(280px, 46vw, 380px);
+          }
+        }
 
         .content-inner {
+          position: relative;
           width: 100%;
+          height: clamp(300px, 32vw, 430px);
+          border-radius: 18px;
+          overflow: hidden;
+          border: 1px solid var(--border-color);
+          background: #0a0a0a;
+          box-shadow: 0 14px 34px rgba(0,0,0,0.32);
           transition: opacity 0.14s ease, transform 0.14s ease;
         }
         .content-inner.fading-out {
@@ -365,65 +388,130 @@ export default function IndustrySection() {
           opacity: 1;
           transform: translateY(0);
         }
-
-        .content-label {
-          font-family: ui-monospace, Menlo, monospace;
-          font-size: 0.75rem;
-          text-transform: uppercase;
-          letter-spacing: 0.3em;
-          margin-bottom: 1rem;
+        .content-inner > img {
           display: block;
-          transition: color 0.4s ease;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        :root.light .content-inner {
+          border-color: rgba(0,0,0,0.14);
+          box-shadow: 0 10px 24px rgba(0,0,0,0.14);
         }
 
+        .content-overlay {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: flex-end;
+          pointer-events: none;
+        }
+        .content-overlay::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 86%;
+          background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.74) 40%, rgba(0,0,0,0.3) 72%, rgba(0,0,0,0) 100%);
+          pointer-events: none;
+        }
+        :root.light .content-overlay::before {
+          background: linear-gradient(to top, rgba(2,6,23,0.9) 0%, rgba(2,6,23,0.62) 42%, rgba(2,6,23,0.26) 74%, rgba(2,6,23,0) 100%);
+        }
+        .content-overlay-row {
+          position: relative;
+          z-index: 2;
+          width: 100%;
+          display: grid;
+          grid-template-columns: 7fr 3fr;
+          gap: 1rem;
+          align-items: end;
+          padding: 1.15rem 1.35rem 1.25rem;
+        }
+        .content-meta {
+          min-width: 0;
+        }
         .content-title {
-          font-size: clamp(1.75rem, 4vw, 2.75rem);
+          color: #f8fafc;
+          font-size: clamp(1.25rem, 2.1vw, 1.85rem);
           font-weight: 700;
-          line-height: 1.15;
+          line-height: 1.2;
           letter-spacing: -0.02em;
-          margin-bottom: 1.5rem;
-          background: var(--text-gradient, linear-gradient(to bottom, #fff, rgba(255,255,255,0.7)));
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          margin-bottom: 0.45rem;
+          text-wrap: balance;
         }
-        :root.light .content-title {
-          background: linear-gradient(to bottom, #0f172a, rgba(15,23,42,0.7));
-          -webkit-background-clip: text;
-          background-clip: text;
-        }
-
-        .content-body {
-          font-size: 1.15rem;
-          line-height: 1.6;
-          color: rgba(255,255,255,0.5);
-          text-align: justify;
-        }
-        :root.light .content-body { color: rgba(0,0,0,0.5); }
         .content-description {
-          color: var(--content-primary);
-          margin-bottom: 1.5rem;
-          font-size: 1.25rem;
-          text-align: justify;
-          line-height: 1.55;
+          color: rgba(241,245,249,0.86);
+          font-size: 0.92rem;
+          line-height: 1.5;
+          margin: 0;
+          max-width: 95%;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .content-cta-wrap {
+          display: flex;
+          justify-content: flex-end;
+          align-items: flex-end;
+          min-width: 0;
+        }
+        .content-cta {
+          pointer-events: auto;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.45rem;
+          border: none;
+          background: transparent;
+          color: #f8fafc;
+          font-size: 0.92rem;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+          line-height: 1;
+          padding: 0;
+          cursor: pointer;
+          white-space: nowrap;
+          transition: color 0.2s ease;
+        }
+        .content-cta i {
+          font-size: 0.8rem;
+          transition: transform 0.2s ease;
+        }
+        .content-cta:hover {
+          color: #ffffff;
+        }
+        .content-cta:hover i {
+          transform: translateX(3px);
         }
         @media (max-width: 768px) {
-          .content-label {
-            font-size: 0.66rem;
-            letter-spacing: 0.22em;
-            margin-bottom: 0.8rem;
+          .content-panel {
+            min-height: clamp(260px, 58vw, 340px);
+          }
+          .content-inner {
+            height: clamp(260px, 58vw, 340px);
+            border-radius: 14px;
+          }
+          .content-overlay-row {
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+            align-items: start;
+            padding: 0.95rem 1rem 1rem;
+          }
+          .content-cta-wrap {
+            justify-content: flex-start;
           }
           .content-title {
-            font-size: clamp(1.3rem, 7vw, 1.9rem);
-            margin-bottom: 1rem;
-          }
-          .content-body {
-            font-size: 0.98rem;
-            line-height: 1.55;
+            font-size: clamp(1.05rem, 5vw, 1.28rem);
+            margin-bottom: 0.35rem;
           }
           .content-description {
-            font-size: 1.05rem;
-            margin-bottom: 1rem;
+            font-size: 0.82rem;
+            line-height: 1.45;
+          }
+          .content-cta {
+            font-size: 0.82rem;
           }
         }
 
@@ -517,15 +605,24 @@ export default function IndustrySection() {
 
           <div className="content-panel reveal-up" style={{ transitionDelay: "300ms" }}>
             <div className={`content-inner${contentVisible ? " fading-in" : " fading-out"}`}>
-              <span className="content-label" style={{ color: tab.color }}>{tab.label}</span>
-              <h2 className="content-title">{tab.title}</h2>
-              <div className="content-body">
-                <p className="content-description">
-                  {tab.description}
-                </p>
-                {tab.paragraphs.map((p, idx) => (
-                  <p key={idx}>{p}</p>
-                ))}
+              <img src={tab.image} alt={tab.imageAlt} loading="lazy" />
+              <div className="content-overlay">
+                <div className="content-overlay-row">
+                  <div className="content-meta">
+                    <h2 className="content-title">{tab.title}</h2>
+                    <p className="content-description">{tab.description}</p>
+                  </div>
+                  <div className="content-cta-wrap">
+                    <button
+                      type="button"
+                      className="content-cta"
+                      aria-label={`Learn more about ${tab.label}`}
+                    >
+                      Learn More
+                      <i className="bi bi-arrow-right" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

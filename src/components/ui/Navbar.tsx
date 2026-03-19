@@ -440,6 +440,84 @@ const NAVBAR_CSS = `
 .tab-arrow-btn.arrow-open .arrow-icon { transform: rotate(180deg); }
 .tab-arrow-btn.arrow-open { color: var(--content-primary); background: rgba(255,255,255,0.06); }
 
+/* ── Main tab row: text-only modern tabs (keeps arrow) ── */
+.tabs-row > .tab-item-border {
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+}
+.tabs-row > .tab-item-border::before {
+  inset: auto 4px -6px;
+  height: 1px;
+  border-radius: 999px;
+  padding: 0;
+  animation: none;
+  -webkit-mask: none;
+  mask: none;
+  -webkit-mask-composite: initial;
+  mask-composite: initial;
+  background: linear-gradient(90deg, rgba(0,255,166,0.95) 0%, rgba(255,215,0,0.85) 45%, rgba(236,72,153,0.9) 100%);
+  opacity: 0;
+  transform: scaleX(0.65);
+  transform-origin: left;
+  transition: opacity 0.2s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.tabs-row > .tab-item-border:hover::before,
+.tabs-row > .tab-item-border.is-active::before {
+  opacity: 1;
+  transform: scaleX(1);
+}
+.tabs-row > .tab-item-border > .tab-item {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  overflow: visible;
+}
+.tabs-row > .tab-item-border:hover > .tab-item,
+.tabs-row > .tab-item-border > .tab-item.is-active {
+  background: transparent;
+  box-shadow: none;
+}
+:root.light .tabs-row > .tab-item-border > .tab-item,
+:root.light .tabs-row > .tab-item-border > .tab-item.is-active,
+:root.light .tabs-row > .tab-item-border:hover > .tab-item {
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+}
+.tabs-row .tab-label-btn {
+  padding: 9px 4px;
+  font-size: 0.97rem;
+  letter-spacing: 0.01em;
+  font-weight: 500;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+.tabs-row .tab-label-btn.is-active {
+  font-weight: 500;
+}
+.tabs-row .tab-sep {
+  display: none;
+}
+.tabs-row .tab-arrow-btn {
+  width: auto;
+  padding: 9px 3px 9px 0;
+  border-radius: 0;
+  background: transparent;
+}
+.tabs-row .tab-arrow-btn .arrow-icon {
+  font-size: 0.64rem;
+}
+.tabs-row .tab-arrow-btn:hover {
+  color: var(--content-primary);
+  background: transparent;
+  transform: translateY(-1px);
+}
+.tabs-row .tab-arrow-btn.arrow-open {
+  color: var(--content-primary);
+  background: transparent;
+}
+
 /* ── Subtab strip — below main bar row, per-tab ── */
 .subtab-strip-outer {
   display: grid;

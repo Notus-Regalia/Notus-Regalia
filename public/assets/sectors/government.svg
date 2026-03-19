@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Government Systems</title>
+  <desc id="desc">Abstract visual representing coordinated public service operations.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06121a" />
+      <stop offset="55%" stop-color="#0a2f3d" />
+      <stop offset="100%" stop-color="#0f4d5f" />
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2dd4bf" stop-opacity="0" />
+      <stop offset="45%" stop-color="#34d399" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0" />
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#7dd3fc" stroke-opacity="0.08" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)" />
+  <rect width="1600" height="900" fill="url(#grid)" />
+  <g opacity="0.7">
+    <rect x="140" y="180" width="520" height="84" rx="8" fill="#022c22" stroke="#10b981" stroke-opacity="0.45" />
+    <rect x="240" y="340" width="620" height="84" rx="8" fill="#082f49" stroke="#22d3ee" stroke-opacity="0.45" />
+    <rect x="360" y="500" width="720" height="84" rx="8" fill="#172554" stroke="#60a5fa" stroke-opacity="0.45" />
+  </g>
+  <path d="M660 222H980" stroke="url(#line)" stroke-width="3"/>
+  <path d="M860 382H1220" stroke="url(#line)" stroke-width="3"/>
+  <path d="M1080 542H1360" stroke="url(#line)" stroke-width="3"/>
+  <circle cx="980" cy="222" r="10" fill="#34d399"/>
+  <circle cx="1220" cy="382" r="10" fill="#22d3ee"/>
+  <circle cx="1360" cy="542" r="10" fill="#60a5fa"/>
+</svg>

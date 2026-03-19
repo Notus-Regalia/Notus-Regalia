@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Defense Systems</title>
+  <desc id="desc">Abstract visual of layered command and control network.</desc>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="35%" r="85%">
+      <stop offset="0%" stop-color="#220b16"/>
+      <stop offset="55%" stop-color="#13060f"/>
+      <stop offset="100%" stop-color="#050308"/>
+    </radialGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <g stroke="#f43f5e" stroke-opacity="0.22" fill="none">
+    <circle cx="800" cy="450" r="110"/>
+    <circle cx="800" cy="450" r="210"/>
+    <circle cx="800" cy="450" r="320"/>
+  </g>
+  <g fill="#fda4af" fill-opacity="0.9">
+    <circle cx="800" cy="450" r="16"/>
+    <circle cx="540" cy="330" r="10"/>
+    <circle cx="1060" cy="330" r="10"/>
+    <circle cx="500" cy="560" r="10"/>
+    <circle cx="1100" cy="560" r="10"/>
+    <circle cx="800" cy="180" r="10"/>
+    <circle cx="800" cy="720" r="10"/>
+  </g>
+  <g stroke="url(#accent)" stroke-width="2.5" stroke-linecap="round">
+    <path d="M800 450L540 330"/>
+    <path d="M800 450L1060 330"/>
+    <path d="M800 450L500 560"/>
+    <path d="M800 450L1100 560"/>
+    <path d="M800 450L800 180"/>
+    <path d="M800 450L800 720"/>
+  </g>
+  <rect x="180" y="130" width="270" height="88" rx="10" fill="#2a0b15" stroke="#f43f5e" stroke-opacity="0.45"/>
+</svg>
