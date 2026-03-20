@@ -1,629 +1,543 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
 
-const TABS = [
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
+
+type Industry = {
+  id: string;
+  title: string;
+  description: string;
+};
+
+const INDUSTRIES: Industry[] = [
   {
     id: "government",
-    label: "Government",
-    title: "Government Systems for Public Impact",
-    image: "/assets/sectors/government.svg",
-    imageAlt: "Government systems visual",
-    description: "The Notus Regalia develops structured frameworks that support transparent governance and coordinated public services.",
-    paragraphs: [
-      "Government environments require reliability, accountability, and seamless collaboration across institutions. We design systems that organize information flow, clarify operational responsibilities, and strengthen the connection between policy and implementation.",
-    ],
-    color: "#059669"
+    title: "Government",
+    description: "Structured systems that align agencies, services, and public execution under one operational surface.",
   },
   {
     id: "defense",
-    label: "Defense",
-    title: "Built on Layered Authority for Command and Control",
-    image: "/assets/sectors/defense.svg",
-    imageAlt: "Defense command network visual",
-    description: "Notus Regalia was forged with a singular intent — to design systems that endure in high-stakes environments.",
-    paragraphs: [
-      "In defense, clarity of command is not optional. It is foundational. We do not rely on intuition. We engineer frameworks. Structures built on layered authority — where decision rights are defined, execution is precise, and accountability is absolute. Power is distributed intentionally, escalation paths are clear, and mission-critical actions are concentrated where expertise matters most.",
-    ],
-    color: "#E31B54"
+    title: "Defense",
+    description: "Layered command environments built for high-stakes coordination, response speed, and operational certainty.",
   },
   {
     id: "healthcare",
-    label: "Healthcare",
-    title: "Intelligence for Clinical Excellence and Human Performance",
-    image: "/assets/sectors/healthcare.svg",
-    imageAlt: "Healthcare intelligence visual",
-    description: "The Notus Regalia exists to strengthen the systems that support patient care across every stage of treatment.",
-    paragraphs: [
-      "Our focus is not on trends or surface innovation. It is on improving workflows, reinforcing data integrity, and enabling healthcare professionals to deliver consistent, high-quality care. We build tools that integrate seamlessly into clinical environments, designed to enhance decision-making, optimize resource allocation, and ultimately improve patient outcomes.",
-    ],
-    color: "#7C3AED"
+    title: "Healthcare",
+    description: "Clinical operations platforms that improve coordination, reinforce data trust, and elevate care delivery.",
   },
   {
     id: "enterprise",
-    label: "Enterprise",
-    title: "Operational Architecture for Modern Organizations",
-    image: "/assets/sectors/enterprise.svg",
-    imageAlt: "Enterprise operations visual",
-    description: "The Notus Regalia develops structured systems that transform organizational complexity into coordinated performance.",
-    paragraphs: [
-      "Enterprises succeed when strategy, execution, and communication function as a unified framework. We create environments where processes are clearly defined, responsibilities are transparent, and decisions are supported by reliable information.",
-    ],
-    color: "#2563EB"
+    title: "Enterprise",
+    description: "Execution architecture that turns fragmented business workflows into clear, accountable operating systems.",
   },
   {
     id: "energy",
-    label: "Energy",
-    title: "Infrastructure Intelligence for the Energy Sector",
-    image: "/assets/sectors/energy.svg",
-    imageAlt: "Energy infrastructure visual",
-    description: "The Notus Regalia builds systems that bring precision and resilience to critical energy infrastructure and operations.",
-    paragraphs: [
-      "Energy systems demand zero-tolerance reliability. We engineer monitoring frameworks, operational hierarchies, and decision support tools that keep infrastructure running at peak performance. From grid management to resource allocation, our systems are designed for environments where failure is not an option.",
-    ],
-    color: "#f59e0b"
+    title: "Energy",
+    description: "Infrastructure intelligence designed to protect uptime, expose risk earlier, and strengthen grid continuity.",
   },
   {
     id: "disaster",
-    label: "Disaster Response",
-    title: "Command Structures for Crisis and Disaster Response",
-    image: "/assets/sectors/disaster.svg",
-    imageAlt: "Disaster response command visual",
-    description: "The Notus Regalia develops rapid-deployment frameworks that coordinate multi-agency disaster response with clarity and speed.",
-    paragraphs: [
-      "In disaster scenarios, fragmented command costs lives. We design unified response architectures that eliminate coordination gaps, accelerate resource deployment, and maintain situational awareness across all response teams. Our systems are built to function under pressure, in degraded environments, where every second of clarity counts.",
-    ],
-    color: "#f97316"
+    title: "Disaster Response",
+    description: "Unified response frameworks that help agencies coordinate quickly in degraded and time-critical conditions.",
   },
 ];
 
-const TIMER_DURATION = 10000;
-const CIRCLE_R = 9;
-const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_R;
+const MOBILE_BREAKPOINT = 768;
 
-function CircleTimer({ color, running, timerKey }: { color: string; running: boolean; timerKey: number }) {
-  return (
-    <svg
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      style={{ flexShrink: 0, transform: "rotate(-90deg)" }}
-    >
-      <circle
-        cx="12" cy="12" r={CIRCLE_R}
-        fill="none"
-        stroke="rgba(255,255,255,0.12)"
-        strokeWidth="2"
-      />
-      <circle
-        key={timerKey}
-        cx="12" cy="12" r={CIRCLE_R}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        style={{
-          strokeDasharray: CIRCLE_CIRCUMFERENCE,
-          strokeDashoffset: 0,
-          animation: running
-            ? `industry-countdown ${TIMER_DURATION}ms linear forwards`
-            : "none",
-        }}
-      />
-    </svg>
-  );
+function getVisibleCardCount(width: number) {
+  if (width >= 1720) return 3;
+  if (width >= 1280) return 3;
+  if (width >= 960) return 2.2;
+  if (width >= 640) return 1.45;
+  return 1.05;
 }
 
 export default function IndustrySection() {
-  const [active, setActive] = useState(0);
-  const [contentActive, setContentActive] = useState(0);
-  const [contentVisible, setContentVisible] = useState(true);
-  const [revealed, setRevealed] = useState(false);
-  const [pillStyle, setPillStyle] = useState({ top: 0, height: 0, opacity: 0 });
-  const [timerKey, setTimerKey] = useState(0);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const stickyRef = useRef<HTMLDivElement | null>(null);
+  const viewportRef = useRef<HTMLDivElement | null>(null);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const cardRefs = useRef<Array<HTMLElement | null>>([]);
+  const progressFillRef = useRef<HTMLSpanElement | null>(null);
+  const activeIndexRef = useRef(0);
+  const lastProgressRef = useRef(-1);
+  const refreshRafRef = useRef<number | null>(null);
 
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const navRefs = useRef<(HTMLButtonElement | null)[]>([]);
-  const sidebarRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const [cardsVisible, setCardsVisible] = useState(3);
 
-  const activeRef = useRef(0);
-  const contentFadeRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const autoRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  activeRef.current = active;
-
-  // ── Scroll reveal ──
   useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { setRevealed(true); obs.disconnect(); }
-    }, { threshold: 0.1 });
-    if (sectionRef.current) obs.observe(sectionRef.current);
-    return () => obs.disconnect();
+    const syncViewportState = () => {
+      const width = window.innerWidth;
+      setIsMobile(width < MOBILE_BREAKPOINT);
+      setCardsVisible(getVisibleCardCount(width));
+    };
+
+    syncViewportState();
+    window.addEventListener("resize", syncViewportState);
+    return () => window.removeEventListener("resize", syncViewportState);
   }, []);
 
-  // ── Pill position — reacts to active immediately ──
   useEffect(() => {
-    const btn = navRefs.current[active];
-    const sidebar = sidebarRef.current;
-    if (!btn || !sidebar) return;
-    const br = btn.getBoundingClientRect();
-    const sr = sidebar.getBoundingClientRect();
-    setPillStyle({ top: br.top - sr.top, height: br.height, opacity: 1 });
-  }, [active, revealed]);
+    const viewport = viewportRef.current;
+    const track = trackRef.current;
+    const section = sectionRef.current;
+    const sticky = stickyRef.current;
 
-  // ── Auto-advance scheduler ──
-  const scheduleNext = () => {
-    if (autoRef.current) clearTimeout(autoRef.current);
-    autoRef.current = setTimeout(() => {
-      const next = (activeRef.current + 1) % TABS.length;
-      switchTo(next);
-    }, TIMER_DURATION);
-  };
+    if (!viewport || !track || !section || !sticky) return;
 
-  // ── Shared switch ──
-  // Pill + nav update INSTANTLY. Content fades out → swaps → fades in.
-  const switchTo = (next: number) => {
-    if (next === activeRef.current) return;
+    cardRefs.current.forEach((card, idx) => {
+      if (!card) return;
+      card.classList.toggle("is-active", idx === activeIndexRef.current);
+    });
 
-    if (autoRef.current) clearTimeout(autoRef.current);
-    if (contentFadeRef.current) clearTimeout(contentFadeRef.current);
+    const setProgress = (progress: number) => {
+      const clamped = Math.min(Math.max(progress, 0), 1);
+      if (progressFillRef.current && Math.abs(clamped - lastProgressRef.current) > 0.001) {
+        lastProgressRef.current = clamped;
+        progressFillRef.current.style.transform = `scaleX(${clamped})`;
+      }
 
-    // 1. Move pill & highlight immediately
-    setActive(next);
-    setTimerKey(k => k + 1);
+      const maxLead = Math.max(0, INDUSTRIES.length - cardsVisible);
+      const nextIndex = Math.min(
+        INDUSTRIES.length - 1,
+        Math.round(clamped * maxLead),
+      );
 
-    // 2. Fade content out
-    setContentVisible(false);
+      if (nextIndex === activeIndexRef.current) return;
 
-    // 3. After fade-out, swap content and fade back in
-    contentFadeRef.current = setTimeout(() => {
-      setContentActive(next);
-      setContentVisible(true);
-      scheduleNext();
-    }, 160);
-  };
-
-  // ── Start auto-advance on mount ──
-  useEffect(() => {
-    scheduleNext();
-    return () => {
-      if (autoRef.current) clearTimeout(autoRef.current);
-      if (contentFadeRef.current) clearTimeout(contentFadeRef.current);
+      const prevCard = cardRefs.current[activeIndexRef.current];
+      const nextCard = cardRefs.current[nextIndex];
+      prevCard?.classList.remove("is-active");
+      nextCard?.classList.add("is-active");
+      activeIndexRef.current = nextIndex;
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const handleTabClick = (i: number) => { switchTo(i); };
+    if (isMobile) {
+      gsap.set(track, { clearProps: "transform" });
 
-  const tab = TABS[contentActive];
+      const syncMobileProgress = () => {
+        const maxScroll = Math.max(1, viewport.scrollWidth - viewport.clientWidth);
+        setProgress(viewport.scrollLeft / maxScroll);
+      };
+
+      syncMobileProgress();
+      viewport.addEventListener("scroll", syncMobileProgress, { passive: true });
+
+      return () => {
+        viewport.removeEventListener("scroll", syncMobileProgress);
+      };
+    }
+
+    let ctx: gsap.Context | null = null;
+    let observer: ResizeObserver | null = null;
+
+    const setup = () => {
+      ctx = gsap.context(() => {
+        const getTravelDistance = () => {
+          const baseTravel = Math.max(0, track.scrollWidth - viewport.clientWidth);
+          const lastCard = cardRefs.current[INDUSTRIES.length - 1];
+          if (!lastCard) return baseTravel;
+
+          // Keep scrolling until the final card reaches viewport center.
+          const centerTravel = Math.max(
+            0,
+            (lastCard.offsetLeft + lastCard.offsetWidth / 2) - viewport.clientWidth / 2,
+          );
+
+          return Math.max(baseTravel, centerTravel);
+        };
+
+        gsap.set(track, { x: 0 });
+        setProgress(0);
+
+        gsap.to(track, {
+          x: () => -getTravelDistance(),
+          ease: "none",
+          scrollTrigger: {
+            trigger: section,
+            start: "top top",
+            end: () => `+=${getTravelDistance()}`,
+            pin: sticky,
+            scrub: 0.9,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            onUpdate: (self) => setProgress(self.progress),
+          },
+        });
+      }, section);
+
+      if (typeof ResizeObserver !== "undefined") {
+        observer = new ResizeObserver(() => {
+          if (refreshRafRef.current !== null) return;
+          refreshRafRef.current = window.requestAnimationFrame(() => {
+            refreshRafRef.current = null;
+            ScrollTrigger.refresh();
+          });
+        });
+
+        observer.observe(viewport);
+        observer.observe(track);
+      }
+    };
+
+    const timeoutId = window.setTimeout(setup, 60);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      if (refreshRafRef.current !== null) {
+        window.cancelAnimationFrame(refreshRafRef.current);
+        refreshRafRef.current = null;
+      }
+      observer?.disconnect();
+      ctx?.revert();
+    };
+  }, [cardsVisible, isMobile]);
 
   return (
     <>
       <style>{`
-        @keyframes industry-countdown {
-          from { stroke-dashoffset: 0; }
-          to { stroke-dashoffset: ${CIRCLE_CIRCUMFERENCE}; }
-        }
-        .modern-about {
-          background: var(--surface-secondary, #050505);
-          border-top: 1px dashed rgba(255,255,255,0.1);
-          border-bottom: 1px dashed rgba(255,255,255,0.1);
-          padding: 8rem 2rem;
-          color: var(--content-primary, white);
-          font-family: 'Inter', system-ui, sans-serif;
+        .industry-section {
+          --site-gutter-inline: 2rem;
+          --industry-gap: clamp(0.5rem, 0.85vw, 0.8rem);
+          --rail-pad-start: var(--site-gutter-inline);
+          --rail-pad-end: clamp(0.35rem, 0.9vw, 0.75rem);
+          --industry-visible: 3;
           position: relative;
-          overflow: hidden;
-        }
-        :root.light .modern-about {
-          background: var(--surface-secondary);
-          border-top: 1px dashed rgba(0,0,0,0.12);
-          border-bottom: 1px dashed rgba(0,0,0,0.12);
-        }
-        @media(min-width:640px){  .modern-about { padding: 8rem 4rem; } }
-        @media(min-width:768px){  .modern-about { padding: 8rem 6rem; } }
-        @media(min-width:1024px){ .modern-about { padding: 8rem 6rem; } }
-        @media(min-width:1280px){ .modern-about { padding: 8rem 8rem; } }
-        @media(min-width:1536px){ .modern-about { padding: 8rem 12rem; } }
-        @media(min-width:1920px){ .modern-about { padding: 8rem 16rem; } }
-
-        .about-section-header {
-          position: relative;
-          z-index: 1;
-          margin-bottom: 3.5rem;
+          background: linear-gradient(180deg, #08090d 0%, #06070a 48%, #030407 100%);
+          border-top: 1px dashed rgba(255, 255, 255, 0.08);
+          border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+          color: var(--content-primary, #fff);
+          overflow: clip;
         }
 
-        .about-container {
+        @media(min-width:640px){ .industry-section { --site-gutter-inline: 4rem; } }
+        @media(min-width:768px){ .industry-section { --site-gutter-inline: 6rem; } }
+        @media(min-width:1280px){ .industry-section { --site-gutter-inline: 8rem; } }
+        @media(min-width:1536px){ .industry-section { --site-gutter-inline: 12rem; } }
+
+        :root.light .industry-section {
+          background: linear-gradient(180deg, #f5f7fb 0%, #edf1f7 52%, #ffffff 100%);
+          border-top: 1px dashed rgba(0, 0, 0, 0.08);
+          border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+        }
+
+        .industry-sticky {
+          min-height: 108vh;
+          height: 108vh;
           display: grid;
-          grid-template-columns: 350px 1fr;
-          gap: 4rem;
-          position: relative;
-          z-index: 1;
-        }
-        @media (max-width: 1024px) {
-          .about-container { grid-template-columns: 1fr; gap: 2rem; }
-        }
-
-        .about-sidebar {
-          display: flex;
-          flex-direction: column;
-          gap: 0.5rem;
-          position: relative;
-        }
-        @media (max-width: 768px) {
-          .about-sidebar {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 0.65rem;
-          }
-        }
-
-        .about-nav-pill {
-          position: absolute;
-          left: 0; right: 0;
-          border-radius: 16px;
-          background: rgba(255,255,255,0.05);
-          box-shadow: inset 0 1px 1px rgba(255,255,255,0.08);
-          pointer-events: none;
-          transition: top 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                      height 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                      opacity 0.3s ease;
-          z-index: 0;
-        }
-        :root.light .about-nav-pill {
-          background: rgba(0,0,0,0.04);
-          box-shadow: inset 0 1px 1px rgba(0,0,0,0.06);
-        }
-        @media (max-width: 768px) {
-          .about-nav-pill { display: none; }
-        }
-
-        .about-nav-pill::before {
-          content: "";
-          position: absolute;
-          left: 0; top: 25%; bottom: 25%;
-          width: 3px;
-          background: #E31B54;
-          border-radius: 0 4px 4px 0;
-          box-shadow: 0 0 6px rgba(227,27,84,0.5);
-        }
-
-        .nav-item {
-          background: transparent;
-          border: none;
-          color: rgba(255,255,255,0.3);
-          text-align: left;
-          padding: 1.5rem;
-          border-radius: 16px;
-          cursor: pointer;
-          transition: color 0.2s ease;
-          position: relative;
-          font-size: 1.1rem;
-          font-weight: 500;
-          font-family: 'Inter', system-ui, sans-serif;
-          z-index: 1;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 0.5rem;
-          width: 100%;
-        }
-        @media (max-width: 768px) {
-          .nav-item {
-            padding: 0.9rem 0.8rem;
-            border: 1px solid rgba(255,255,255,0.09);
-            border-radius: 12px;
-            min-height: 80px;
-            align-items: flex-start;
-            font-size: 0.92rem;
-            line-height: 1.25;
-          }
-        }
-        :root.light .nav-item { color: rgba(0,0,0,0.35); }
-        @media (max-width: 768px) {
-          :root.light .nav-item { border: 1px solid rgba(0,0,0,0.12); }
-        }
-        .nav-item:hover { color: rgba(255,255,255,0.6); }
-        :root.light .nav-item:hover { color: rgba(0,0,0,0.6); }
-        .nav-item.active { color: white; }
-        :root.light .nav-item.active { color: var(--content-primary); }
-        @media (max-width: 768px) {
-          .nav-item.active {
-            background: rgba(227,27,84,0.12);
-            border-color: rgba(227,27,84,0.45);
-          }
-          :root.light .nav-item.active {
-            background: rgba(227,27,84,0.08);
-            border-color: rgba(227,27,84,0.4);
-          }
-        }
-
-        .nav-item-left {
-          display: flex;
-          align-items: center;
-          gap: 0;
-        }
-        @media (max-width: 768px) {
-          .nav-item-left {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.3rem;
-          }
-          .nav-item-left > span:first-child {
-            margin-right: 0 !important;
-            font-size: 0.62rem !important;
-            letter-spacing: 0.12em;
-            opacity: 0.45 !important;
-          }
-        }
-
-        .content-panel {
-          width: 100%;
-          min-height: clamp(300px, 32vw, 430px);
-          overflow: visible;
-          display: flex;
-          flex-direction: column;
-          justify-content: flex-start;
-          align-items: flex-start;
-        }
-        @media(max-width:1024px){
-          .content-panel {
-            min-height: clamp(280px, 46vw, 380px);
-          }
-        }
-
-        .content-inner {
-          position: relative;
-          width: 100%;
-          height: clamp(300px, 32vw, 430px);
-          border-radius: 18px;
+          grid-template-rows: auto minmax(0, 1fr);
+          gap: clamp(1.1rem, 1.8vw, 1.9rem);
+          padding-block: clamp(4.2rem, 5.5vw, 6.1rem) clamp(2.4rem, 3.5vw, 3.3rem);
           overflow: hidden;
-          border: 1px solid var(--border-color);
-          background: #0a0a0a;
-          box-shadow: 0 14px 34px rgba(0,0,0,0.32);
-          transition: opacity 0.14s ease, transform 0.14s ease;
         }
-        .content-inner.fading-out {
-          opacity: 0;
-          transform: translateY(-6px);
+
+        .industry-header-shell {
+          padding-inline: var(--site-gutter-inline);
+          position: relative;
+          z-index: 2;
         }
-        .content-inner.fading-in {
-          opacity: 1;
-          transform: translateY(0);
+
+        .industry-header {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          column-gap: clamp(1rem, 1.8vw, 2rem);
+          align-items: end;
         }
-        .content-inner > img {
+
+        .industry-heading {
+          margin: 0;
+          max-width: none;
+          font-size: clamp(2.2rem, 4.8vw, 3.45rem);
+          font-weight: 700;
+          letter-spacing: -0.02em;
+          line-height: 1.14;
+          text-wrap: pretty;
+        }
+
+        .industry-copy {
+          max-width: 58rem;
+          margin: 0.8rem 0 0;
+          color: rgba(226, 232, 240, 0.62);
+          font-size: clamp(1.02rem, 1.45vw, 1.2rem);
+          line-height: 1.68;
+        }
+
+        :root.light .industry-copy {
+          color: rgba(15, 23, 42, 0.66);
+        }
+
+        .industry-progress-shell {
+          justify-self: end;
+          align-self: end;
+          margin-bottom: 0.24rem;
+        }
+
+        .industry-progress-track {
+          width: clamp(9.5rem, 18vw, 14rem);
+          height: 2px;
+          border-radius: 999px;
+          background: rgba(255, 255, 255, 0.12);
+          overflow: hidden;
+        }
+
+        :root.light .industry-progress-track {
+          background: rgba(15, 23, 42, 0.12);
+        }
+
+        .industry-progress-fill {
           display: block;
           width: 100%;
           height: 100%;
-          object-fit: cover;
-        }
-        :root.light .content-inner {
-          border-color: rgba(0,0,0,0.14);
-          box-shadow: 0 10px 24px rgba(0,0,0,0.14);
+          transform-origin: left center;
+          transform: scaleX(0);
+          background: #E31B54;
         }
 
-        .content-overlay {
-          position: absolute;
-          inset: 0;
-          display: flex;
-          align-items: flex-end;
-          pointer-events: none;
-        }
-        .content-overlay::before {
-          content: "";
-          position: absolute;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          height: 86%;
-          background: linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.74) 40%, rgba(0,0,0,0.3) 72%, rgba(0,0,0,0) 100%);
-          pointer-events: none;
-        }
-        :root.light .content-overlay::before {
-          background: linear-gradient(to top, rgba(2,6,23,0.9) 0%, rgba(2,6,23,0.62) 42%, rgba(2,6,23,0.26) 74%, rgba(2,6,23,0) 100%);
-        }
-        .content-overlay-row {
+        .industry-viewport {
           position: relative;
           z-index: 2;
-          width: 100%;
-          display: grid;
-          grid-template-columns: 7fr 3fr;
-          gap: 1rem;
-          align-items: end;
-          padding: 1.15rem 1.35rem 1.25rem;
-        }
-        .content-meta {
           min-width: 0;
-        }
-        .content-title {
-          color: #f8fafc;
-          font-size: clamp(1.25rem, 2.1vw, 1.85rem);
-          font-weight: 700;
-          line-height: 1.2;
-          letter-spacing: -0.02em;
-          margin-bottom: 0.45rem;
-          text-wrap: balance;
-        }
-        .content-description {
-          color: rgba(241,245,249,0.86);
-          font-size: 0.92rem;
-          line-height: 1.5;
-          margin: 0;
-          max-width: 95%;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
+          min-height: 0;
           overflow: hidden;
-        }
-        .content-cta-wrap {
           display: flex;
+          align-items: flex-start;
+        }
+
+        .industry-viewport::before,
+        .industry-viewport::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          width: clamp(1rem, 2.4vw, 2.8rem);
+          z-index: 3;
+          pointer-events: none;
+        }
+
+        .industry-viewport::before {
+          left: 0;
+          background: linear-gradient(90deg, rgba(2, 3, 4, 0.74) 0%, rgba(2, 3, 4, 0) 100%);
+        }
+
+        .industry-viewport::after {
+          right: 0;
+          background: linear-gradient(270deg, rgba(2, 3, 4, 0.74) 0%, rgba(2, 3, 4, 0) 100%);
+        }
+
+        :root.light .industry-viewport::before {
+          background: linear-gradient(90deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0) 100%);
+        }
+
+        :root.light .industry-viewport::after {
+          background: linear-gradient(270deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0) 100%);
+        }
+
+        .industry-track {
+          display: grid;
+          grid-auto-flow: column;
+          align-items: start;
+          padding-left: var(--rail-pad-start);
+          padding-right: var(--rail-pad-end);
+          grid-auto-columns: calc(
+            (
+              100vw
+              - var(--rail-pad-start)
+              - var(--rail-pad-end)
+              - ((var(--industry-visible) - 1) * var(--industry-gap))
+            )
+            / var(--industry-visible)
+          );
+          gap: var(--industry-gap);
+          width: max-content;
+          will-change: transform;
+          transform: translateZ(0);
+          backface-visibility: hidden;
+        }
+
+        .industry-card {
+          height: clamp(28rem, 74vh, 56rem);
+          min-height: 0;
+          border-radius: 0;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          padding: clamp(1.25rem, 1.8vw, 1.8rem);
+          display: flex;
+          flex-direction: column;
           justify-content: flex-end;
-          align-items: flex-end;
-          min-width: 0;
+          background: linear-gradient(180deg, rgba(11, 14, 19, 0.68) 0%, rgba(8, 11, 16, 0.9) 52%, rgba(6, 9, 14, 0.98) 100%);
+          transition: border-color 0.18s ease, box-shadow 0.18s ease;
+          contain: layout paint style;
+          backface-visibility: hidden;
         }
-        .content-cta {
-          pointer-events: auto;
-          display: inline-flex;
-          align-items: center;
-          gap: 0.45rem;
-          border: none;
-          background: transparent;
-          color: #f8fafc;
-          font-size: 0.92rem;
-          font-weight: 600;
-          letter-spacing: 0.02em;
-          line-height: 1;
-          padding: 0;
-          cursor: pointer;
-          white-space: nowrap;
-          transition: color 0.2s ease;
+
+        .industry-card.is-active {
+          border-color: rgba(255, 255, 255, 0.26);
+          box-shadow: 0 14px 38px rgba(0, 0, 0, 0.22);
         }
-        .content-cta i {
-          font-size: 0.8rem;
-          transition: transform 0.2s ease;
+
+        :root.light .industry-card {
+          border: 1px solid rgba(15, 23, 42, 0.15);
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.66) 0%, rgba(250, 252, 255, 0.88) 44%, rgba(242, 246, 252, 0.98) 100%);
         }
-        .content-cta:hover {
-          color: #ffffff;
+
+        :root.light .industry-card.is-active {
+          border-color: rgba(15, 23, 42, 0.32);
+          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
         }
-        .content-cta:hover i {
-          transform: translateX(3px);
+
+        .industry-card-title {
+          margin: 0;
+          font-size: clamp(1.42rem, 2vw, 2.22rem);
+          line-height: 1.05;
+          letter-spacing: -0.03em;
+          color: rgba(248, 250, 252, 0.98);
         }
-        @media (max-width: 768px) {
-          .content-panel {
-            min-height: clamp(260px, 58vw, 340px);
-          }
-          .content-inner {
-            height: clamp(260px, 58vw, 340px);
-            border-radius: 14px;
-          }
-          .content-overlay-row {
+
+        .industry-card-description {
+          margin: 0.8rem 0 0;
+          font-size: clamp(0.9rem, 1vw, 1.04rem);
+          line-height: 1.5;
+          color: rgba(226, 232, 240, 0.84);
+          max-width: 33ch;
+        }
+
+        :root.light .industry-card-title {
+          color: rgba(15, 23, 42, 0.94);
+        }
+
+        :root.light .industry-card-description {
+          color: rgba(15, 23, 42, 0.72);
+        }
+
+        @media (max-width: 1199px) {
+          .industry-header {
             grid-template-columns: 1fr;
-            gap: 0.5rem;
-            align-items: start;
-            padding: 0.95rem 1rem 1rem;
+            row-gap: 0.85rem;
           }
-          .content-cta-wrap {
-            justify-content: flex-start;
+
+          .industry-progress-shell {
+            justify-self: start;
+            margin-bottom: 0;
           }
-          .content-title {
-            font-size: clamp(1.05rem, 5vw, 1.28rem);
-            margin-bottom: 0.35rem;
-          }
-          .content-description {
-            font-size: 0.82rem;
-            line-height: 1.45;
-          }
-          .content-cta {
-            font-size: 0.82rem;
+
+          .industry-progress-track {
+            width: clamp(9.5rem, 32vw, 13.5rem);
           }
         }
 
-        .reveal-up {
-          opacity: 0;
-          transform: translateY(30px);
-          transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1);
-        }
-        .revealed .reveal-up {
-          opacity: 1;
-          transform: translateY(0);
+        @media (max-width: 767px) {
+          .industry-section {
+            overflow: visible;
+          }
+
+          .industry-sticky {
+            min-height: auto;
+            height: auto;
+            gap: 1rem;
+            padding-top: 3.8rem;
+            padding-bottom: 3.1rem;
+          }
+
+          .industry-viewport {
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            overscroll-behavior-x: contain;
+            padding-bottom: 0.5rem;
+          }
+
+          .industry-viewport::-webkit-scrollbar {
+            display: none;
+          }
+
+          .industry-viewport::before,
+          .industry-viewport::after {
+            display: none;
+          }
+
+          .industry-track {
+            padding-inline: var(--site-gutter-inline);
+            grid-auto-columns: min(86vw, 28rem);
+          }
+
+          .industry-card {
+            height: clamp(24rem, 64vh, 32rem);
+          }
         }
 
-        .nav-timer {
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          flex-shrink: 0;
-        }
-        .nav-item.active .nav-timer {
-          opacity: 1;
-        }
-        @media (max-width: 768px) {
-          .nav-timer { opacity: 0.55; }
-          .nav-item.active .nav-timer { opacity: 1; }
+        @media (max-width: 639px) {
+          .industry-section {
+            --site-gutter-inline: 1.25rem;
+          }
+
+          .industry-heading {
+            font-size: clamp(2.02rem, 9vw, 2.85rem);
+          }
+
+          .industry-copy {
+            margin-top: 0.7rem;
+            font-size: 0.92rem;
+          }
+
+          .industry-card {
+            padding: 1.1rem;
+          }
+
+          .industry-card-title {
+            font-size: clamp(1.28rem, 6.4vw, 1.8rem);
+          }
+
+          .industry-card-description {
+            font-size: 0.87rem;
+          }
         }
       `}</style>
 
-      <section id="industries-we-serve" className={`modern-about${revealed ? " revealed" : ""}`} ref={sectionRef}>
+      <section
+        id="industries-we-serve"
+        ref={sectionRef}
+        className="industry-section"
+        style={{ "--industry-visible": cardsVisible } as CSSProperties}
+      >
+        <div ref={stickyRef} className="industry-sticky">
+          <div className="industry-header-shell">
+            <header className="industry-header">
+              <div>
+                <h2 className="industry-heading">Sectors We Serve.</h2>
+                <p className="industry-copy">
+                  Scroll to move through the industry rail while the section stays pinned until the last card.
+                </p>
+              </div>
 
-        <div className="about-section-header reveal-up" style={{ transitionDelay: "0ms" }}>
-          <span style={{
-            display: "inline-flex", alignItems: "center", gap: "0.5rem",
-            fontSize: "0.74rem", fontFamily: "ui-monospace, Menlo, monospace",
-            textTransform: "uppercase" as const, letterSpacing: "0.24em",
-            fontWeight: 700, color: "#E31B54", marginBottom: "1rem"
-          }}>
-            <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#E31B54", flexShrink: 0 }} />
-            Sectors We Serve
-          </span>
-          <h2 style={{
-            fontSize: "clamp(2.2rem, 4.8vw, 3.45rem)", fontWeight: 700,
-            letterSpacing: "-0.02em", lineHeight: 1.15,
-            background: "var(--text-gradient, linear-gradient(135deg,#f1f5f9 0%,rgba(241,245,249,.7) 100%))",
-            WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
-            backgroundClip: "text", marginBottom: "0.75rem"
-          }}>
-            Our Presence throughout Critical Industries.
-          </h2>
-          <p style={{
-            fontSize: "clamp(1.02rem, 1.45vw, 1.24rem)", lineHeight: 1.72, color: "rgba(255,255,255,0.4)",
-            fontFamily: "ui-sans-serif, system-ui, sans-serif"
-          }}>
-            From infrastructure and public systems to defense-adjacent and mission-critical operations, we build for environments where failure is not an option.
-          </p>
-          <div style={{
-            width: 48, height: 2, background: "#E31B54",
-            borderRadius: 999, boxShadow: "0 0 8px rgba(227,27,84,0.5)",
-            marginTop: "1.25rem"
-          }} />
-        </div>
-
-        <div className="about-container">
-          <div className="about-sidebar reveal-up" style={{ transitionDelay: "100ms" }} ref={sidebarRef}>
-            <div
-              className="about-nav-pill"
-              style={{ top: pillStyle.top, height: pillStyle.height, opacity: pillStyle.opacity }}
-            />
-
-            {TABS.map((t, i) => (
-              <button
-                key={t.id}
-                className={`nav-item${active === i ? " active" : ""}`}
-                style={{ "--nav-accent": t.color } as React.CSSProperties}
-                ref={(el) => { navRefs.current[i] = el; }}
-                onClick={() => handleTabClick(i)}
-              >
-                <span className="nav-item-left">
-                  <span style={{ opacity: 0.3, marginRight: "1rem", fontSize: "0.8rem" }}>0{i + 1}</span>
-                  {t.label}
-                </span>
-                <span className="nav-timer">
-                  <CircleTimer
-                    color={t.color}
-                    running={active === i}
-                    timerKey={timerKey}
-                  />
-                </span>
-              </button>
-            ))}
-          </div>
-
-          <div className="content-panel reveal-up" style={{ transitionDelay: "300ms" }}>
-            <div className={`content-inner${contentVisible ? " fading-in" : " fading-out"}`}>
-              <img src={tab.image} alt={tab.imageAlt} loading="lazy" />
-              <div className="content-overlay">
-                <div className="content-overlay-row">
-                  <div className="content-meta">
-                    <h2 className="content-title">{tab.title}</h2>
-                    <p className="content-description">{tab.description}</p>
-                  </div>
-                  <div className="content-cta-wrap">
-                    <button
-                      type="button"
-                      className="content-cta"
-                      aria-label={`Learn more about ${tab.label}`}
-                    >
-                      Learn More
-                      <i className="bi bi-arrow-right" />
-                    </button>
-                  </div>
+              <div className="industry-progress-shell">
+                <div className="industry-progress-track" aria-hidden="true">
+                  <span ref={progressFillRef} className="industry-progress-fill" />
                 </div>
               </div>
+            </header>
+          </div>
+
+          <div ref={viewportRef} className="industry-viewport">
+            <div ref={trackRef} className="industry-track">
+              {INDUSTRIES.map((industry, index) => (
+                <article
+                  key={industry.id}
+                  ref={(el) => {
+                    cardRefs.current[index] = el;
+                  }}
+                  className={`industry-card${index === 0 ? " is-active" : ""}`}
+                >
+                  <h3 className="industry-card-title">{industry.title}</h3>
+                  <p className="industry-card-description">{industry.description}</p>
+                </article>
+              ))}
             </div>
           </div>
         </div>
