@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, Suspense, lazy } from 'react';
 import type { InfoContentType } from '@/data/information-data';
 
 const LandingTab     = lazy(() => import('@/components/ParentCompany/Landing'));
-const DiscoverTab    = lazy(() => import('@/components/ParentCompany/Discover'));
+const CompanyTab     = lazy(() => import('@/components/ParentCompany/Company'));
 const TechnologiesTab = lazy(() => import('@/components/ParentCompany/Technologies'));
 const InformationTab = lazy(() => import('@/components/ParentCompany/Information'));
 
@@ -40,8 +40,8 @@ const MainContent = ({ activeTab, activeSubtab, activeInfoContent, onInfoContent
     switch (displayedTab) {
       case 'home':
         return <LandingTab />;
-      case 'discover':
-        return <DiscoverTab />;
+      case 'company':
+        return <CompanyTab />;
       case 'technologies':
         return <TechnologiesTab activeSubtab={activeSubtab} />;
       case 'information':

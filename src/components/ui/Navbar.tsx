@@ -56,14 +56,14 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   {
-    id: 'discover',
-    label: 'Discover',
+    id: 'company',
+    label: 'Company',
     icon: 'bi-rocket-takeoff',
     subtabs: [
-      { id: 'discover-overview',      label: 'Overview',      sectionId: 'section-overview' },
-      { id: 'discover-thecompany',    label: 'The Company',   sectionId: 'section-TheCompany' },
-      { id: 'discover-theorganization',  label: 'The Organization',  sectionId: 'section-TheOrganization' },
-      { id: 'discover-strategiccapital',  label: 'Strategic Capital',  sectionId: 'section-StrategicCapital' },
+      { id: 'company-overview',      label: 'Overview',      sectionId: 'section-overview' },
+      { id: 'company-thecompany',    label: 'The Company',   sectionId: 'section-TheCompany' },
+      { id: 'company-theorganization',  label: 'The Organization',  sectionId: 'section-TheOrganization' },
+      { id: 'company-strategiccapital',  label: 'Strategic Capital',  sectionId: 'section-StrategicCapital' },
     ],
   },
   {
@@ -627,7 +627,7 @@ const NAVBAR_CSS = `
   animation-delay: calc(var(--si, 0) * 0.045s + 0.06s);
 }
 
-/* ── Crossfade layers inside the discover strip when toggling detail/subtabs ── */
+/* ── Crossfade layers inside the company strip when toggling detail/subtabs ── */
 .strip-crossfade-layer {
   position: absolute;
   inset: 0;
@@ -958,21 +958,21 @@ const StripRow = memo(({
 StripRow.displayName = 'StripRow';
 
 // ─────────────────────────────────────────────────────────────
-//  DiscoverStripContent — subtab buttons + indicator for use
-//  inside the crossfade discover strip (no outer wrapper)
+//  CompanyStripContent — subtab buttons + indicator for use
+//  inside the crossfade company strip (no outer wrapper)
 // ─────────────────────────────────────────────────────────────
-const DISCOVER_SUBTABS = NAV_ITEMS.find(i => i.id === 'discover')!.subtabs!;
+const COMPANY_SUBTABS = NAV_ITEMS.find(i => i.id === 'company')!.subtabs!;
 
-interface DiscoverStripContentProps {
+interface CompanyStripContentProps {
   activeSubtabId: string | null;
   onSubtabClick: (sub: SubtabItem) => void;
   onCollapse: () => void;
   isMobile?: boolean;
 }
 
-const DiscoverStripContent = memo(({
+const CompanyStripContent = memo(({
   activeSubtabId, onSubtabClick, onCollapse, isMobile,
-}: DiscoverStripContentProps) => {
+}: CompanyStripContentProps) => {
   const btnRefs  = useRef<(HTMLButtonElement | null)[]>([]);
   const trackRef = useRef<HTMLDivElement | null>(null);
 
@@ -997,7 +997,7 @@ const DiscoverStripContent = memo(({
   }, [isMobile, updateScrollState]);
 
   const place = useCallback((shouldAnimate: boolean) => {
-    const idx = DISCOVER_SUBTABS.findIndex(s => s.id === activeSubtabId);
+    const idx = COMPANY_SUBTABS.findIndex(s => s.id === activeSubtabId);
     const btn = btnRefs.current[idx];
     const track = trackRef.current;
     if (!btn || !track) return;
@@ -1056,7 +1056,7 @@ const DiscoverStripContent = memo(({
           <div className="strip-indicator-corner bl" />
           <div className="strip-indicator-corner br" />
         </div>
-        {DISCOVER_SUBTABS.map((sub, idx) => (
+        {COMPANY_SUBTABS.map((sub, idx) => (
           <button
             key={sub.id}
             ref={el => { btnRefs.current[idx] = el; }}
@@ -1071,14 +1071,14 @@ const DiscoverStripContent = memo(({
       <button
         className="strip-collapse"
         onClick={handleArrowClick}
-        aria-label={isMobile ? 'Scroll Discover sections' : 'Hide Discover sections'}
+        aria-label={isMobile ? 'Scroll Company sections' : 'Hide Company sections'}
       >
         <i className={`bi ${arrowIcon}`} />
       </button>
     </>
   );
 });
-DiscoverStripContent.displayName = 'DiscoverStripContent';
+CompanyStripContent.displayName = 'CompanyStripContent';
 
 // ─────────────────────────────────────────────────────────────
 //  Main component
@@ -1108,22 +1108,22 @@ const Navbar = ({
   const isProgrammaticScrollRef  = useRef(false);
   const programmaticScrollTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [scrollSpySubtab, setScrollSpySubtab] = useState<string | null>(null);
-  const [discoverDetailOpen, setDiscoverDetailOpen] = useState(false);
+  const [companyDetailOpen, setCompanyDetailOpen] = useState(false);
 
-  // ── Listen for discover detail page events ──
+  // ── Listen for company detail page events ──
   useEffect(() => {
     const handler = (e: Event) => {
       const open = (e as CustomEvent).detail?.open ?? false;
-      setDiscoverDetailOpen(open);
+      setCompanyDetailOpen(open);
 
       // Returning from a detail page → reset strip to "Overview"
       if (!open) {
-        setScrollSpySubtab('discover-overview');
-        onSubtabClick?.('discover', 'discover-overview');
+        setScrollSpySubtab('company-overview');
+        onSubtabClick?.('company', 'company-overview');
       }
     };
-    window.addEventListener('discover-detail', handler);
-    return () => window.removeEventListener('discover-detail', handler);
+    window.addEventListener('company-detail', handler);
+    return () => window.removeEventListener('company-detail', handler);
   }, [onSubtabClick]);
 
   // ── Collapse / show nav ──
@@ -1583,16 +1583,16 @@ const Navbar = ({
         </div>
 
         {/* ══ SUBTAB STRIP — active tab only ══ */}
-        {/* Discover tab: single strip with crossfading inner layers */}
-        <div className={`subtab-strip-outer${activeTab === 'discover' && stripOpen ? ' strip-visible' : ''}`}>
+        {/* Company tab: single strip with crossfading inner layers */}
+        <div className={`subtab-strip-outer${activeTab === 'company' && stripOpen ? ' strip-visible' : ''}`}>
           <div className="subtab-strip-clip">
             <div className="subtab-strip-inner" style={{ position: 'relative' }}>
                 {/* Layer 1: "Return to Previous Page" — visible when detail open */}
-                <div className={`strip-crossfade-layer ${discoverDetailOpen ? 'strip-layer-visible' : 'strip-layer-hidden'}`}>
+                <div className={`strip-crossfade-layer ${companyDetailOpen ? 'strip-layer-visible' : 'strip-layer-hidden'}`}>
                   <div className="strip-tabs-track">
                     <button
                       className="strip-tab strip-tab-active"
-                      onClick={() => window.dispatchEvent(new CustomEvent('discover-detail-back'))}
+                      onClick={() => window.dispatchEvent(new CustomEvent('company-detail-back'))}
                       style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
                     >
                       <i className="bi bi-arrow-left" style={{ fontSize: '0.7rem' }} />
@@ -1608,10 +1608,10 @@ const Navbar = ({
                   </button>
                 </div>
                 {/* Layer 2: Normal subtabs — visible when NOT in detail */}
-                <div className={`strip-crossfade-layer ${!discoverDetailOpen ? 'strip-layer-visible' : 'strip-layer-hidden'}`}>
-                  <DiscoverStripContent
+                <div className={`strip-crossfade-layer ${!companyDetailOpen ? 'strip-layer-visible' : 'strip-layer-hidden'}`}>
+                  <CompanyStripContent
                     activeSubtabId={(activeSubtab ?? scrollSpySubtab) ?? null}
-                    onSubtabClick={(sub) => handleSubtabClick('discover', sub)}
+                    onSubtabClick={(sub) => handleSubtabClick('company', sub)}
                     onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
                     isMobile={isMobile}
                   />
@@ -1620,7 +1620,7 @@ const Navbar = ({
             </div>
           </div>
         {/* Other tabs: normal StripRow strips */}
-        {NAV_ITEMS.filter(item => item.subtabs?.length && item.id !== 'discover').map((item) => {
+        {NAV_ITEMS.filter(item => item.subtabs?.length && item.id !== 'company').map((item) => {
           const isActiveItem   = item.id === activeTab;
           const isVisible      = isActiveItem && stripOpen;
           const isInfoTab      = item.id === 'information';

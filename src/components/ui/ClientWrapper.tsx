@@ -15,11 +15,11 @@ const gsapScrollToTop = (smooth = true) => {
   else window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'instant' });
 };
 
-type TabType = 'home' | 'discover' | 'information' | 'affiliations' | 'technologies';
-const VALID_TABS: TabType[] = ['home', 'discover', 'information', 'affiliations', 'technologies'];
+type TabType = 'home' | 'company' | 'information' | 'affiliations' | 'technologies';
+const VALID_TABS: TabType[] = ['home', 'company', 'information', 'affiliations', 'technologies'];
 
 const DEFAULT_SUBTABS: Partial<Record<TabType, string>> = {
-  discover: 'discover-overview',
+  company: 'company-overview',
   technologies: 'technologies-civic-operations',
 };
 

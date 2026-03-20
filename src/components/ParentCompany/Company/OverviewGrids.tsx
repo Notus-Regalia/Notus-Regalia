@@ -1,6 +1,6 @@
 "use client";
 import { memo, useState, useRef, useEffect } from 'react';
-import { OverviewContent } from '@/data/Discover-data';
+import { OverviewContent } from '@/data/Company-data';
 import styles from '@/styles/ui.module.css';
 import aboutStyles from '@/styles/About.module.css';
 
@@ -15,7 +15,7 @@ const Overview = memo(({ onLearnMore }: { onLearnMore?: () => void }) => {
   const staggerMs = 120; // delay between each card
 
   useEffect(() => {
-    // Trigger cards one-by-one as soon as Discover tab is accessed (component mounts)
+    // Trigger cards one-by-one as soon as Company tab is accessed (component mounts)
     const timers: ReturnType<typeof setTimeout>[] = [];
     for (let i = 0; i < totalCards; i++) {
       timers.push(setTimeout(() => setRevealedCount((prev) => Math.max(prev, i + 1)), i * staggerMs + 200));

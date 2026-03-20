@@ -25,11 +25,11 @@ const ALL_SECTIONS: SectionItem[] = [
   // Landing
   { label: 'Home',              tabId: 'home',                                                                  icon: 'bi-house',           aka: 'Landing, Main Page',                          keywords: ['home', 'landing', 'main', 'start', 'welcome', 'hero', 'portfolio', 'convergence'] },
 
-  // Discover
-  { label: 'Overview',          tabId: 'discover',    subtabId: 'discover-overview',                            icon: 'bi-grid',            aka: 'Summary, Dashboard',                          keywords: ['overview', 'summary', 'dashboard', 'about', 'discover', 'grids'] },
-  { label: 'The Company',       tabId: 'discover',    subtabId: 'discover-thecompany',                          icon: 'bi-building',        aka: 'About Us, Company Profile',                   keywords: ['company', 'about us', 'profile', 'mission', 'vision', 'who we are', 'notus', 'regalia', 'corporation', 'entity', 'holding', 'firm'] },
-  { label: 'The Organization',  tabId: 'discover',    subtabId: 'discover-theorganization',                     icon: 'bi-people',          aka: 'Teams, Leadership, Founders',                 keywords: ['organization', 'team', 'teams', 'leadership', 'founders', 'ceo', 'cto', 'cfo', 'coo', 'executives', 'management', 'people', 'staff', 'directors', 'board', 'officers', 'personnel'] },
-  { label: 'Strategic Capital', tabId: 'discover',    subtabId: 'discover-strategiccapital',                    icon: 'bi-graph-up-arrow',  aka: 'Investments, Seed, Investors',                keywords: ['capital', 'strategic', 'investments', 'investors', 'seed', 'funding', 'finance', 'venture capital', 'vc', 'fundraise', 'round', 'valuation'] },
+  // Company
+  { label: 'Overview',          tabId: 'company',    subtabId: 'company-overview',                            icon: 'bi-grid',            aka: 'Summary, Dashboard',                          keywords: ['overview', 'summary', 'dashboard', 'about', 'company', 'grids'] },
+  { label: 'The Company',       tabId: 'company',    subtabId: 'company-thecompany',                          icon: 'bi-building',        aka: 'About Us, Company Profile',                   keywords: ['company', 'about us', 'profile', 'mission', 'vision', 'who we are', 'notus', 'regalia', 'corporation', 'entity', 'holding', 'firm'] },
+  { label: 'The Organization',  tabId: 'company',    subtabId: 'company-theorganization',                     icon: 'bi-people',          aka: 'Teams, Leadership, Founders',                 keywords: ['organization', 'team', 'teams', 'leadership', 'founders', 'ceo', 'cto', 'cfo', 'coo', 'executives', 'management', 'people', 'staff', 'directors', 'board', 'officers', 'personnel'] },
+  { label: 'Strategic Capital', tabId: 'company',    subtabId: 'company-strategiccapital',                    icon: 'bi-graph-up-arrow',  aka: 'Investments, Seed, Investors',                keywords: ['capital', 'strategic', 'investments', 'investors', 'seed', 'funding', 'finance', 'venture capital', 'vc', 'fundraise', 'round', 'valuation'] },
 
   // Information
   { label: 'Releases',          tabId: 'information', infoContent: 'statements',                                icon: 'bi-bell',            aka: 'Statements, Announcements',                   keywords: ['releases', 'statements', 'announcements', 'press', 'notice', 'disclosure', 'public'] },

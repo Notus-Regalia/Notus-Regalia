@@ -1,6 +1,6 @@
 "use client";
 import { memo, useMemo, useCallback, useRef, useState, useEffect } from "react";
-import { ABOUT_PANEL_ITEMS, ABOUT_PANEL_CONTENT } from "@/data/Discover-data";
+import { ABOUT_PANEL_ITEMS, ABOUT_PANEL_CONTENT } from "@/data/Company-data";
 import { useAboutNavigation } from "@/hooks/useAboutNavigation";
 import { useAboutMouseTracking } from "@/hooks/useAboutMouseTracking";
 import GridNavButton from "@/components/ui/GridNavButton";

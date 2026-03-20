@@ -9,12 +9,13 @@ const STATS = [
 ];
 
 const TICKER_ITEMS = [
-  "NOTUS REGALIA",
-  "GOVERNANCE · STRUCTURE",
-  "FOUNDED 2026",
-  "LAYERED AUTHORITY",
-  "SPECIALISED EXECUTION",
-  "THE DYNASTY PREVAILS",
+  "Mission-Critical Systems",
+  "Resilient Data Infrastructure",
+  "Command & Decision Platforms",
+  "Operational Intelligence",
+  "Coordinated Execution",
+  "High-Performance Systems",
+  "Built Where Failure Is Not an Option",
 ];
 
 export default function StatsSection() {
@@ -65,7 +66,7 @@ export default function StatsSection() {
         .stats-ticker-track {
           display: flex;
           width: max-content;
-          animation: tickerScroll 22s linear infinite;
+          animation: tickerScroll 34s linear infinite;
           padding: 0.7rem 0;
         }
         .stats-ticker-item {
@@ -78,11 +79,11 @@ export default function StatsSection() {
           letter-spacing: 0.26em;
           text-transform: uppercase;
           font-weight: 700;
-          color: rgba(255,255,255,0.2);
+          color: rgba(255,255,255,0.34);
           white-space: nowrap;
           flex-shrink: 0;
         }
-        :root.light .stats-ticker-item { color: rgba(0,0,0,0.22); }
+        :root.light .stats-ticker-item { color: rgba(0,0,0,0.36); }
         .stats-ticker-dot {
           width: 3px;
           height: 3px;

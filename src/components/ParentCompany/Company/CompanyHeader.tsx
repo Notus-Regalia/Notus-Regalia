@@ -45,7 +45,7 @@ function useTypingLoop(phrases: string[]) {
   return displayed;
 }
 
-const DiscoverHeader = memo(() => {
+const CompanyHeader = memo(() => {
   const typedText = useTypingLoop(PHRASES);
 
   return (
@@ -117,6 +117,6 @@ const DiscoverHeader = memo(() => {
   );
 });
 
-DiscoverHeader.displayName = "DiscoverHeader";
+CompanyHeader.displayName = "CompanyHeader";
 
-export default DiscoverHeader;
+export default CompanyHeader;

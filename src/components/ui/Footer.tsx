@@ -322,12 +322,12 @@ const Footer = ({ onNavigate }: FooterProps) => {
 
   const sections: { title: string; links: FooterLink[] }[] = [
     {
-      title: 'Discover',
+      title: 'Company',
       links: [
-        { label: 'Overview',          tabId: 'discover', subtabId: 'discover-overview' },
-        { label: 'The Company',       tabId: 'discover', subtabId: 'discover-thecompany' },
-        { label: 'The Organization',  tabId: 'discover', subtabId: 'discover-theorganization' },
-        { label: 'Strategic Capital', tabId: 'discover', subtabId: 'discover-strategiccapital' },
+        { label: 'Overview',          tabId: 'company', subtabId: 'company-overview' },
+        { label: 'The Company',       tabId: 'company', subtabId: 'company-thecompany' },
+        { label: 'The Organization',  tabId: 'company', subtabId: 'company-theorganization' },
+        { label: 'Strategic Capital', tabId: 'company', subtabId: 'company-strategiccapital' },
       ]
     },
     {

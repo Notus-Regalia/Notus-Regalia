@@ -7,7 +7,7 @@ import {
   CAPITAL_PHASES,
   CAPITAL_STATS,
   INVESTOR_TYPE_COLORS,
-} from '@/data/Discover-data';
+} from '@/data/Company-data';
 import { useReveal } from '@/hooks/useScrollReveal';
 
 function springPress(el: Element) {

@@ -1,7 +1,7 @@
 "use client";
 import { memo, useState, useEffect, useRef, useCallback } from 'react';
 import Overview from './OverviewGrids';
-import DiscoverHeader from './DiscoverHeader';
+import CompanyHeader from './CompanyHeader';
 import TheOrganization from './TheOrganization';
 import TheCompany from './TheCompany';
 import StrategicCapital from './StrategicCapital';
@@ -13,7 +13,7 @@ import { useReveal } from '@/hooks/useScrollReveal';
 const FADE_OUT = 280;
 const FADE_IN  = 350;
 
-const Discover = () => {
+const Company = () => {
   const [detailPage, setDetailPage] = useState<string | null>(null);
   const returnSectionRef = useRef<string | null>(null);
 
@@ -67,24 +67,24 @@ const Discover = () => {
   // Dispatch navbar events when detail state changes
   useEffect(() => {
     if (detailPage) {
-      window.dispatchEvent(new CustomEvent('discover-detail', { detail: { open: true } }));
+      window.dispatchEvent(new CustomEvent('company-detail', { detail: { open: true } }));
     } else {
-      window.dispatchEvent(new CustomEvent('discover-detail', { detail: { open: false } }));
+      window.dispatchEvent(new CustomEvent('company-detail', { detail: { open: false } }));
     }
   }, [detailPage]);
 
   // Listen for strip "Return to Previous Page" click
   useEffect(() => {
     const handler = () => closeDetail();
-    window.addEventListener('discover-detail-back', handler);
-    return () => window.removeEventListener('discover-detail-back', handler);
+    window.addEventListener('company-detail-back', handler);
+    return () => window.removeEventListener('company-detail-back', handler);
   }, [closeDetail]);
 
-  // Reset when the Discover nav tab is re-clicked
+  // Reset when the Company nav tab is re-clicked
   useEffect(() => {
     const handler = (e: Event) => {
       const { tab } = (e as CustomEvent).detail;
-      if (tab === 'discover') closeDetail();
+      if (tab === 'company') closeDetail();
     };
     window.addEventListener('tab-reset', handler);
     return () => window.removeEventListener('tab-reset', handler);
@@ -121,8 +121,8 @@ const Discover = () => {
 
   return (
     <div style={{ paddingTop: 'env(safe-area-inset-top)', ...wrapStyle }}>
-      {/* Discover Header */}
-      <DiscoverHeader />
+      {/* Company Header */}
+      <CompanyHeader />
 
       {/* Overview Section */}
       <div id="section-overview" ref={overviewReveal.ref} style={overviewReveal.style}>
@@ -147,4 +147,4 @@ const Discover = () => {
   );
 };
 
-export default Discover;
+export default Company;

@@ -1,7 +1,7 @@
 "use client";
 import { memo, useCallback, useMemo } from 'react';
 import styles from './GridNavButton.module.css';
-import type { AboutGridItem } from '@/data/Discover-data';
+import type { AboutGridItem } from '@/data/Company-data';
 
 interface GridNavButtonProps {
   item: AboutGridItem;

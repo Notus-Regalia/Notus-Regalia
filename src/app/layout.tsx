@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/context/ThemeContext";
+import CursorClickPulse from "@/components/ui/CursorClickPulse";
 import "./globals.css";
 import "@/styles/About.module.css";
 import { Analytics } from "@vercel/analytics/next"
@@ -25,6 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body>
+        <CursorClickPulse />
         <ThemeProvider>
           {children}
         </ThemeProvider>

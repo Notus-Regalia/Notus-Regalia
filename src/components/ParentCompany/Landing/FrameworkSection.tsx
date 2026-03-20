@@ -12,53 +12,63 @@ if (typeof window !== "undefined") {
 const LAYERS = [
   {
     id: "ui",
-    label: "C2 OPERATOR INTERFACE",
-    sublabel: "LAYER 5 · COMMAND DECK",
+    label: "Operational Command",
+    sublabel: "LAYER 5 · COMMAND SURFACE",
     tag: "TOP SECRET // SCI",
     status: "LIVE",
     statusColor: "#00ff96",
     annotation: ["SITUATIONAL AWARENESS", "MISSION CONTROL · THREAT DISPLAY", "OPERATOR DECISION SUPPORT"],
     metrics: ["OPS: ACTIVE", "UPLINK: 99.8%"],
+    description:
+      "The command layer turns validated information into clear, coordinated operational action.",
   },
   {
     id: "brand",
-    label: "AI ANALYTICS ENGINE",
-    sublabel: "LAYER 4 · COGNITIVE PROCESSING",
+    label: "Strategic Intelligence",
+    sublabel: "LAYER 4 · ANALYSIS ENGINE",
     tag: "CLASSIFIED",
     status: "PROC",
     statusColor: "#40b0ff",
     annotation: ["PATTERN RECOGNITION · THREAT SCORING", "PREDICTIVE MODELING · NLP FUSION", "AUTONOMOUS DECISION WEIGHTING"],
     metrics: ["MODELS: 14 ACTIVE", "CONF: 97.2%"],
+    description:
+      "This layer transforms complex inputs into prioritized insight, forecasting, and decision support.",
   },
   {
     id: "components",
-    label: "DATA FUSION LAYER",
-    sublabel: "LAYER 3 · CORRELATION ENGINE",
+    label: "Information Oversight",
+    sublabel: "LAYER 3 · FUSION & GOVERNANCE",
     tag: "SECRET",
     status: "SYNC",
     statusColor: "#ffcc40",
     annotation: ["MULTI-INT CORRELATION · DECONFLICTION", "TEMPORAL ALIGNMENT · GEO-TAGGING", "CROSS-SOURCE VALIDATION"],
     metrics: ["FEEDS: 847", "LAG: 120ms"],
+    description:
+      "Information oversight reconciles and structures data into a trusted shared operating picture.",
   },
   {
     id: "tokens",
-    label: "INTELLIGENCE AGGREGATOR",
-    sublabel: "LAYER 2 · OSINT · SIGINT · HUMINT",
+    label: "Coordinated Monitoring",
+    sublabel: "LAYER 2 · LIVE OBSERVATION GRID",
     tag: "CONFIDENTIAL",
     status: "INGEST",
     statusColor: "#b060ff",
     annotation: ["OSINT · SIGINT · IMINT · HUMINT", "DARKWEB MONITORING · SOC FEEDS", "ALLIED NETWORK EXCHANGE"],
     metrics: ["SOURCES: 2,340", "VOLUME: 18TB/h"],
+    description:
+      "This monitoring layer maintains continuous watch across systems and feeds to surface anomalies early.",
   },
   {
     id: "foundations",
-    label: "SENSOR & COLLECTION GRID",
-    sublabel: "LAYER 1 · RAW DATA ACQUISITION",
+    label: "Sources & Signals",
+    sublabel: "LAYER 1 · COLLECTION INPUTS",
     tag: "UNCLASSIFIED",
     status: "ACQ",
     statusColor: "#ff6040",
     annotation: ["SATELLITES · UAV · GROUND SENSORS", "RADAR · SONAR · RF INTERCEPT", "IOT MESH · FIELD ASSETS"],
     metrics: ["NODES: 12,884", "UPTIME: 99.97%"],
+    description:
+      "Sources and signals capture the raw inputs that power every layer above them.",
   },
 ];
 
@@ -125,7 +135,7 @@ function BrandContent() {
   return (
     <div style={{ height: "100%", background: "linear-gradient(160deg,#0a0616,#060d1a)", position: "relative", overflow: "hidden", fontFamily: "'DM Mono',monospace", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 9 }}>
       <div style={{ position: "absolute", inset: 0, backgroundImage: "repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(180,80,255,0.012) 4px)", pointerEvents: "none" }} />
-      <div style={{ fontSize: 6, letterSpacing: "0.16em", color: "rgba(180,100,255,.45)" }}>AI ANALYTICS ENGINE · MODEL ENSEMBLE</div>
+      <div style={{ fontSize: 6, letterSpacing: "0.16em", color: "rgba(180,100,255,.45)" }}>STRATEGIC INTELLIGENCE · MODEL ENSEMBLE</div>
       {models.map((m) => (
         <div key={m.name} style={{ display: "flex", alignItems: "center", gap: 7 }}>
           <div style={{ width: 4, height: 4, borderRadius: "50%", background: m.color, boxShadow: `0 0 5px ${m.color}`, flexShrink: 0 }} />
@@ -164,7 +174,7 @@ function ComponentsContent() {
   const W = 280;
   return (
     <div style={{ width: "100%", height: "100%", background: "rgba(4,6,16,.98)", position: "relative", overflow: "hidden", fontFamily: "'DM Mono',monospace" }}>
-      <div style={{ position: "absolute", top: 8, left: 10, fontSize: 6, letterSpacing: "0.18em", color: "rgba(255,255,255,.2)", zIndex: 2 }}>DATA FUSION · CORRELATION MESH</div>
+      <div style={{ position: "absolute", top: 8, left: 10, fontSize: 6, letterSpacing: "0.18em", color: "rgba(255,255,255,.2)", zIndex: 2 }}>INFORMATION OVERSIGHT · CORRELATION MESH</div>
       <svg width="100%" height="100%" style={{ position: "absolute", inset: 0 }} viewBox={`0 0 ${W} ${W}`}>
         {edges.map(([a, b], ei) => {
           const na = nodes.find((nd) => nd.id === a)!;
@@ -199,7 +209,7 @@ function TokensContent() {
   ];
   return (
     <div style={{ height: "100%", background: "#04060f", fontFamily: "'DM Mono',monospace", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 5, overflow: "hidden" }}>
-      <div style={{ fontSize: 6, letterSpacing: "0.16em", color: "rgba(100,180,255,.4)", marginBottom: 2 }}>INTELLIGENCE AGGREGATOR · SOURCE REGISTRY</div>
+      <div style={{ fontSize: 6, letterSpacing: "0.16em", color: "rgba(100,180,255,.4)", marginBottom: 2 }}>COORDINATED MONITORING · SOURCE REGISTRY</div>
       {sources.map((s) => (
         <div key={s.name} style={{ display: "flex", alignItems: "center", gap: 7, padding: "4px 7px", borderRadius: 3, background: s.active ? `${s.color}08` : "rgba(255,255,255,.02)", border: `1px solid ${s.active ? s.color + "25" : "rgba(255,255,255,.05)"}` }}>
           <div style={{ width: 4, height: 4, borderRadius: "50%", background: s.active ? s.color : "rgba(255,255,255,.15)", boxShadow: s.active ? `0 0 6px ${s.color}` : "none", flexShrink: 0 }} />
@@ -228,7 +238,7 @@ function FoundationsContent() {
   }, []);
   return (
     <div style={{ height: "100%", background: "#010306", position: "relative", overflow: "hidden", fontFamily: "'DM Mono',monospace" }}>
-      <div style={{ position: "absolute", top: 7, left: 10, fontSize: 6, letterSpacing: "0.18em", color: "rgba(255,96,64,.5)", zIndex: 2 }}>RAW DATA STREAM · {packets.length} PACKETS</div>
+      <div style={{ position: "absolute", top: 7, left: 10, fontSize: 6, letterSpacing: "0.18em", color: "rgba(255,96,64,.5)", zIndex: 2 }}>SOURCES & SIGNALS · {packets.length} PACKETS</div>
       <div style={{ position: "absolute", inset: "20px 8px 8px", display: "grid", gridTemplateColumns: "repeat(10,1fr)", gridTemplateRows: "repeat(8,1fr)", gap: 2 }}>
         {packets.map((p) => (
           <div key={p.idx} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -254,6 +264,31 @@ const CONTENT: Record<string, React.ReactNode> = {
   foundations: <FoundationsContent />,
 };
 
+function LayerGlyph({ id }: { id: string }) {
+  switch (id) {
+    case "ui":
+      return (
+        <i className="bi bi-crosshair" aria-hidden="true" />
+      );
+    case "brand":
+      return (
+        <i className="bi bi-graph-up" aria-hidden="true" />
+      );
+    case "components":
+      return (
+        <i className="bi bi-eye" aria-hidden="true" />
+      );
+    case "tokens":
+      return (
+        <i className="bi bi-diagram-3" aria-hidden="true" />
+      );
+    default:
+      return (
+        <i className="bi bi-node-plus" aria-hidden="true" />
+      );
+  }
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function FrameworkSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -268,7 +303,8 @@ export default function FrameworkSection() {
   const [showLabels, setShowLabels] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
-  const focusedId = selectedId ?? hoveredId;
+  const focusedId = hoveredId ?? selectedId;
+  const activeAccordionId = focusedId;
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 767px)");
@@ -328,19 +364,18 @@ export default function FrameworkSection() {
   }, [isMobile]);
 
   useEffect(() => {
-    if (!isMobile) return;
-
     const onDocPointerDown = (event: PointerEvent) => {
       const target = event.target as Node | null;
       if (!target) return;
       if (!sectionRef.current?.contains(target)) {
         setSelectedId(null);
+        setHoveredId(null);
       }
     };
 
     document.addEventListener("pointerdown", onDocPointerDown);
     return () => document.removeEventListener("pointerdown", onDocPointerDown);
-  }, [isMobile]);
+  }, []);
 
   function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
 
@@ -376,8 +411,9 @@ export default function FrameworkSection() {
         .fw-left {
           display: flex;
           flex-direction: column;
-          justify-content: center;
-          padding: 0 3rem 0 2rem;
+          justify-content: flex-start;
+          min-height: 0;
+          padding: 3.5rem 3rem 2.25rem 2rem;
           position: relative;
           z-index: 10;
           border-right: 1px dashed var(--border-dashed, rgba(255,255,255,0.1));
@@ -386,6 +422,17 @@ export default function FrameworkSection() {
         @media(min-width:768px)  { .fw-left { padding-left: 6rem; padding-right: 3rem; } }
         @media(min-width:1280px) { .fw-left { padding-left: 8rem; padding-right: 3rem; } }
         @media(min-width:1536px) { .fw-left { padding-left: 12rem; padding-right: 4rem; } }
+        .fw-left-header {
+          flex-shrink: 0;
+          margin-bottom: 1.25rem;
+        }
+        .fw-left-body {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+          min-height: 0;
+          padding-bottom: 6.5rem;
+        }
 
         .fw-right {
           position: relative;
@@ -457,7 +504,7 @@ export default function FrameworkSection() {
           background: #E31B54;
           border-radius: 999px;
           box-shadow: 0 0 8px rgba(227,27,84,0.5);
-          margin: 1rem 0;
+          margin: 1rem 0 0;
         }
         .fw-desc {
           font-size: clamp(1.02rem, 1.45vw, 1.24rem);
@@ -467,22 +514,79 @@ export default function FrameworkSection() {
           margin-bottom: 2rem;
         }
 
-        /* Layer roster */
+        /* Layer accordion */
         .fw-roster {
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 0;
+          flex: 1;
+          min-height: 0;
+          overflow-y: auto;
+          padding-right: 8px;
+          margin-right: -8px;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(255,255,255,0.12) transparent;
         }
-        .fw-roster-row {
+        .fw-roster::-webkit-scrollbar {
+          width: 6px;
+        }
+        .fw-roster::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .fw-roster::-webkit-scrollbar-thumb {
+          background: rgba(255,255,255,0.12);
+          border-radius: 999px;
+        }
+        .fw-accordion-item {
+          position: relative;
+          border-top: 1px solid rgba(255,255,255,0.09);
+          background: transparent;
+          overflow: hidden;
+          transition: opacity .28s;
+          animation: fw-pill-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        .fw-accordion-item:last-child {
+          border-bottom: 1px solid rgba(255,255,255,0.09);
+        }
+        .fw-accordion-item::before {
+          content: "";
+          position: absolute;
+          left: 0;
+          top: -1px;
+          width: min(84%, 540px);
+          height: 1px;
+          background: linear-gradient(90deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.14) 100%);
+          opacity: 0;
+          transition: opacity .25s ease;
+          pointer-events: none;
+        }
+        .fw-accordion-item.active::before {
+          opacity: 1;
+        }
+        .fw-accordion-item.dimmed {
+          opacity: 0.7;
+        }
+        .fw-accordion-trigger {
+          width: 100%;
           display: flex;
           align-items: center;
-          gap: 10px;
-          padding: 8px 12px;
-          border-radius: 6px;
-          border: 1px solid transparent;
-          cursor: default;
-          transition: background .3s, border-color .3s, opacity .3s;
-          animation: fw-pill-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+          gap: 18px;
+          padding: 1.7rem 0 1.2rem;
+          border: 0;
+          background: transparent;
+          color: inherit;
+          text-align: left;
+          cursor: pointer;
+          font: inherit;
+        }
+        .fw-accordion-trigger:focus-visible {
+          outline: 1px solid rgba(227,27,84,0.6);
+          outline-offset: -1px;
+        }
+        .fw-accordion-main {
+          flex: 1;
+          min-width: 0;
+          display: block;
         }
         @keyframes fw-pill-enter {
           from {
@@ -495,39 +599,54 @@ export default function FrameworkSection() {
           }
         }
         @media (prefers-reduced-motion: reduce) {
-          .fw-roster-row {
+          .fw-accordion-item {
             animation: none;
           }
         }
-        .fw-roster-row.active {
-          background: rgba(255,255,255,0.04);
-        }
-        .fw-roster-row.dimmed {
-          opacity: 0.2;
-        }
-        .fw-roster-dot {
-          width: 7px; height: 7px;
-          border-radius: 50%;
+        .fw-accordion-icon {
+          width: 52px;
+          height: 52px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
           flex-shrink: 0;
-          transition: box-shadow .3s;
+          color: rgba(255,255,255,0.18);
+          transition: color .25s ease, opacity .25s ease;
+        }
+        .fw-accordion-icon svg {
+          width: 36px;
+          height: 36px;
         }
         .fw-roster-name {
-          flex: 1;
-          font-family: ui-monospace, Menlo, monospace;
-          font-size: 0.65rem;
-          letter-spacing: 0.08em;
-          color: rgba(255,255,255,0.75);
-          text-transform: uppercase;
-          transition: color .3s;
+          font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+          font-size: clamp(1.14rem, 1.9vw, 1.66rem);
+          font-weight: 500;
+          letter-spacing: -0.01em;
+          color: rgba(255,255,255,0.34);
+          text-transform: none;
+          transition: color .25s ease, opacity .25s ease;
         }
-        .fw-roster-badge {
-          font-family: ui-monospace, Menlo, monospace;
-          font-size: 0.55rem;
-          letter-spacing: 0.12em;
-          padding: 2px 7px;
-          border-radius: 3px;
-          border: 1px solid;
-          transition: all .3s;
+        .fw-accordion-panel {
+          max-height: 0;
+          opacity: 0;
+          overflow: hidden;
+          transition: max-height .32s ease, opacity .22s ease;
+        }
+        .fw-accordion-panel.open {
+          max-height: 180px;
+          opacity: 1;
+        }
+        .fw-accordion-body {
+          padding: 0 0 2rem 70px;
+        }
+        .fw-accordion-desc {
+          margin: 0;
+          font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+          font-size: clamp(0.96rem, 1.32vw, 1.18rem);
+          line-height: 1.5;
+          color: rgba(255,255,255,0.56);
+          max-width: none;
+          width: 100%;
         }
         .fw-scroll-hint {
           position: absolute;
@@ -661,6 +780,9 @@ export default function FrameworkSection() {
             border-right: none;
             border-bottom: 1px dashed var(--border-dashed, rgba(255,255,255,0.1));
           }
+          .fw-left-body {
+            padding-bottom: 0;
+          }
           .fw-desc {
             margin-bottom: 1rem;
           }
@@ -674,11 +796,18 @@ export default function FrameworkSection() {
             left: 0.75rem;
             bottom: 0.75rem;
           }
-          .fw-roster-row,
-          .fw-roster-dot,
-          .fw-roster-name,
-          .fw-roster-badge {
+          .fw-accordion-item,
+          .fw-accordion-trigger,
+          .fw-accordion-panel,
+          .fw-accordion-icon,
+          .fw-roster-name {
             transition: none !important;
+          }
+          .fw-accordion-body {
+            padding: 0 0 1.5rem 54px;
+          }
+          .fw-accordion-desc {
+            font-size: 0.9rem;
           }
         }
         /* ── Light mode overrides ── */
@@ -697,11 +826,30 @@ export default function FrameworkSection() {
         :root.light .fw-desc {
           color: rgba(0,0,0,0.5);
         }
-        :root.light .fw-roster-row.active {
-          background: rgba(0,0,0,0.04);
+        :root.light .fw-roster {
+          scrollbar-color: rgba(0,0,0,0.16) transparent;
+        }
+        :root.light .fw-roster::-webkit-scrollbar-thumb {
+          background: rgba(0,0,0,0.16);
+        }
+        :root.light .fw-accordion-item {
+          border-top-color: rgba(15,23,42,0.1);
+          background: transparent;
+        }
+        :root.light .fw-accordion-item:last-child {
+          border-bottom-color: rgba(15,23,42,0.1);
+        }
+        :root.light .fw-accordion-item::before {
+          background: linear-gradient(90deg, rgba(15,23,42,0.92) 0%, rgba(15,23,42,0.1) 100%);
+        }
+        :root.light .fw-accordion-icon {
+          color: rgba(15,23,42,0.18);
         }
         :root.light .fw-roster-name {
-          color: rgba(0,0,0,0.5);
+          color: rgba(15,23,42,0.26);
+        }
+        :root.light .fw-accordion-desc {
+          color: rgba(15,23,42,0.58);
         }
         :root.light .fw-scroll-label {
           color: rgba(0,0,0,0.3);
@@ -754,11 +902,11 @@ export default function FrameworkSection() {
           borderBottom: "1px dashed var(--border-dashed, rgba(255,255,255,0.1))",
         }}
         onPointerDown={(event) => {
-          if (!isMobile) return;
           const target = event.target as HTMLElement | null;
           if (!target) return;
           if (!target.closest("[data-fw-keep-active='true']")) {
             setSelectedId(null);
+            setHoveredId(null);
           }
         }}
       >
@@ -770,72 +918,70 @@ export default function FrameworkSection() {
 
             {/* ── LEFT PANEL ── */}
             <div className="fw-left">
-              <span className="fw-eyebrow">
-                <span className="fw-eyebrow-dot" />
-                Our Architecture Framework
-              </span>
+              <div className="fw-left-header">
+                <span className="fw-eyebrow">
+                  <span className="fw-eyebrow-dot" />
+                  Our Architecture Framework
+                </span>
 
-              <h2 className="fw-heading">How It Comes Together.</h2>
-              <div className="fw-rule" />
+                <h2 className="fw-heading">How It Comes Together.</h2>
+                <div className="fw-rule" />
+              </div>
 
-              <p className="fw-desc">
-                Behind every interface is a connected architecture of data, logic, automation, and operational design. Engineered to function as one cohesive system.
-              </p>
-
-              {/* Live layer roster */}
-              <div className="fw-roster">
-                {LAYERS.map((layer, idx) => {
-                  const isActive = focusedId === layer.id;
-                  const isDimmed = focusedId !== null && !isActive;
-                  return (
-                    <div
-                      key={layer.id}
-                      data-fw-keep-active="true"
-                      className={`fw-roster-row${isActive ? " active" : ""}${isDimmed ? " dimmed" : ""}`}
-                      style={{
-                        borderColor: isActive ? `${layer.statusColor}30` : "transparent",
-                        background: isActive ? `${layer.statusColor}08` : "transparent",
-                        cursor: "pointer",
-                        touchAction: "manipulation",
-                        animationDelay: `${idx * 70}ms`,
-                      }}
-                      onMouseEnter={() => {
-                        if (!isMobile) setHoveredId(layer.id);
-                      }}
-                      onMouseLeave={() => {
-                        if (!isMobile) setHoveredId(null);
-                      }}
-                      onPointerDown={() => setSelectedId((prev) => (prev === layer.id ? null : layer.id))}
-                      onClick={() => {
-                        if (!isMobile) setSelectedId((prev) => (prev === layer.id ? null : layer.id));
-                      }}
-                    >
+              <div className="fw-left-body">
+                {/* Live layer roster */}
+                <div className="fw-roster">
+                  {LAYERS.map((layer, idx) => {
+                    const isActive = activeAccordionId === layer.id;
+                    const isDimmed = focusedId !== null && !isActive;
+                    return (
                       <div
-                        className="fw-roster-dot"
+                        key={layer.id}
+                        data-fw-keep-active="true"
+                        className={`fw-accordion-item${isActive ? " active" : ""}${isDimmed ? " dimmed" : ""}`}
                         style={{
-                          background: layer.statusColor,
-                          boxShadow: isActive ? `0 0 8px ${layer.statusColor}` : `0 0 3px ${layer.statusColor}66`,
-                        }}
-                      />
-                      <span
-                        className="fw-roster-name"
-                        style={{ color: isActive ? "var(--content-primary, #fff)" : undefined }}
-                      >
-                        {layer.label}
-                      </span>
-                      <span
-                        className="fw-roster-badge"
-                        style={{
-                          color: isActive ? layer.statusColor : "rgba(255,255,255,0.25)",
-                          borderColor: isActive ? `${layer.statusColor}50` : "rgba(255,255,255,0.08)",
-                          background: isActive ? `${layer.statusColor}10` : "transparent",
+                          touchAction: "manipulation",
+                          animationDelay: `${idx * 70}ms`,
                         }}
                       >
-                        {layer.status}
-                      </span>
-                    </div>
-                  );
-                })}
+                        <button
+                          type="button"
+                          data-fw-keep-active="true"
+                          className="fw-accordion-trigger"
+                          aria-expanded={isActive}
+                          onPointerDown={() => {
+                            if (isMobile) setSelectedId((prev) => (prev === layer.id ? null : layer.id));
+                          }}
+                          onClick={() => {
+                            if (!isMobile) setSelectedId((prev) => (prev === layer.id ? null : layer.id));
+                          }}
+                        >
+                          <span
+                            className="fw-accordion-icon"
+                            style={{ color: isActive ? layer.statusColor : undefined }}
+                          >
+                            <LayerGlyph id={layer.id} />
+                          </span>
+
+                          <div className="fw-accordion-main">
+                            <span
+                              className="fw-roster-name"
+                              style={{ color: isActive ? "var(--content-primary, #fff)" : undefined }}
+                            >
+                              {layer.label}
+                            </span>
+                          </div>
+                        </button>
+
+                        <div className={`fw-accordion-panel${isActive ? " open" : ""}`}>
+                          <div className="fw-accordion-body">
+                            <p className="fw-accordion-desc">{layer.description}</p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* Scroll tooltip */}
@@ -860,6 +1006,7 @@ export default function FrameworkSection() {
                 {/* Labels toggle */}
                 <button
                   type="button"
+                  data-fw-keep-active="true"
                   className={`fw-label-toggle${showLabels ? " on" : ""}`}
                   onClick={() => setShowLabels(v => !v)}
                 >
@@ -868,12 +1015,6 @@ export default function FrameworkSection() {
                   </div>
                   Labels
                 </button>
-              </div>
-
-              {/* Ambient blobs */}
-              <div style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-                <div style={{ position: "absolute", top: "-20%", left: "-10%", width: "70%", height: "70%", background: "radial-gradient(ellipse,rgba(180,80,255,.14) 0%,transparent 70%)", animation: "fw-drift1 8s ease-in-out infinite alternate" }} />
-                <div style={{ position: "absolute", bottom: "-10%", right: "-5%", width: "60%", height: "60%", background: "radial-gradient(ellipse,rgba(255,120,40,.1) 0%,transparent 70%)", animation: "fw-drift2 10s ease-in-out infinite alternate" }} />
               </div>
 
               {/* CARDS */}
@@ -913,7 +1054,9 @@ export default function FrameworkSection() {
                     onMouseLeave={() => {
                       if (!isMobile) setHoveredId(null);
                     }}
-                    onPointerDown={() => setSelectedId((prev) => (prev === layer.id ? null : layer.id))}
+                    onPointerDown={() => {
+                      if (isMobile) setSelectedId((prev) => (prev === layer.id ? null : layer.id));
+                    }}
                     onClick={() => {
                       if (!isMobile) setSelectedId((prev) => (prev === layer.id ? null : layer.id));
                     }}

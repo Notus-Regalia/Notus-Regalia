@@ -148,36 +148,72 @@ const HeroSection = () => {
           animation: scrollBounce 1.8s ease-in-out infinite;
         }
 
-        /* --- FUTURISTIC HUD PILLBOX (CRIMSON) --- */
+        /* --- Mission Pill (Uiverse-inspired, static) --- */
         .hud-pill {
+          --pill-bg: #030405;
           position: relative;
-          overflow: hidden;
-          padding: 6px 18px 6px 14px;
+          isolation: isolate;
+          overflow: visible;
+          padding: 0;
           border-radius: 999px;
-          border: 1px solid rgba(227, 27, 84, 0.28);
-          background: linear-gradient(90deg, rgba(227, 27, 84, 0.08) 0%, rgba(227, 27, 84, 0.02) 100%);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border-left: 3px solid #E31B54;
-          box-shadow: 0 0 20px rgba(227, 27, 84, 0.06) inset;
+          border: 1px solid rgba(255, 255, 255, 0.14);
+          background: linear-gradient(180deg, rgba(10, 12, 16, 0.96) 0%, rgba(3, 4, 5, 0.98) 100%) !important;
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.18),
+            inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+            inset 0 -8px 14px rgba(0, 0, 0, 0.55),
+            0 10px 20px rgba(0, 0, 0, 0.45),
+            0 0 0 1px rgba(255, 255, 255, 0.04);
         }
 
-        .hud-pill::after {
+        .hud-pill-shell {
+          position: absolute;
+          inset: 0;
+          border-radius: inherit;
+          overflow: hidden;
+          z-index: 1;
+          pointer-events: none;
+        }
+
+        .hud-pill-shell::before,
+        .hud-pill-shell::after {
           content: '';
           position: absolute;
-          top: 0;
-          left: -100%;
-          width: 50%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
-          transform: skewX(-20deg);
-          animation: hudGlare 4s infinite linear;
         }
 
-        @keyframes hudGlare {
-          0% { left: -100%; }
-          20% { left: 200%; }
-          100% { left: 200%; }
+        .hud-pill-shell::before {
+          left: -16%;
+          right: -16%;
+          bottom: 28%;
+          top: -115%;
+          border-radius: 50%;
+          background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .hud-pill-shell::after {
+          left: 1px;
+          right: 1px;
+          top: 10%;
+          bottom: 44%;
+          border-radius: 999px 999px 16px 16px;
+          box-shadow: inset 0 10px 8px -10px rgba(255, 255, 255, 0.24);
+          background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.18) 0%,
+            rgba(0, 0, 0, 0) 50%,
+            rgba(0, 0, 0, 0) 100%
+          );
+        }
+
+        .hud-pill-line {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          padding: 6px 18px 6px 12px;
+          border-radius: inherit;
+          position: relative;
+          z-index: 4;
+          transform: translateY(1%);
         }
 
         .hud-dot-wrapper {
@@ -194,7 +230,7 @@ const HeroSection = () => {
           height: 4px;
           background-color: #E31B54;
           border-radius: 50%;
-          box-shadow: 0 0 8px #EB1143, 0 0 12px #EB1143;
+          box-shadow: 0 0 6px rgba(235, 17, 67, 0.75);
           z-index: 2;
         }
 
@@ -213,51 +249,64 @@ const HeroSection = () => {
           100% { transform: scale(2.5); opacity: 0; }
         }
 
+        @keyframes hudPrefixGlow {
+          0%, 100% {
+            opacity: 0.72;
+            text-shadow:
+              0 0 7px rgba(255, 45, 116, 0.48),
+              0 0 16px rgba(255, 45, 116, 0.32);
+          }
+          50% {
+            opacity: 1;
+            text-shadow:
+              0 0 12px rgba(255, 45, 116, 0.78),
+              0 0 26px rgba(255, 45, 116, 0.62),
+              0 0 40px rgba(255, 45, 116, 0.38);
+          }
+        }
+
         .hud-text {
           font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-          color: #EB1143;
-          text-shadow: 0 0 8px rgba(235, 17, 67, 0.35);
-          letter-spacing: 0.08em;
+          color: rgba(239, 242, 248, 0.78);
+          text-shadow: none;
+          letter-spacing: 0.09em;
+          font-weight: 500;
         }
 
         .hud-prefix {
-          color: #cbd5e1;
-          opacity: 0.85;
+          color: #ff2d74;
+          opacity: 0.86;
           margin-right: 0.45rem;
-          animation: dataFlicker 6s infinite;
-        }
-
-        @keyframes dataFlicker {
-          0%, 96%, 98%, 100% { opacity: 0.85; }
-          97%, 99% { opacity: 0.25; }
+          animation: hudPrefixGlow 2.4s ease-in-out infinite;
         }
 
         @media (max-width: 640px) {
-          .hud-pill { padding: 4px 10px; }
+          .hud-pill-line { padding: 4px 12px 4px 9px; gap: 8px; }
           .hud-text { font-size: 0.65rem; }
           .hud-dot-wrapper { width: 8px; height: 8px; }
         }
 
         /* Light mode variant */
         :global(.light) .hud-pill {
-          background: rgba(0,0,0,0.9) !important;
-          border: 1px solid rgba(227, 27, 84, 0.22) !important;
-          border-left: 3px solid #E31B54 !important;
-          box-shadow: 0 0 18px rgba(227, 27, 84, 0.06) inset !important;
-        }
-
-        :global(.light) .hud-pill::after {
-          background: linear-gradient(90deg, transparent, rgba(227, 27, 84, 0.08), transparent) !important;
+          background: linear-gradient(180deg, rgba(10, 12, 16, 0.96) 0%, rgba(3, 4, 5, 0.98) 100%) !important;
+          border: 1px solid rgba(255, 255, 255, 0.14) !important;
+          box-shadow:
+            inset 0 1px 0 rgba(255, 255, 255, 0.18),
+            inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+            inset 0 -8px 14px rgba(0, 0, 0, 0.55),
+            0 10px 20px rgba(0, 0, 0, 0.45),
+            0 0 0 1px rgba(255, 255, 255, 0.04) !important;
         }
 
         :global(.light) .hud-text {
-          color: #ff6b8a !important;
-          text-shadow: 0 0 6px rgba(227, 27, 84, 0.08) !important;
+          color: rgba(239, 242, 248, 0.78) !important;
+          text-shadow: none !important;
         }
 
         :global(.light) .hud-prefix {
-          color: rgba(236, 239, 241, 0.9) !important;
-          opacity: 1 !important;
+          color: #ff2d74 !important;
+          opacity: 0.86 !important;
+          animation: hudPrefixGlow 2.4s ease-in-out infinite !important;
         }
 
         :global(.light) .hud-dot-core {
@@ -295,12 +344,15 @@ const HeroSection = () => {
         <div className="absolute inset-0 pointer-events-none hero-glass-radial" style={{ background: 'radial-gradient(ellipse at 20% 15%, rgba(30,42,56,0.35) 0%, transparent 60%)' }} />
         <div className="absolute bottom-0 left-0 right-0 h-1/3 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(255,255,255,0.02), transparent)' }} />
         <div className="relative z-10 w-full px-8 lg:px-14 xl:px-20 flex flex-col gap-8" style={{ marginTop: '5vh' }}>
-          <div className="inline-flex items-center gap-2.5 pointer-events-auto hud-pill w-fit">
-            <div className="hud-dot-wrapper" style={{ width: '10px', height: '10px' }}>
-              <div className="hud-dot-core" style={{ width: '4px', height: '4px' }} />
-              <div className="hud-dot-ring" />
+          <div className="pointer-events-auto hud-pill w-fit">
+            <div className="hud-pill-shell" />
+            <div className="hud-pill-line">
+              <div className="hud-dot-wrapper" style={{ width: '10px', height: '10px' }}>
+                <div className="hud-dot-core" style={{ width: '4px', height: '4px' }} />
+                <div className="hud-dot-ring" />
+              </div>
+              <span className="text-xs lg:text-sm font-mono tracking-widest uppercase hud-text"><span className="hud-prefix">[Redefining]</span> Information Superiority</span>
             </div>
-            <span className="text-xs lg:text-sm font-mono tracking-widest uppercase hud-text"><span className="hud-prefix">[Redefining]</span> Information Superiority</span>
           </div>
           <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight hero-title">At the Core of Critical Operations</h1>
           <p className="text-sm lg:text-base xl:text-lg leading-relaxed w-full max-w-none" style={{ color: 'var(--content-tertiary)' }}>We stand at the center of mission-critical operations for government and commercial enterprises. From industrial infrastructure to tactical front lines, we are built for high-stakes environments where failure is not an option.</p>
@@ -317,12 +369,15 @@ const HeroSection = () => {
       {/* Mobile Content Overlay */}
       <div className="relative z-10 flex md:hidden flex-col justify-between w-full h-full px-5 pb-8 pt-24 pointer-events-none hero-mobile-overlay" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 35%, transparent 55%)', transform: 'translateZ(0)', willChange: 'transform' }}>
         <div className="flex flex-col gap-5 w-full">
-          <div className="inline-flex items-center gap-2 pointer-events-auto hud-pill w-fit" style={{ padding: '4px 12px 4px 10px' }}>
-            <div className="hud-dot-wrapper" style={{ width: '8px', height: '8px' }}>
-              <div className="hud-dot-core" style={{ width: '3px', height: '3px' }} />
-              <div className="hud-dot-ring" />
+          <div className="pointer-events-auto hud-pill w-fit">
+            <div className="hud-pill-shell" />
+            <div className="hud-pill-line">
+              <div className="hud-dot-wrapper" style={{ width: '8px', height: '8px' }}>
+                <div className="hud-dot-core" style={{ width: '3px', height: '3px' }} />
+                <div className="hud-dot-ring" />
+              </div>
+              <span className="text-[0.65rem] hud-text"><span className="hud-prefix">[Redefining]</span> Information Superiority</span>
             </div>
-            <span className="text-[0.65rem] hud-text"><span className="hud-prefix">[Redefining]</span> Information Superiority</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold leading-tight hero-title">At the Core of Critical Operations</h1>
           <p className="text-sm sm:text-base leading-relaxed hero-mobile-subtitle" style={{ color: 'rgba(255,255,255,0.55)' }}>We stand at the center of mission-critical operations for government and commercial enterprises. From industrial infrastructure to tactical front lines, we are built for high-stakes environments where failure is not an option.</p>

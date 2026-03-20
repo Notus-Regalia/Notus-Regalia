@@ -49,7 +49,7 @@ const DETAIL_CSS = `
 `;
 
 /* ═══════════════════════════════════════════════
-   DetailView — layout shell for Discover detail pages
+   DetailView — layout shell for Company detail pages
    ═══════════════════════════════════════════════ */
 
 interface DetailViewProps {

@@ -6,7 +6,7 @@
 
 ## Overview
 
-The site is organized around four sector-focused feature groups, each with dedicated landing, information, discovery, and technologies pages. A shared component library keeps the UI consistent across all pages, and smooth animations and 3D elements give the experience a distinctive, premium feel.
+The site is organized around four sector-focused feature groups, each with dedicated landing, information, company, and technologies pages. A shared component library keeps the UI consistent across all pages, and smooth animations and 3D elements give the experience a distinctive, premium feel.
 
 ---
 
@@ -77,7 +77,7 @@ src/
 
 ## Sectors
 
-The site is organized around four primary sectors, each containing **Landing**, **Information**, **Discover**, and **Technologies** pages:
+The site is organized around four primary sectors, each containing **Landing**, **Information**, **Company**, and **Technologies** pages:
 
 - **Defense** — capabilities and technologies for defense applications
 - **Healthcare** — solutions and innovations in the healthcare space
