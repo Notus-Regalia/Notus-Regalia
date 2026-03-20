@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, type ReactNode } from "react";
+import { useTheme } from "@/context/ThemeContext";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -20,7 +21,7 @@ const LAYERS = [
     annotation: ["SITUATIONAL AWARENESS", "MISSION CONTROL · THREAT DISPLAY", "OPERATOR DECISION SUPPORT"],
     metrics: ["OPS: ACTIVE", "UPLINK: 99.8%"],
     description:
-      "The command layer turns validated information into clear, coordinated operational action.",
+      "Coordinate 100+ workflows with approvals, escalation paths, and full auditability.",
   },
   {
     id: "brand",
@@ -32,11 +33,11 @@ const LAYERS = [
     annotation: ["PATTERN RECOGNITION · THREAT SCORING", "PREDICTIVE MODELING · NLP FUSION", "AUTONOMOUS DECISION WEIGHTING"],
     metrics: ["MODELS: 14 ACTIVE", "CONF: 97.2%"],
     description:
-      "This layer transforms complex inputs into prioritized insight, forecasting, and decision support.",
+      "Analyze 100M+ data points daily with machine learning and event detection.",
   },
   {
     id: "components",
-    label: "Information Oversight",
+    label: "Multi-System Information Oversight",
     sublabel: "LAYER 3 · FUSION & GOVERNANCE",
     tag: "SECRET",
     status: "SYNC",
@@ -44,11 +45,11 @@ const LAYERS = [
     annotation: ["MULTI-INT CORRELATION · DECONFLICTION", "TEMPORAL ALIGNMENT · GEO-TAGGING", "CROSS-SOURCE VALIDATION"],
     metrics: ["FEEDS: 847", "LAG: 120ms"],
     description:
-      "Information oversight reconciles and structures data into a trusted shared operating picture.",
+      "Maintain governance across 50+ systems with traceability and access controls.",
   },
   {
     id: "tokens",
-    label: "Coordinated Monitoring",
+    label: "24/7 Coordinated Monitoring",
     sublabel: "LAYER 2 · LIVE OBSERVATION GRID",
     tag: "CONFIDENTIAL",
     status: "INGEST",
@@ -56,11 +57,11 @@ const LAYERS = [
     annotation: ["OSINT · SIGINT · IMINT · HUMINT", "DARKWEB MONITORING · SOC FEEDS", "ALLIED NETWORK EXCHANGE"],
     metrics: ["SOURCES: 2,340", "VOLUME: 18TB/h"],
     description:
-      "This monitoring layer maintains continuous watch across systems and feeds to surface anomalies early.",
+      "Watch real-time signals with 24/7 monitoring and sub-minute alerts.",
   },
   {
     id: "foundations",
-    label: "Sources & Signals",
+    label: "Million-Source Integration",
     sublabel: "LAYER 1 · COLLECTION INPUTS",
     tag: "UNCLASSIFIED",
     status: "ACQ",
@@ -68,7 +69,7 @@ const LAYERS = [
     annotation: ["SATELLITES · UAV · GROUND SENSORS", "RADAR · SONAR · RF INTERCEPT", "IOT MESH · FIELD ASSETS"],
     metrics: ["NODES: 12,884", "UPTIME: 99.97%"],
     description:
-      "Sources and signals capture the raw inputs that power every layer above them.",
+      "Ingest large amounts signal and source types across internal and external environments.",
   },
 ];
 
@@ -76,47 +77,118 @@ const SPREAD_GAP = 110;
 const CARD = 280;
 
 // ─── Card contents ────────────────────────────────────────────────────────────
-function UIContent() {
+type LayerContentProps = {
+  isLight: boolean;
+};
+
+const PLATFORM_LAYER_BACKGROUND = [
+  "linear-gradient(145deg, #4c515b 0%, #3a4049 48%, #2a2f37 100%)",
+  "linear-gradient(140deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 36%, rgba(10,12,16,0.1) 100%)",
+  "linear-gradient(60deg, rgba(15,23,42,0.05) 25%, transparent 25%, transparent 75%, rgba(15,23,42,0.05) 75%)",
+  "linear-gradient(-60deg, rgba(15,23,42,0.03) 25%, transparent 25%, transparent 75%, rgba(15,23,42,0.03) 75%)",
+].join(", ");
+
+const DARK_PLATFORM_LAYER_BACKGROUND = [
+  "linear-gradient(145deg, #444952 0%, #323740 48%, #232830 100%)",
+  "linear-gradient(140deg, rgba(255,255,255,0.14) 0%, rgba(255,255,255,0.03) 36%, rgba(10,12,16,0.14) 100%)",
+  "linear-gradient(60deg, rgba(255,255,255,0.03) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.03) 75%)",
+  "linear-gradient(-60deg, rgba(255,255,255,0.02) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.02) 75%)",
+].join(", ");
+
+function getLayerTone(isLight: boolean) {
+  if (isLight) {
+    return {
+      panelStrong: "rgba(84,91,104,0.76)",
+      panel: "rgba(64,70,82,0.88)",
+      panelAlt: "rgba(50,56,66,0.9)",
+      border: "rgba(255,255,255,0.09)",
+      borderSoft: "rgba(255,255,255,0.06)",
+      text: "rgba(248,250,252,0.96)",
+      textMuted: "rgba(226,232,240,0.72)",
+      textSoft: "rgba(226,232,240,0.46)",
+      textFaint: "rgba(226,232,240,0.26)",
+      track: "rgba(255,255,255,0.08)",
+      trackStrong: "rgba(255,255,255,0.12)",
+      inactive: "rgba(255,255,255,0.18)",
+      inactiveText: "rgba(226,232,240,0.32)",
+      inactiveBg: "rgba(255,255,255,0.04)",
+    };
+  }
+
+  return {
+    panelStrong: "rgba(66,72,83,0.84)",
+    panel: "rgba(50,55,65,0.92)",
+    panelAlt: "rgba(38,43,52,0.94)",
+    border: "rgba(255,255,255,.08)",
+    borderSoft: "rgba(255,255,255,.05)",
+    text: "#ffffff",
+    textMuted: "rgba(255,255,255,.7)",
+    textSoft: "rgba(255,255,255,.35)",
+    textFaint: "rgba(255,255,255,.2)",
+    track: "rgba(255,255,255,.06)",
+    trackStrong: "rgba(255,255,255,.08)",
+    inactive: "rgba(255,255,255,.15)",
+    inactiveText: "rgba(255,255,255,.3)",
+    inactiveBg: "rgba(255,255,255,.02)",
+  };
+}
+
+function getLayerRootStyle(isLight: boolean, darkBackground: string) {
+  return {
+    height: "100%",
+    position: "relative" as const,
+    overflow: "hidden" as const,
+    fontFamily: "'DM Mono',monospace",
+    background: darkBackground,
+    backgroundImage: isLight ? PLATFORM_LAYER_BACKGROUND : DARK_PLATFORM_LAYER_BACKGROUND,
+    backgroundSize: "100% 100%, 100% 100%, 40px 24px, 40px 24px",
+    backgroundPosition: "0 0, 0 0, 0 0, 20px 12px",
+    boxShadow: isLight ? "inset 0 1px 0 rgba(255,255,255,0.18)" : "inset 0 1px 0 rgba(255,255,255,0.08)",
+  };
+}
+
+function UIContent({ isLight }: LayerContentProps) {
+  const tone = getLayerTone(isLight);
+
   return (
-    <div style={{ height: "100%", background: "#080b14", overflow: "hidden", position: "relative", display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 1, fontFamily: "'DM Mono',monospace" }}>
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,255,180,0.015) 4px)", pointerEvents: "none", zIndex: 10 }} />
-      <div style={{ background: "rgba(0,20,14,.9)", borderRight: "1px solid rgba(0,255,150,.08)", borderBottom: "1px solid rgba(0,255,150,.08)", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
-        <div style={{ fontSize: 6, letterSpacing: "0.18em", color: "rgba(0,255,150,.4)", marginBottom: 2 }}>SYS STATUS</div>
+    <div style={{ ...getLayerRootStyle(isLight, "#080b14"), display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "1fr 1fr", gap: 1 }}>
+      <div style={{ background: tone.panelStrong, borderRight: `1px solid ${tone.border}`, borderBottom: `1px solid ${tone.border}`, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ fontSize: 6, letterSpacing: "0.18em", color: isLight ? "rgba(26,133,95,0.65)" : "rgba(0,255,150,.4)", marginBottom: 2 }}>SYS STATUS</div>
         {[{ label: "RENDER", val: "94%", color: "#00ff96" }, { label: "TOKEN", val: "78%", color: "#40b0ff" }, { label: "BRAND", val: "100%", color: "#ff6b35" }].map((row) => (
           <div key={row.label} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ fontSize: 6, color: "rgba(255,255,255,.3)", letterSpacing: "0.12em", width: 32 }}>{row.label}</div>
-            <div style={{ flex: 1, height: 3, background: "rgba(255,255,255,.06)", borderRadius: 2, overflow: "hidden" }}>
-              <div style={{ width: row.val, height: "100%", background: row.color, boxShadow: `0 0 6px ${row.color}`, borderRadius: 2 }} />
+            <div style={{ fontSize: 6, color: tone.textSoft, letterSpacing: "0.12em", width: 32 }}>{row.label}</div>
+            <div style={{ flex: 1, height: 3, background: tone.track, borderRadius: 2, overflow: "hidden" }}>
+              <div style={{ width: row.val, height: "100%", background: row.color, boxShadow: isLight ? `0 0 3px ${row.color}88` : `0 0 6px ${row.color}`, borderRadius: 2 }} />
             </div>
             <div style={{ fontSize: 6, color: row.color, width: 24, textAlign: "right" }}>{row.val}</div>
           </div>
         ))}
       </div>
-      <div style={{ background: "rgba(0,10,20,.9)", borderBottom: "1px solid rgba(0,255,150,.08)", padding: "10px 12px", position: "relative", overflow: "hidden" }}>
-        <div style={{ fontSize: 6, letterSpacing: "0.18em", color: "rgba(0,200,255,.4)", marginBottom: 6 }}>ACTIVITY</div>
+      <div style={{ background: tone.panel, borderBottom: `1px solid ${tone.border}`, padding: "10px 12px", position: "relative", overflow: "hidden" }}>
+        <div style={{ fontSize: 6, letterSpacing: "0.18em", color: isLight ? "rgba(36,119,176,0.6)" : "rgba(0,200,255,.4)", marginBottom: 6 }}>ACTIVITY</div>
         <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 44, marginTop: 4 }}>
           {[30,55,40,70,45,85,60,75,50,90,65,80].map((h, i) => (
-            <div key={i} style={{ flex: 1, height: `${h}%`, background: `rgba(0,200,255,${0.15 + h/200})`, borderRadius: "2px 2px 0 0", boxShadow: h > 70 ? "0 0 6px rgba(0,200,255,.5)" : "none" }} />
+            <div key={i} style={{ flex: 1, height: `${h}%`, background: isLight ? `rgba(64,176,255,${0.18 + h / 220})` : `rgba(0,200,255,${0.15 + h / 200})`, borderRadius: "2px 2px 0 0", boxShadow: h > 70 ? (isLight ? "0 0 3px rgba(64,176,255,.35)" : "0 0 6px rgba(0,200,255,.5)") : "none" }} />
           ))}
         </div>
-        <div style={{ position: "absolute", right: 14, top: 12, width: 5, height: 5, borderRadius: "50%", background: "#00ff96", boxShadow: "0 0 8px #00ff96" }} />
+        <div style={{ position: "absolute", right: 14, top: 12, width: 5, height: 5, borderRadius: "50%", background: "#00ff96", boxShadow: isLight ? "0 0 5px rgba(0,255,150,.42)" : "0 0 8px #00ff96" }} />
       </div>
-      <div style={{ background: "rgba(2,8,18,.95)", borderRight: "1px solid rgba(0,255,150,.08)", padding: "8px 12px", overflow: "hidden" }}>
-        <div style={{ fontSize: 6, letterSpacing: "0.18em", color: "rgba(0,255,150,.4)", marginBottom: 5 }}>CMD LOG</div>
+      <div style={{ background: tone.panelAlt, borderRight: `1px solid ${tone.border}`, padding: "8px 12px", overflow: "hidden" }}>
+        <div style={{ fontSize: 6, letterSpacing: "0.18em", color: isLight ? "rgba(26,133,95,0.65)" : "rgba(0,255,150,.4)", marginBottom: 5 }}>CMD LOG</div>
         {[{ t: "00:01", msg: "SENSOR › feed acquired" }, { t: "00:02", msg: "FUSION › data correlated" }, { t: "00:03", msg: "AI    › threat scored" }, { t: "00:04", msg: "C2    › operator notified" }].map((row, i) => (
           <div key={i} style={{ display: "flex", gap: 5, marginBottom: 3 }}>
-            <div style={{ fontSize: 6, color: "rgba(255,255,255,.2)", flexShrink: 0 }}>{row.t}</div>
-            <div style={{ fontSize: 6, color: "rgba(0,255,150,.7)", lineHeight: 1.4 }}>{row.msg}</div>
+            <div style={{ fontSize: 6, color: tone.textFaint, flexShrink: 0 }}>{row.t}</div>
+            <div style={{ fontSize: 6, color: isLight ? "rgba(26,133,95,0.85)" : "rgba(0,255,150,.7)", lineHeight: 1.4 }}>{row.msg}</div>
           </div>
         ))}
       </div>
-      <div style={{ background: "rgba(4,8,20,.95)", padding: "8px 12px", display: "flex", flexDirection: "column", gap: 7 }}>
-        <div style={{ fontSize: 6, letterSpacing: "0.18em", color: "rgba(100,160,255,.4)", marginBottom: 2 }}>CONTROLS</div>
+      <div style={{ background: tone.panel, padding: "8px 12px", display: "flex", flexDirection: "column", gap: 7 }}>
+        <div style={{ fontSize: 6, letterSpacing: "0.18em", color: isLight ? "rgba(36,119,176,0.62)" : "rgba(100,160,255,.4)", marginBottom: 2 }}>CONTROLS</div>
         {[{ label: "DARK MODE", on: true }, { label: "ANIMATIONS", on: true }, { label: "COMPACT", on: false }].map((ctrl) => (
           <div key={ctrl.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ fontSize: 6, color: "rgba(255,255,255,.35)", letterSpacing: "0.1em" }}>{ctrl.label}</div>
-            <div style={{ width: 20, height: 9, borderRadius: 5, background: ctrl.on ? "rgba(0,255,150,.35)" : "rgba(255,255,255,.08)", border: `1px solid ${ctrl.on ? "rgba(0,255,150,.5)" : "rgba(255,255,255,.1)"}`, position: "relative" }}>
-              <div style={{ position: "absolute", top: 1, left: ctrl.on ? 11 : 1, width: 6, height: 6, borderRadius: "50%", background: ctrl.on ? "#00ff96" : "rgba(255,255,255,.3)", boxShadow: ctrl.on ? "0 0 5px #00ff96" : "none" }} />
+            <div style={{ fontSize: 6, color: tone.textSoft, letterSpacing: "0.1em" }}>{ctrl.label}</div>
+            <div style={{ width: 20, height: 9, borderRadius: 5, background: ctrl.on ? (isLight ? "rgba(0,255,150,.18)" : "rgba(0,255,150,.35)") : tone.trackStrong, border: `1px solid ${ctrl.on ? (isLight ? "rgba(0,255,150,.35)" : "rgba(0,255,150,.5)") : tone.border}`, position: "relative" }}>
+              <div style={{ position: "absolute", top: 1, left: ctrl.on ? 11 : 1, width: 6, height: 6, borderRadius: "50%", background: ctrl.on ? "#00ff96" : tone.inactive, boxShadow: ctrl.on ? (isLight ? "0 0 3px rgba(0,255,150,.42)" : "0 0 5px #00ff96") : "none" }} />
             </div>
           </div>
         ))}
@@ -125,7 +197,8 @@ function UIContent() {
   );
 }
 
-function BrandContent() {
+function BrandContent({ isLight }: LayerContentProps) {
+  const tone = getLayerTone(isLight);
   const models = [
     { name: "Claude AI",  maker: "Anthropic", color: "#cc9aff", pct: 97 },
     { name: "GPT-4o",     maker: "OpenAI",    color: "#40ffb0", pct: 91 },
@@ -133,28 +206,28 @@ function BrandContent() {
     { name: "Llama 3.1",  maker: "Meta",      color: "#ffcc40", pct: 84 },
   ];
   return (
-    <div style={{ height: "100%", background: "linear-gradient(160deg,#0a0616,#060d1a)", position: "relative", overflow: "hidden", fontFamily: "'DM Mono',monospace", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 9 }}>
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(180,80,255,0.012) 4px)", pointerEvents: "none" }} />
-      <div style={{ fontSize: 6, letterSpacing: "0.16em", color: "rgba(180,100,255,.45)" }}>STRATEGIC INTELLIGENCE · MODEL ENSEMBLE</div>
+    <div style={{ ...getLayerRootStyle(isLight, "linear-gradient(160deg,#0a0616,#060d1a)"), padding: "12px 14px", display: "flex", flexDirection: "column", gap: 9 }}>
+      <div style={{ fontSize: 6, letterSpacing: "0.16em", color: isLight ? "rgba(117,83,168,0.62)" : "rgba(180,100,255,.45)" }}>STRATEGIC INTELLIGENCE · MODEL ENSEMBLE</div>
       {models.map((m) => (
         <div key={m.name} style={{ display: "flex", alignItems: "center", gap: 7 }}>
-          <div style={{ width: 4, height: 4, borderRadius: "50%", background: m.color, boxShadow: `0 0 5px ${m.color}`, flexShrink: 0 }} />
+          <div style={{ width: 4, height: 4, borderRadius: "50%", background: m.color, boxShadow: isLight ? `0 0 3px ${m.color}88` : `0 0 5px ${m.color}`, flexShrink: 0 }} />
           <div style={{ width: 60, flexShrink: 0 }}>
-            <div style={{ fontSize: 7, color: "#fff", letterSpacing: "0.06em", lineHeight: 1.2 }}>{m.name}</div>
-            <div style={{ fontSize: 5.5, color: "rgba(255,255,255,.3)", letterSpacing: "0.08em" }}>{m.maker}</div>
+            <div style={{ fontSize: 7, color: tone.text, letterSpacing: "0.06em", lineHeight: 1.2 }}>{m.name}</div>
+            <div style={{ fontSize: 5.5, color: tone.textSoft, letterSpacing: "0.08em" }}>{m.maker}</div>
           </div>
-          <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,.05)", borderRadius: 2, overflow: "hidden" }}>
-            <div style={{ width: `${m.pct}%`, height: "100%", background: `linear-gradient(90deg,${m.color}88,${m.color})`, borderRadius: 2, boxShadow: `0 0 6px ${m.color}66` }} />
+          <div style={{ flex: 1, height: 4, background: tone.track, borderRadius: 2, overflow: "hidden" }}>
+            <div style={{ width: `${m.pct}%`, height: "100%", background: `linear-gradient(90deg,${m.color}88,${m.color})`, borderRadius: 2, boxShadow: isLight ? `0 0 4px ${m.color}44` : `0 0 6px ${m.color}66` }} />
           </div>
           <div style={{ fontSize: 6.5, color: m.color, width: 24, textAlign: "right", flexShrink: 0 }}>{m.pct}%</div>
         </div>
       ))}
-      <div style={{ marginTop: "auto", fontSize: 5.5, letterSpacing: "0.1em", color: "rgba(255,255,255,.15)" }}>ENSEMBLE CONFIDENCE · WEIGHTED VOTING · REAL-TIME INFERENCE</div>
+      <div style={{ marginTop: "auto", fontSize: 5.5, letterSpacing: "0.1em", color: tone.textFaint }}>ENSEMBLE CONFIDENCE · WEIGHTED VOTING · REAL-TIME INFERENCE</div>
     </div>
   );
 }
 
-function ComponentsContent() {
+function ComponentsContent({ isLight }: LayerContentProps) {
+  const tone = getLayerTone(isLight);
   const nodes = [
     { id: "palantir",   x: 50, y: 50, label: "Palantir",   sub: "GOTHAM",    color: "#40b0ff", r: 15, primary: true  },
     { id: "esri",       x: 20, y: 22, label: "Esri",       sub: "ArcGIS",    color: "#00ff96", r: 11, primary: false },
@@ -173,23 +246,23 @@ function ComponentsContent() {
   ];
   const W = 280;
   return (
-    <div style={{ width: "100%", height: "100%", background: "rgba(4,6,16,.98)", position: "relative", overflow: "hidden", fontFamily: "'DM Mono',monospace" }}>
-      <div style={{ position: "absolute", top: 8, left: 10, fontSize: 6, letterSpacing: "0.18em", color: "rgba(255,255,255,.2)", zIndex: 2 }}>INFORMATION OVERSIGHT · CORRELATION MESH</div>
+    <div style={{ ...getLayerRootStyle(isLight, "rgba(4,6,16,.98)"), width: "100%" }}>
+      <div style={{ position: "absolute", top: 8, left: 10, fontSize: 6, letterSpacing: "0.18em", color: tone.textFaint, zIndex: 2 }}>INFORMATION OVERSIGHT · CORRELATION MESH</div>
       <svg width="100%" height="100%" style={{ position: "absolute", inset: 0 }} viewBox={`0 0 ${W} ${W}`}>
         {edges.map(([a, b], ei) => {
           const na = nodes.find((nd) => nd.id === a)!;
           const nb = nodes.find((nd) => nd.id === b)!;
-          return <line key={ei} x1={na.x/100*W} y1={na.y/100*W} x2={nb.x/100*W} y2={nb.y/100*W} stroke={na.color} strokeWidth={0.8} strokeOpacity={0.22} />;
+          return <line key={ei} x1={na.x / 100 * W} y1={na.y / 100 * W} x2={nb.x / 100 * W} y2={nb.y / 100 * W} stroke={na.color} strokeWidth={0.8} strokeOpacity={isLight ? 0.18 : 0.22} />;
         })}
         {nodes.map((node) => {
           const cx = node.x / 100 * W;
           const cy = node.y / 100 * W;
           return (
             <g key={node.id}>
-              <circle cx={cx} cy={cy} r={node.r + 4} fill="none" stroke={node.color} strokeWidth={0.6} strokeOpacity={0.18} />
-              <circle cx={cx} cy={cy} r={node.r} fill={node.color} fillOpacity={node.primary ? 0.18 : 0.1} stroke={node.color} strokeWidth={1} strokeOpacity={0.7} />
-              <circle cx={cx} cy={cy} r={node.primary ? 3 : 2} fill={node.color} fillOpacity={0.9} />
-              <text x={cx} y={cy + node.r + 9} textAnchor="middle" fontSize={node.primary ? 7 : 6} fill={node.color} fillOpacity={0.9} fontFamily="'DM Mono',monospace" letterSpacing="0.08em">{node.label}</text>
+              <circle cx={cx} cy={cy} r={node.r + 4} fill="none" stroke={node.color} strokeWidth={0.6} strokeOpacity={isLight ? 0.12 : 0.18} />
+              <circle cx={cx} cy={cy} r={node.r} fill={node.color} fillOpacity={node.primary ? (isLight ? 0.12 : 0.18) : (isLight ? 0.08 : 0.1)} stroke={node.color} strokeWidth={1} strokeOpacity={isLight ? 0.55 : 0.7} />
+              <circle cx={cx} cy={cy} r={node.primary ? 3 : 2} fill={node.color} fillOpacity={0.88} />
+              <text x={cx} y={cy + node.r + 9} textAnchor="middle" fontSize={node.primary ? 7 : 6} fill={node.color} fillOpacity={isLight ? 0.78 : 0.9} fontFamily="'DM Mono',monospace" letterSpacing="0.08em">{node.label}</text>
             </g>
           );
         })}
@@ -198,7 +271,8 @@ function ComponentsContent() {
   );
 }
 
-function TokensContent() {
+function TokensContent({ isLight }: LayerContentProps) {
+  const tone = getLayerTone(isLight);
   const sources = [
     { name: "Recorded Future", type: "OSINT/CYBER",  color: "#ff6040", active: true  },
     { name: "Maxar EO",        type: "IMINT/SAT",    color: "#40b0ff", active: true  },
@@ -208,21 +282,21 @@ function TokensContent() {
     { name: "OpenCTI",         type: "THREATINT",    color: "#40ffb0", active: false },
   ];
   return (
-    <div style={{ height: "100%", background: "#04060f", fontFamily: "'DM Mono',monospace", padding: "10px 12px", display: "flex", flexDirection: "column", gap: 5, overflow: "hidden" }}>
-      <div style={{ fontSize: 6, letterSpacing: "0.16em", color: "rgba(100,180,255,.4)", marginBottom: 2 }}>COORDINATED MONITORING · SOURCE REGISTRY</div>
+    <div style={{ ...getLayerRootStyle(isLight, "#04060f"), padding: "10px 12px", display: "flex", flexDirection: "column", gap: 5 }}>
+      <div style={{ fontSize: 6, letterSpacing: "0.16em", color: isLight ? "rgba(36,119,176,0.62)" : "rgba(100,180,255,.4)", marginBottom: 2 }}>COORDINATED MONITORING · SOURCE REGISTRY</div>
       {sources.map((s) => (
-        <div key={s.name} style={{ display: "flex", alignItems: "center", gap: 7, padding: "4px 7px", borderRadius: 3, background: s.active ? `${s.color}08` : "rgba(255,255,255,.02)", border: `1px solid ${s.active ? s.color + "25" : "rgba(255,255,255,.05)"}` }}>
-          <div style={{ width: 4, height: 4, borderRadius: "50%", background: s.active ? s.color : "rgba(255,255,255,.15)", boxShadow: s.active ? `0 0 6px ${s.color}` : "none", flexShrink: 0 }} />
-          <div style={{ flex: 1, fontSize: 7, color: s.active ? "#fff" : "rgba(255,255,255,.3)", letterSpacing: "0.05em" }}>{s.name}</div>
-          <div style={{ fontSize: 5.5, letterSpacing: "0.1em", color: s.active ? s.color : "rgba(255,255,255,.2)", background: s.active ? `${s.color}12` : "transparent", border: `1px solid ${s.active ? s.color + "30" : "rgba(255,255,255,.06)"}`, borderRadius: 2, padding: "1px 4px", flexShrink: 0 }}>{s.type}</div>
-          <div style={{ fontSize: 5.5, color: s.active ? "rgba(0,255,150,.6)" : "rgba(255,255,255,.15)", letterSpacing: "0.1em", flexShrink: 0 }}>{s.active ? "LIVE" : "OFF"}</div>
+        <div key={s.name} style={{ display: "flex", alignItems: "center", gap: 7, padding: "4px 7px", borderRadius: 3, background: s.active ? `${s.color}${isLight ? "12" : "08"}` : tone.inactiveBg, border: `1px solid ${s.active ? s.color + (isLight ? "28" : "25") : tone.borderSoft}` }}>
+          <div style={{ width: 4, height: 4, borderRadius: "50%", background: s.active ? s.color : tone.inactive, boxShadow: s.active ? (isLight ? `0 0 3px ${s.color}66` : `0 0 6px ${s.color}`) : "none", flexShrink: 0 }} />
+          <div style={{ flex: 1, fontSize: 7, color: s.active ? tone.text : tone.inactiveText, letterSpacing: "0.05em" }}>{s.name}</div>
+          <div style={{ fontSize: 5.5, letterSpacing: "0.1em", color: s.active ? s.color : tone.textFaint, background: s.active ? `${s.color}${isLight ? "14" : "12"}` : "transparent", border: `1px solid ${s.active ? s.color + (isLight ? "2a" : "30") : tone.borderSoft}`, borderRadius: 2, padding: "1px 4px", flexShrink: 0 }}>{s.type}</div>
+          <div style={{ fontSize: 5.5, color: s.active ? (isLight ? "rgba(26,133,95,0.72)" : "rgba(0,255,150,.6)") : tone.textFaint, letterSpacing: "0.1em", flexShrink: 0 }}>{s.active ? "LIVE" : "OFF"}</div>
         </div>
       ))}
     </div>
   );
 }
 
-function FoundationsContent() {
+function FoundationsContent({ isLight }: LayerContentProps) {
   const packets = useMemo(() => {
     const rows = 8, cols = 10;
     const colors = ["#ff6040","#40b0ff","#00ff96","#ffcc40","#cc9aff","#40ffb0","#ff9040"];
@@ -237,17 +311,17 @@ function FoundationsContent() {
     });
   }, []);
   return (
-    <div style={{ height: "100%", background: "#010306", position: "relative", overflow: "hidden", fontFamily: "'DM Mono',monospace" }}>
-      <div style={{ position: "absolute", top: 7, left: 10, fontSize: 6, letterSpacing: "0.18em", color: "rgba(255,96,64,.5)", zIndex: 2 }}>SOURCES & SIGNALS · {packets.length} PACKETS</div>
+    <div style={{ ...getLayerRootStyle(isLight, "#010306") }}>
+      <div style={{ position: "absolute", top: 7, left: 10, fontSize: 6, letterSpacing: "0.18em", color: isLight ? "rgba(198,78,46,0.62)" : "rgba(255,96,64,.5)", zIndex: 2 }}>SOURCES & SIGNALS · {packets.length} PACKETS</div>
       <div style={{ position: "absolute", inset: "20px 8px 8px", display: "grid", gridTemplateColumns: "repeat(10,1fr)", gridTemplateRows: "repeat(8,1fr)", gap: 2 }}>
         {packets.map((p) => (
           <div key={p.idx} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
             {p.type === "packet" ? (
-              <div style={{ width: p.size + 5, height: p.size * 0.55, borderRadius: 1, background: `${p.color}${Math.round(p.opacity * 255).toString(16).padStart(2, "0")}`, border: `1px solid ${p.color}55` }} />
+              <div style={{ width: p.size + 5, height: p.size * 0.55, borderRadius: 1, background: `${p.color}${Math.round((isLight ? p.opacity * 0.82 : p.opacity) * 255).toString(16).padStart(2, "0")}`, border: `1px solid ${p.color}${isLight ? "44" : "55"}` }} />
             ) : p.type === "pulse" ? (
-              <div style={{ width: p.size, height: p.size, borderRadius: "50%", border: `1px solid ${p.color}`, opacity: p.opacity * 0.7 }} />
+              <div style={{ width: p.size, height: p.size, borderRadius: "50%", border: `1px solid ${p.color}`, opacity: isLight ? p.opacity * 0.5 : p.opacity * 0.7 }} />
             ) : (
-              <div style={{ width: p.size, height: p.size, borderRadius: "50%", background: p.color, opacity: p.opacity }} />
+              <div style={{ width: p.size, height: p.size, borderRadius: "50%", background: p.color, opacity: isLight ? p.opacity * 0.78 : p.opacity }} />
             )}
           </div>
         ))}
@@ -256,13 +330,20 @@ function FoundationsContent() {
   );
 }
 
-const CONTENT: Record<string, React.ReactNode> = {
-  ui: <UIContent />,
-  brand: <BrandContent />,
-  components: <ComponentsContent />,
-  tokens: <TokensContent />,
-  foundations: <FoundationsContent />,
-};
+function renderLayerContent(id: string, isLight: boolean) {
+  switch (id) {
+    case "ui":
+      return <UIContent isLight={isLight} />;
+    case "brand":
+      return <BrandContent isLight={isLight} />;
+    case "components":
+      return <ComponentsContent isLight={isLight} />;
+    case "tokens":
+      return <TokensContent isLight={isLight} />;
+    default:
+      return <FoundationsContent isLight={isLight} />;
+  }
+}
 
 function LayerGlyph({ id }: { id: string }) {
   switch (id) {
@@ -289,8 +370,59 @@ function LayerGlyph({ id }: { id: string }) {
   }
 }
 
+function AccordionPanel({
+  open,
+  children,
+}: {
+  open: boolean;
+  children: ReactNode;
+}) {
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState(0);
+
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+
+    if (!open) {
+      setHeight(0);
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      setHeight(el.scrollHeight);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [open, children]);
+
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el || !open || typeof ResizeObserver === "undefined") return;
+
+    const syncHeight = () => setHeight(el.scrollHeight);
+    syncHeight();
+
+    const observer = new ResizeObserver(syncHeight);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [open, children]);
+
+  return (
+    <div
+      className={`fw-accordion-panel${open ? " open" : ""}`}
+      style={{ height: open ? `${height}px` : "0px" }}
+    >
+      <div ref={bodyRef} className="fw-accordion-body">
+        {children}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function FrameworkSection() {
+  const { isDark } = useTheme();
   const sectionRef = useRef<HTMLDivElement>(null);
   const outerRef  = useRef<HTMLDivElement>(null);
   const stickyRef = useRef<HTMLDivElement>(null);
@@ -300,7 +432,6 @@ export default function FrameworkSection() {
   const [progress, setProgress] = useState(0);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [showLabels, setShowLabels] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
   const focusedId = hoveredId ?? selectedId;
@@ -380,12 +511,10 @@ export default function FrameworkSection() {
   function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
 
   const n = LAYERS.length;
-  const labelOpacity = progress < 0.3 ? 0 : Math.min((progress - 0.3) / 0.4, 1);
   const sceneCardSize = isMobile ? 190 : CARD;
   const spreadGap = isMobile ? 72 : SPREAD_GAP;
-  const labelSideMax = `calc(50% - ${Math.round(sceneCardSize / 2 + 10)}px)`;
   const isDesktopCompressed = !isMobile && progress < 0.42;
-  const shouldRenderDesktopLabels = !isMobile && progress > 0.28;
+  const isLight = !isDark;
 
   function getScreenY(i: number): number {
     const spreadY = (i - (n - 1) / 2) * spreadGap;
@@ -571,7 +700,8 @@ export default function FrameworkSection() {
           display: flex;
           align-items: center;
           gap: 18px;
-          padding: 1.7rem 0 1.2rem;
+          min-height: 5rem;
+          padding: 1.15rem 0;
           border: 0;
           background: transparent;
           color: inherit;
@@ -587,6 +717,21 @@ export default function FrameworkSection() {
           flex: 1;
           min-width: 0;
           display: block;
+        }
+        .fw-accordion-indicator {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 22px;
+          height: 22px;
+          flex-shrink: 0;
+          font-size: 1rem;
+          line-height: 1;
+          opacity: 0.44;
+          transition: opacity .25s ease;
+        }
+        .fw-accordion-item.active .fw-accordion-indicator {
+          opacity: 0.72;
         }
         @keyframes fw-pill-enter {
           from {
@@ -613,9 +758,9 @@ export default function FrameworkSection() {
           color: rgba(255,255,255,0.18);
           transition: color .25s ease, opacity .25s ease;
         }
-        .fw-accordion-icon svg {
-          width: 36px;
-          height: 36px;
+        .fw-accordion-icon i {
+          font-size: 1.55rem;
+          line-height: 1;
         }
         .fw-roster-name {
           font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
@@ -627,17 +772,17 @@ export default function FrameworkSection() {
           transition: color .25s ease, opacity .25s ease;
         }
         .fw-accordion-panel {
-          max-height: 0;
+          height: 0;
           opacity: 0;
           overflow: hidden;
-          transition: max-height .32s ease, opacity .22s ease;
+          will-change: height, opacity;
+          transition: height .28s ease, opacity .2s ease;
         }
         .fw-accordion-panel.open {
-          max-height: 180px;
           opacity: 1;
         }
         .fw-accordion-body {
-          padding: 0 0 2rem 70px;
+          padding: 0 0 1.75rem 70px;
         }
         .fw-accordion-desc {
           margin: 0;
@@ -700,71 +845,6 @@ export default function FrameworkSection() {
           box-shadow: 0 0 6px rgba(227,27,84,0.6);
           transition: width 0.1s linear;
         }
-        /* Right panel controls — bottom-left group */
-        .fw-right-controls {
-          position: absolute;
-          bottom: 1.25rem;
-          left: 1.25rem;
-          z-index: 300;
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          align-items: flex-start;
-        }
-        .fw-label-toggle {
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          padding: 6px 12px 6px 8px;
-          border-radius: 8px;
-          border: 1px solid rgba(255,255,255,0.1);
-          background: rgba(5,6,15,0.75);
-          backdrop-filter: blur(8px);
-          cursor: pointer;
-          transition: border-color 0.2s, background 0.2s, color 0.2s;
-          font-family: ui-monospace, Menlo, monospace;
-          font-size: 0.58rem;
-          letter-spacing: 0.16em;
-          text-transform: uppercase;
-          color: rgba(255,255,255,0.4);
-          user-select: none;
-          white-space: nowrap;
-        }
-        .fw-label-toggle:hover {
-          border-color: rgba(255,255,255,0.2);
-          color: rgba(255,255,255,0.7);
-        }
-        .fw-label-toggle.on {
-          border-color: rgba(227,27,84,0.35);
-          color: rgba(255,255,255,0.6);
-        }
-        .fw-toggle-pip {
-          width: 28px; height: 14px;
-          border-radius: 999px;
-          background: rgba(255,255,255,0.08);
-          border: 1px solid rgba(255,255,255,0.12);
-          position: relative;
-          flex-shrink: 0;
-          transition: background 0.25s, border-color 0.25s;
-        }
-        .fw-label-toggle.on .fw-toggle-pip {
-          background: rgba(227,27,84,0.3);
-          border-color: rgba(227,27,84,0.5);
-        }
-        .fw-toggle-knob {
-          position: absolute;
-          top: 2px;
-          width: 9px; height: 9px;
-          border-radius: 50%;
-          background: rgba(255,255,255,0.3);
-          transition: left 0.25s cubic-bezier(0.4,0,0.2,1), background 0.25s, box-shadow 0.25s;
-          left: 2px;
-        }
-        .fw-label-toggle.on .fw-toggle-knob {
-          left: calc(100% - 11px);
-          background: #E31B54;
-          box-shadow: 0 0 6px rgba(227,27,84,0.8);
-        }
         @media(max-width:767px) {
           .fw-outer {
             height: auto;
@@ -792,10 +872,6 @@ export default function FrameworkSection() {
           .fw-right {
             min-height: 620px;
           }
-          .fw-right-controls {
-            left: 0.75rem;
-            bottom: 0.75rem;
-          }
           .fw-accordion-item,
           .fw-accordion-trigger,
           .fw-accordion-panel,
@@ -804,7 +880,7 @@ export default function FrameworkSection() {
             transition: none !important;
           }
           .fw-accordion-body {
-            padding: 0 0 1.5rem 54px;
+            padding: 0 0 1.45rem 60px;
           }
           .fw-accordion-desc {
             font-size: 0.9rem;
@@ -848,6 +924,9 @@ export default function FrameworkSection() {
         :root.light .fw-roster-name {
           color: rgba(15,23,42,0.26);
         }
+        :root.light .fw-accordion-indicator {
+          color: rgba(15,23,42,0.34);
+        }
         :root.light .fw-accordion-desc {
           color: rgba(15,23,42,0.58);
         }
@@ -862,29 +941,11 @@ export default function FrameworkSection() {
           background: rgba(0,0,0,0.08);
         }
         :root.light .fw-right {
+          background-color: rgba(249,244,236,0.42);
           background-image:
-            linear-gradient(rgba(0,0,0,0.06) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0,0,0,0.06) 1px, transparent 1px);
-        }
-        :root.light .fw-label-toggle {
-          border-color: rgba(0,0,0,0.1);
-          background: rgba(255,255,255,0.85);
-          color: rgba(0,0,0,0.4);
-        }
-        :root.light .fw-label-toggle:hover {
-          border-color: rgba(0,0,0,0.2);
-          color: rgba(0,0,0,0.7);
-        }
-        :root.light .fw-label-toggle.on {
-          border-color: rgba(227,27,84,0.35);
-          color: rgba(0,0,0,0.6);
-        }
-        :root.light .fw-toggle-pip {
-          background: rgba(0,0,0,0.06);
-          border-color: rgba(0,0,0,0.12);
-        }
-        :root.light .fw-toggle-knob {
-          background: rgba(0,0,0,0.25);
+            linear-gradient(rgba(15,23,42,0.078) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(15,23,42,0.078) 1px, transparent 1px);
+          background-size: 32px 32px, 32px 32px;
         }
         @media(max-width:767px) {
           :root.light .fw-left {
@@ -971,51 +1032,25 @@ export default function FrameworkSection() {
                               {layer.label}
                             </span>
                           </div>
+
+                          <span className="fw-accordion-indicator" aria-hidden="true">
+                            <i className={`bi ${isActive ? "bi-dash" : "bi-plus"}`} />
+                          </span>
                         </button>
 
-                        <div className={`fw-accordion-panel${isActive ? " open" : ""}`}>
-                          <div className="fw-accordion-body">
-                            <p className="fw-accordion-desc">{layer.description}</p>
-                          </div>
-                        </div>
+                        <AccordionPanel open={isActive}>
+                          <p className="fw-accordion-desc">{layer.description}</p>
+                        </AccordionPanel>
                       </div>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Scroll tooltip */}
-              <div className={`fw-scroll-hint${progress > 0.95 ? " hidden" : ""}`}>
-                <div className="fw-scroll-arrow">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 5v14M5 12l7 7 7-7" />
-                  </svg>
-                </div>
-                <span className="fw-scroll-label">Scroll to expand</span>
-                <div className="fw-scroll-track">
-                  <div className="fw-scroll-fill" style={{ width: `${Math.round(progress * 100)}%` }} />
-                </div>
-              </div>
             </div>
 
             {/* ── RIGHT PANEL ── */}
             <div className="fw-right">
-
-              {/* Controls — bottom-left */}
-              <div className="fw-right-controls">
-                {/* Labels toggle */}
-                <button
-                  type="button"
-                  data-fw-keep-active="true"
-                  className={`fw-label-toggle${showLabels ? " on" : ""}`}
-                  onClick={() => setShowLabels(v => !v)}
-                >
-                  <div className="fw-toggle-pip">
-                    <div className="fw-toggle-knob" />
-                  </div>
-                  Labels
-                </button>
-              </div>
 
               {/* CARDS */}
               {[...LAYERS].reverse().map((layer, ri) => {
@@ -1026,6 +1061,25 @@ export default function FrameworkSection() {
                 const cardZ = 10 + (LAYERS.length - i) * 2;
                 const isHovered = focusedId === layer.id;
                 const cardOpacity = focusedId === null ? 1 : isHovered ? 1 : 0.2;
+                const cardShadow = isLight
+                  ? isMobile
+                    ? `0 18px ${shadowBlur}px rgba(33,37,45,0.24), 0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.16)`
+                    : isDesktopCompressed
+                      ? isHovered
+                        ? `0 10px 20px rgba(33,37,45,0.2), 0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.18)`
+                        : `0 8px 16px rgba(33,37,45,0.16), 0 0 0 1px rgba(255,255,255,0.07), inset 0 1px 0 rgba(255,255,255,0.14)`
+                      : isHovered
+                        ? `0 24px ${shadowBlur + 14}px rgba(33,37,45,0.26), 0 0 0 1px rgba(255,255,255,0.09), inset 0 1px 0 rgba(255,255,255,0.2)`
+                        : `0 20px ${shadowBlur}px rgba(33,37,45,0.22), 0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 0 rgba(255,255,255,0.16)`
+                  : isMobile
+                    ? `0 20px ${shadowBlur}px rgba(0,0,0,${shadowOpacity}), 0 1px 0 rgba(255,255,255,0.07)`
+                    : isDesktopCompressed
+                      ? isHovered
+                        ? `0 10px 20px rgba(0,0,0,0.34), 0 1px 0 rgba(255,255,255,0.09)`
+                        : `0 8px 16px rgba(0,0,0,0.28), 0 1px 0 rgba(255,255,255,0.06)`
+                      : isHovered
+                        ? `0 24px ${shadowBlur + 14}px rgba(0,0,0,${shadowOpacity + 0.18}), 0 1px 0 rgba(255,255,255,0.12)`
+                        : `0 20px ${shadowBlur}px rgba(0,0,0,${shadowOpacity}), 0 1px 0 rgba(255,255,255,0.07)`;
 
                 return (
                   <div
@@ -1064,66 +1118,32 @@ export default function FrameworkSection() {
                     <div
                       className="fw-card-iso"
                       style={{
-                        boxShadow: isMobile
-                          ? `0 20px ${shadowBlur}px rgba(0,0,0,${shadowOpacity}), 0 1px 0 rgba(255,255,255,0.07)`
-                          : isDesktopCompressed
-                            ? isHovered
-                              ? `0 10px 20px rgba(0,0,0,0.34), 0 0 14px ${layer.statusColor}1f, 0 1px 0 rgba(255,255,255,0.09)`
-                              : `0 8px 16px rgba(0,0,0,0.28), 0 1px 0 rgba(255,255,255,0.06)`
-                          : isHovered
-                            ? `0 24px ${shadowBlur + 14}px rgba(0,0,0,${shadowOpacity + 0.18}), 0 0 32px ${layer.statusColor}22, 0 1px 0 rgba(255,255,255,0.12)`
-                            : `0 20px ${shadowBlur}px rgba(0,0,0,${shadowOpacity}), 0 1px 0 rgba(255,255,255,0.07)`,
-                        filter: isMobile || isDesktopCompressed ? "none" : isHovered ? "brightness(1.12)" : "brightness(1)",
+                        boxShadow: cardShadow,
+                        filter: isMobile || isDesktopCompressed ? "none" : isHovered ? (isLight ? "brightness(1.03) saturate(0.96)" : "brightness(1.12)") : "brightness(1)",
+                        background: isLight
+                          ? "linear-gradient(145deg, #4b505a 0%, #373d46 54%, #262b33 100%)"
+                          : "linear-gradient(145deg, #434851 0%, #2f353e 54%, #20252d 100%)",
+                        border: isLight ? "1px solid rgba(255,255,255,0.08)" : "1px solid rgba(255,255,255,0.06)",
                       }}
                     >
-                      {CONTENT[layer.id]}
+                      {renderLayerContent(layer.id, isLight)}
                     </div>
                   </div>
                 );
               })}
 
-              {/* FLOATING LABELS — above cards */}
-              <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 200, fontFamily: "ui-monospace, Menlo, monospace", display: shouldRenderDesktopLabels || isMobile ? "block" : "none" }}>
-                  {LAYERS.map((layer, i) => {
-                    const labelY = (i - (n - 1) / 2) * spreadGap;
-                    const isHov = focusedId === layer.id;
-                    const textOpacity = showLabels ? labelOpacity * (focusedId === null ? 1 : isHov ? 1 : 0) : 0;
-                    return (
-                      <div
-                        key={`label-${layer.id}`}
-                        style={{
-                          position: "absolute",
-                          top: "50%", left: 0, right: 0,
-                          transform: `translateY(calc(-50% + ${labelY}px))`,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          gap: 12,
-                          opacity: textOpacity,
-                          transition: isMobile ? "none" : "opacity .16s linear",
-                          paddingLeft: 8, paddingRight: 8,
-                        }}
-                      >
-                        {/* Left mini-label */}
-                        <div style={{ textAlign: "right", minWidth: 0, flex: "0 0 auto", maxWidth: labelSideMax }}>
-                          <div style={{ fontSize: 6, letterSpacing: "0.16em", color: layer.statusColor, border: `1px solid ${layer.statusColor}44`, borderRadius: 2, padding: "1px 5px", display: "inline-block", marginBottom: 3, opacity: 0.85 }}>{layer.tag}</div>
-                          <div style={{ fontSize: isMobile ? 7 : 9, fontWeight: 700, color: "#fff", letterSpacing: "0.07em", lineHeight: 1.25, marginBottom: 2, whiteSpace: isMobile ? "normal" : "nowrap" }}>{layer.label}</div>
-                          <div style={{ fontSize: isMobile ? 5.5 : 6.5, color: "rgba(255,255,255,.35)", letterSpacing: "0.1em", whiteSpace: isMobile ? "normal" : "nowrap" }}>{layer.sublabel}</div>
-                        </div>
-
-                        {/* Spacer for card width */}
-                        <div style={{ width: sceneCardSize, flexShrink: 0 }} />
-
-                        {/* Right annotation */}
-                        <div style={{ textAlign: "left", minWidth: 0, flex: "0 0 auto", maxWidth: labelSideMax }}>
-                          {layer.annotation.map((line, j) => (
-                            <div key={j} style={{ fontSize: isMobile ? (j === 0 ? 5.5 : 5) : (j === 0 ? 7 : 6), color: j === 0 ? "rgba(255,255,255,.5)" : "rgba(255,255,255,.25)", letterSpacing: "0.1em", lineHeight: isMobile ? 1.45 : 1.9, textTransform: "uppercase", whiteSpace: isMobile ? "normal" : "nowrap" }}>{line}</div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
+              {/* Scroll tooltip */}
+              <div className={`fw-scroll-hint${progress > 0.95 ? " hidden" : ""}`}>
+                <div className="fw-scroll-arrow">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 5v14M5 12l7 7 7-7" />
+                  </svg>
                 </div>
+                <span className="fw-scroll-label">Scroll to expand</span>
+                <div className="fw-scroll-track">
+                  <div className="fw-scroll-fill" style={{ width: `${Math.round(progress * 100)}%` }} />
+                </div>
+              </div>
             </div>
 
           </div>

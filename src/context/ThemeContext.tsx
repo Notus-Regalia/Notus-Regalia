@@ -33,7 +33,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   // Apply class to <html> and persist
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('light', 'dark');
+    root.classList.remove('light', 'dark', 'night');
     root.classList.add(theme);
     root.setAttribute('data-theme', theme);
     localStorage.setItem('notus-regalia-theme', theme);

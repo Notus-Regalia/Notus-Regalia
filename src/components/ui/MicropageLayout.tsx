@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import Image from 'next/image';
+import { useTheme } from '@/context/ThemeContext';
 
 interface MicropageLayoutProps {
   title: string;
@@ -19,23 +20,7 @@ export default function MicropageLayout({
   parentTab,
   parentSubtab,
 }: MicropageLayoutProps) {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
-
-  useEffect(() => {
-    const root = document.documentElement;
-    setTheme(root.classList.contains('light') ? 'light' : 'dark');
-    const obs = new MutationObserver(() => {
-      setTheme(root.classList.contains('light') ? 'light' : 'dark');
-    });
-    obs.observe(root, { attributes: true, attributeFilter: ['class'] });
-    return () => obs.disconnect();
-  }, []);
-
-  const toggleTheme = useCallback(() => {
-    const root = document.documentElement;
-    root.classList.toggle('light');
-    root.classList.toggle('dark');
-  }, []);
+  const { theme, toggleTheme } = useTheme();
 
   const goBack = useCallback(() => {
     const url = new URL(window.location.origin);

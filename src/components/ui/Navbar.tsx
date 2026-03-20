@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import SearchModal from './SearchModal';
 import ThemeToggle from './ThemeToggle';
 import { type InfoContentType } from '@/data/information-data';
+import { useTheme } from '@/context/ThemeContext';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 
 /* ── GSAP-aware scroll helpers ────────────────────────────────── */
@@ -98,41 +99,22 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
-// ── Shared night-mode hook ──
-function useNightMode() {
-  const [night, setNight] = useState(false);
-  useEffect(() => {
-    const root = document.documentElement;
-    setNight(root.classList.contains('night'));
-    const obs = new MutationObserver(() => setNight(root.classList.contains('night')));
-    obs.observe(root, { attributes: true, attributeFilter: ['class'] });
-    return () => obs.disconnect();
-  }, []);
-  const toggle = useCallback(() => {
-    const root = document.documentElement;
-    root.classList.toggle('night');
-    root.classList.toggle('light');
-    setNight(prev => !prev);
-  }, []);
-  return { night, toggle };
-}
-
 // ── Theme toggle button ──
 const ThemeToggleTabBtn = ({ isMobile }: { isMobile: boolean }) => {
-  const { night, toggle } = useNightMode();
+  const { isDark, toggleTheme } = useTheme();
   return (
     <div
       className="tab-item-border nav-icon-btn-wrap"
-      data-tooltip={night ? 'Light mode' : 'Night mode'}
+      data-tooltip={isDark ? 'Light mode' : 'Dark mode'}
     >
       <div className="tab-item">
         <button
           className="tab-label-btn"
-          onClick={toggle}
-          aria-label={night ? 'Switch to light mode' : 'Switch to night mode'}
+          onClick={toggleTheme}
+          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
           style={{ padding: '11px 13px' }}
         >
-          <i className={`bi ${night ? 'bi-sun' : 'bi-moon'}`} style={{ fontSize: '0.85rem' }} />
+          <i className={`bi ${isDark ? 'bi-sun' : 'bi-moon'}`} style={{ fontSize: '0.85rem' }} />
         </button>
       </div>
     </div>
@@ -189,27 +171,19 @@ const SearchTabBtn = ({
 );
 
 const StickyThemeTab = ({ visible, isMobile }: { visible: boolean; isMobile: boolean }) => {
-  const handleClick = useCallback(() => {
-    const root = document.documentElement;
-    root.classList.toggle('night');
-    root.classList.toggle('light');
-  }, []);
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <button
       className={`nav-theme-tab${visible ? ' tab-visible' : ''}`}
-      onClick={handleClick}
-      aria-label="Toggle light/night mode"
+      onClick={toggleTheme}
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
     >
-      <span className="sticky-theme-icon reveal-tab-icon" aria-hidden>
-        <i className="bi bi-moon sticky-icon-moon" />
-        <i className="bi bi-sun  sticky-icon-sun" />
+      <span className="reveal-tab-icon" aria-hidden>
+        <i className={`bi ${isDark ? 'bi-sun' : 'bi-moon'}`} />
       </span>
       {!isMobile && (
-        <span className="sticky-theme-label">
-          <span className="sticky-label-night">Night</span>
-          <span className="sticky-label-light">Light</span>
-        </span>
+        <span>{isDark ? 'Light' : 'Dark'}</span>
       )}
     </button>
   );
@@ -317,18 +291,6 @@ const NAVBAR_CSS = `
 .nav-theme-tab:hover  .reveal-tab-icon { transform: translateX(-2px); }
 .reveal-tab-icon { font-size: 0.82rem; transition: transform 0.2s cubic-bezier(0.34,1.18,0.64,1); }
 
-.sticky-theme-icon { position: relative; display: inline-flex; width: 0.9rem; height: 0.9rem; font-size: 0.9rem; flex-shrink: 0; }
-.sticky-icon-moon, .sticky-icon-sun { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; transition: opacity 0.18s ease; }
-.sticky-icon-moon { opacity: 1; }
-.sticky-icon-sun  { opacity: 0; }
-:root.night .sticky-icon-moon { opacity: 0; }
-:root.night .sticky-icon-sun  { opacity: 1; }
-.sticky-theme-label { position: relative; display: inline-block; min-width: 2.6rem; }
-.sticky-label-night, .sticky-label-light { transition: opacity 0.18s ease; }
-.sticky-label-night { opacity: 1; position: relative; }
-.sticky-label-light { opacity: 0; position: absolute; left: 0; top: 0; pointer-events: none; }
-:root.night .sticky-label-night { opacity: 0; pointer-events: none; }
-:root.night .sticky-label-light { opacity: 1; pointer-events: auto; }
 .nav-reveal-tab::before,
 .nav-theme-tab::before {
   content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 2.5px;
