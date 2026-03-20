@@ -18,32 +18,32 @@ const INDUSTRIES: Industry[] = [
   {
     id: "government",
     title: "Government",
-    description: "Structured systems that align agencies, services, and public execution under one operational surface.",
+    description: "Structured operating systems that align agencies, frontline services, and policy execution into one coordinated command surface for transparent, accountable, and faster public delivery at scale.",
   },
   {
     id: "defense",
     title: "Defense",
-    description: "Layered command environments built for high-stakes coordination, response speed, and operational certainty.",
+    description: "Layered command environments engineered to unify decision authority, tactical coordination, and rapid response flow so high-stakes missions move with clarity, control, and operational certainty.",
   },
   {
     id: "healthcare",
     title: "Healthcare",
-    description: "Clinical operations platforms that improve coordination, reinforce data trust, and elevate care delivery.",
+    description: "Clinical operations platforms built to improve cross-team coordination, reinforce trust in patient-critical data, and elevate consistency, speed, and quality across the full continuum of care delivery.",
   },
   {
     id: "enterprise",
     title: "Enterprise",
-    description: "Execution architecture that turns fragmented business workflows into clear, accountable operating systems.",
+    description: "Execution architecture that turns fragmented business workflows into clear, accountable operating systems, giving leadership better visibility, tighter control loops, and stronger cross-functional alignment.",
   },
   {
     id: "energy",
     title: "Energy",
-    description: "Infrastructure intelligence designed to protect uptime, expose risk earlier, and strengthen grid continuity.",
+    description: "Infrastructure intelligence designed to protect uptime, expose operational risk earlier, and strengthen grid continuity through clearer monitoring, coordinated decisions, and resilient system-wide execution.",
   },
   {
     id: "disaster",
     title: "Disaster Response",
-    description: "Unified response frameworks that help agencies coordinate quickly in degraded and time-critical conditions.",
+    description: "Unified response frameworks that help agencies coordinate quickly in degraded and time-critical conditions, improving situational awareness, resource synchronization, and command continuity when every minute matters.",
   },
 ];
 
@@ -209,7 +209,7 @@ export default function IndustrySection() {
           --rail-pad-end: clamp(0.35rem, 0.9vw, 0.75rem);
           --industry-visible: 3;
           position: relative;
-          background: linear-gradient(180deg, #08090d 0%, #06070a 48%, #030407 100%);
+          background-color: #040507;
           border-top: 1px dashed rgba(255, 255, 255, 0.08);
           border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
           color: var(--content-primary, #fff);
@@ -222,7 +222,7 @@ export default function IndustrySection() {
         @media(min-width:1536px){ .industry-section { --site-gutter-inline: 12rem; } }
 
         :root.light .industry-section {
-          background: linear-gradient(180deg, #f5f7fb 0%, #edf1f7 52%, #ffffff 100%);
+          background-color: #f4f6fa;
           border-top: 1px dashed rgba(0, 0, 0, 0.08);
           border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
         }
@@ -230,11 +230,101 @@ export default function IndustrySection() {
         .industry-sticky {
           min-height: 108vh;
           height: 108vh;
+          position: relative;
+          isolation: isolate;
           display: grid;
           grid-template-rows: auto minmax(0, 1fr);
           gap: clamp(1.1rem, 1.8vw, 1.9rem);
           padding-block: clamp(4.2rem, 5.5vw, 6.1rem) clamp(2.4rem, 3.5vw, 3.3rem);
           overflow: hidden;
+        }
+
+        .industry-sticky::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          z-index: 0;
+          pointer-events: none;
+          background-image:
+            repeating-linear-gradient(
+              90deg,
+              rgba(255, 255, 255, 0.12) 0 1px,
+              transparent 1px 112px
+            ),
+            repeating-linear-gradient(
+              0deg,
+              rgba(255, 255, 255, 0.12) 0 1px,
+              transparent 1px 112px
+            ),
+            repeating-linear-gradient(
+              45deg,
+              transparent 0 38px,
+              rgba(255, 255, 255, 0.04) 38px 40px,
+              transparent 40px 78px
+            ),
+            repeating-linear-gradient(
+              -45deg,
+              transparent 0 38px,
+              rgba(255, 255, 255, 0.04) 38px 40px,
+              transparent 40px 78px
+            ),
+            radial-gradient(
+              circle,
+              rgba(255, 255, 255, 0.84) 0 1.4px,
+              transparent 1.5px
+            );
+          background-size: 112px 112px, 112px 112px, 112px 112px, 112px 112px, 112px 112px;
+          background-position: center;
+          opacity: 0.52;
+        }
+
+        .industry-sticky::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+          pointer-events: none;
+          background:
+            radial-gradient(circle at center, transparent 22%, rgba(0, 0, 0, 0.34) 100%),
+            linear-gradient(180deg, rgba(0, 0, 0, 0.16) 0%, rgba(0, 0, 0, 0.48) 100%);
+        }
+
+        :root.light .industry-sticky::before {
+          background-image:
+            repeating-linear-gradient(
+              90deg,
+              rgba(15, 23, 42, 0.13) 0 1px,
+              transparent 1px 112px
+            ),
+            repeating-linear-gradient(
+              0deg,
+              rgba(15, 23, 42, 0.13) 0 1px,
+              transparent 1px 112px
+            ),
+            repeating-linear-gradient(
+              45deg,
+              transparent 0 38px,
+              rgba(15, 23, 42, 0.045) 38px 40px,
+              transparent 40px 78px
+            ),
+            repeating-linear-gradient(
+              -45deg,
+              transparent 0 38px,
+              rgba(15, 23, 42, 0.045) 38px 40px,
+              transparent 40px 78px
+            ),
+            radial-gradient(
+              circle,
+              rgba(15, 23, 42, 0.58) 0 1.35px,
+              transparent 1.5px
+            );
+          opacity: 0.42;
+        }
+
+        :root.light .industry-sticky::after {
+          background:
+            radial-gradient(circle at center, transparent 18%, rgba(148, 163, 184, 0.2) 100%),
+            linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(203, 213, 225, 0.24) 100%);
         }
 
         .industry-header-shell {
@@ -403,7 +493,9 @@ export default function IndustrySection() {
           font-size: clamp(0.9rem, 1vw, 1.04rem);
           line-height: 1.5;
           color: rgba(226, 232, 240, 0.84);
-          max-width: 33ch;
+          width: 100%;
+          max-width: none;
+          text-wrap: pretty;
         }
 
         :root.light .industry-card-title {
