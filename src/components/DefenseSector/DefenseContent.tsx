@@ -53,7 +53,7 @@ function getPlaceholderContent(tabId: string, subtabId: string): { title: string
       desc: `The operational doctrine governing ${systemName} deployment, engagement parameters, and strategic positioning within the broader defense architecture.`,
       items: [
         { title: 'Primary Mission', desc: 'Theater-level coordination of defense assets with real-time situational awareness fusion and automated threat response orchestration.', icon: 'bi-bullseye' },
-        { title: 'Secondary Capabilities', desc: 'Humanitarian operation support, disaster response coordination, and allied force interoperability in joint operational environments.', icon: 'bi-people' },
+        { title: 'Secondary Capabilities', desc: 'Humanitarian operation support, emergency response coordination, and allied force interoperability in joint operational environments.', icon: 'bi-people' },
       ],
     },
     'megiddo:capabilities': {

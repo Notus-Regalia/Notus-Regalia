@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import governmentCardPng from "./government-card.png";
+import defenseCardPng from "./defense-card.png";
+import healthcareCardPng from "./healthcare-card.png";
+import enterpriseCardPng from "./enterprise-card.png";
+import energyCardPng from "./energy-card.png";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -12,40 +17,49 @@ type Industry = {
   id: string;
   title: string;
   description: string;
+  href: string;
 };
 
 const INDUSTRIES: Industry[] = [
   {
     id: "government",
     title: "Government",
-    description: "Structured operating systems that align agencies, frontline services, and policy execution into one coordinated command surface for transparent, accountable, and faster public delivery at scale.",
+    description: "Unified public-sector systems for faster, accountable, and coordinated service delivery.",
+    href: "/?tab=technologies&subtab=technologies-civic-operations",
   },
   {
     id: "defense",
     title: "Defense",
-    description: "Layered command environments engineered to unify decision authority, tactical coordination, and rapid response flow so high-stakes missions move with clarity, control, and operational certainty.",
+    description: "Command environments for decisive coordination, rapid response, and operational clarity.",
+    href: "/defense",
   },
   {
     id: "healthcare",
     title: "Healthcare",
-    description: "Clinical operations platforms built to improve cross-team coordination, reinforce trust in patient-critical data, and elevate consistency, speed, and quality across the full continuum of care delivery.",
+    description: "Clinical platforms that improve coordination, data trust, and care delivery speed.",
+    href: "/?tab=technologies&subtab=technologies-healthcare",
   },
   {
     id: "enterprise",
     title: "Enterprise",
-    description: "Execution architecture that turns fragmented business workflows into clear, accountable operating systems, giving leadership better visibility, tighter control loops, and stronger cross-functional alignment.",
+    description: "Execution systems that align workflows, visibility, and cross-functional decisions.",
+    href: "/?tab=technologies&subtab=technologies-enterprise",
   },
   {
     id: "energy",
     title: "Energy",
-    description: "Infrastructure intelligence designed to protect uptime, expose operational risk earlier, and strengthen grid continuity through clearer monitoring, coordinated decisions, and resilient system-wide execution.",
-  },
-  {
-    id: "disaster",
-    title: "Disaster Response",
-    description: "Unified response frameworks that help agencies coordinate quickly in degraded and time-critical conditions, improving situational awareness, resource synchronization, and command continuity when every minute matters.",
+    description: "Infrastructure intelligence for uptime, early risk signals, and resilient grid continuity.",
+    href: "/?tab=technologies&subtab=technologies-energy",
   },
 ];
+
+const INDUSTRY_CARD_ART: Record<string, string | undefined> = {
+  government: governmentCardPng.src,
+  defense: defenseCardPng.src,
+  healthcare: healthcareCardPng.src,
+  enterprise: enterpriseCardPng.src,
+  energy: energyCardPng.src,
+};
 
 const MOBILE_BREAKPOINT = 768;
 
@@ -64,7 +78,6 @@ export default function IndustrySection() {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const cardRefs = useRef<Array<HTMLElement | null>>([]);
   const progressFillRef = useRef<HTMLSpanElement | null>(null);
-  const activeIndexRef = useRef(0);
   const lastProgressRef = useRef(-1);
   const refreshRafRef = useRef<number | null>(null);
 
@@ -91,31 +104,12 @@ export default function IndustrySection() {
 
     if (!viewport || !track || !section || !sticky) return;
 
-    cardRefs.current.forEach((card, idx) => {
-      if (!card) return;
-      card.classList.toggle("is-active", idx === activeIndexRef.current);
-    });
-
     const setProgress = (progress: number) => {
       const clamped = Math.min(Math.max(progress, 0), 1);
       if (progressFillRef.current && Math.abs(clamped - lastProgressRef.current) > 0.001) {
         lastProgressRef.current = clamped;
         progressFillRef.current.style.transform = `scaleX(${clamped})`;
       }
-
-      const maxLead = Math.max(0, INDUSTRIES.length - cardsVisible);
-      const nextIndex = Math.min(
-        INDUSTRIES.length - 1,
-        Math.round(clamped * maxLead),
-      );
-
-      if (nextIndex === activeIndexRef.current) return;
-
-      const prevCard = cardRefs.current[activeIndexRef.current];
-      const nextCard = cardRefs.current[nextIndex];
-      prevCard?.classList.remove("is-active");
-      nextCard?.classList.add("is-active");
-      activeIndexRef.current = nextIndex;
     };
 
     if (isMobile) {
@@ -150,7 +144,10 @@ export default function IndustrySection() {
             (lastCard.offsetLeft + lastCard.offsetWidth / 2) - viewport.clientWidth / 2,
           );
 
-          return Math.max(baseTravel, centerTravel);
+          // Small bias keeps the last card clearly centered before the section releases.
+          const centerBias = Math.max(16, viewport.clientWidth * 0.04);
+
+          return Math.max(baseTravel, centerTravel + centerBias);
         };
 
         gsap.set(track, { x: 0 });
@@ -164,7 +161,7 @@ export default function IndustrySection() {
             start: "top top",
             end: () => `+=${getTravelDistance()}`,
             pin: sticky,
-            scrub: 0.9,
+            scrub: true,
             anticipatePin: 1,
             invalidateOnRefresh: true,
             onUpdate: (self) => setProgress(self.progress),
@@ -399,35 +396,6 @@ export default function IndustrySection() {
           align-items: flex-start;
         }
 
-        .industry-viewport::before,
-        .industry-viewport::after {
-          content: "";
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          width: clamp(1rem, 2.4vw, 2.8rem);
-          z-index: 3;
-          pointer-events: none;
-        }
-
-        .industry-viewport::before {
-          left: 0;
-          background: linear-gradient(90deg, rgba(2, 3, 4, 0.74) 0%, rgba(2, 3, 4, 0) 100%);
-        }
-
-        .industry-viewport::after {
-          right: 0;
-          background: linear-gradient(270deg, rgba(2, 3, 4, 0.74) 0%, rgba(2, 3, 4, 0) 100%);
-        }
-
-        :root.light .industry-viewport::before {
-          background: linear-gradient(90deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0) 100%);
-        }
-
-        :root.light .industry-viewport::after {
-          background: linear-gradient(270deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 255, 255, 0) 100%);
-        }
-
         .industry-track {
           display: grid;
           grid-auto-flow: column;
@@ -451,6 +419,7 @@ export default function IndustrySection() {
         }
 
         .industry-card {
+          position: relative;
           height: clamp(28rem, 74vh, 56rem);
           min-height: 0;
           border-radius: 0;
@@ -460,24 +429,117 @@ export default function IndustrySection() {
           flex-direction: column;
           justify-content: flex-end;
           background: linear-gradient(180deg, rgba(11, 14, 19, 0.68) 0%, rgba(8, 11, 16, 0.9) 52%, rgba(6, 9, 14, 0.98) 100%);
-          transition: border-color 0.18s ease, box-shadow 0.18s ease;
           contain: layout paint style;
           backface-visibility: hidden;
+          isolation: isolate;
+          text-decoration: none;
+          color: inherit;
+          cursor: pointer;
+          opacity: 0.78;
+          transition: opacity 0.22s ease, border-color 0.18s ease, box-shadow 0.18s ease;
         }
 
-        .industry-card.is-active {
-          border-color: rgba(255, 255, 255, 0.26);
-          box-shadow: 0 14px 38px rgba(0, 0, 0, 0.22);
+        .industry-card:hover,
+        .industry-card:focus-visible {
+          opacity: 1;
+        }
+
+        .industry-card:focus-visible {
+          outline: 1px solid rgba(227, 27, 84, 0.75);
+          outline-offset: -1px;
+        }
+
+        .industry-card::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          z-index: 3;
+          pointer-events: none;
+          padding: 1px;
+          background: radial-gradient(
+            420px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+            rgba(0, 255, 166, 0.86) 0%,
+            rgba(255, 215, 0, 0.72) 22%,
+            rgba(236, 72, 153, 0.68) 44%,
+            rgba(147, 51, 234, 0.62) 62%,
+            rgba(59, 130, 246, 0.56) 76%,
+            transparent 88%
+          );
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          opacity: 0;
+          transition: opacity 0.24s ease;
+        }
+
+        .industry-card:hover::before,
+        .industry-card:focus-visible::before {
+          opacity: 1;
+        }
+
+        .industry-card::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 62%;
+          z-index: 1;
+          pointer-events: none;
+          background:
+            linear-gradient(
+              180deg,
+              rgba(5, 8, 14, 0) 0%,
+              rgba(5, 8, 14, 0.62) 52%,
+              rgba(5, 8, 14, 0.94) 100%
+            );
+        }
+
+        .industry-card-media {
+          position: absolute;
+          inset: 0;
+          z-index: 0;
+          pointer-events: none;
+          overflow: hidden;
+          display: flex;
+          align-items: stretch;
+          justify-content: center;
+        }
+
+        .industry-card-media img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          object-position: top center;
+          opacity: 0.94;
+          transform: scale(1.045);
+          filter: saturate(1.05) contrast(1.04);
+        }
+
+        .industry-card-content {
+          position: relative;
+          z-index: 2;
+          margin-top: auto;
         }
 
         :root.light .industry-card {
           border: 1px solid rgba(15, 23, 42, 0.15);
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.66) 0%, rgba(250, 252, 255, 0.88) 44%, rgba(242, 246, 252, 0.98) 100%);
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(250, 252, 255, 0.96) 44%, rgba(242, 246, 252, 1) 100%);
+          opacity: 1;
         }
 
-        :root.light .industry-card.is-active {
-          border-color: rgba(15, 23, 42, 0.32);
-          box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+        :root.light .industry-card::after {
+          background:
+            linear-gradient(
+              180deg,
+              rgba(255, 255, 255, 0) 0%,
+              rgba(247, 250, 255, 0.86) 52%,
+              rgba(242, 246, 252, 1) 100%
+            );
+        }
+
+        :root.light .industry-card:focus-visible {
+          outline-color: rgba(227, 27, 84, 0.8);
         }
 
         .industry-card-title {
@@ -486,6 +548,15 @@ export default function IndustrySection() {
           line-height: 1.05;
           letter-spacing: -0.03em;
           color: rgba(248, 250, 252, 0.98);
+          display: inline-flex;
+          align-items: center;
+          gap: 1.1rem;
+        }
+
+        .industry-card-title i {
+          font-size: 0.65em;
+          line-height: 1;
+          opacity: 0.9;
         }
 
         .industry-card-description {
@@ -562,6 +633,16 @@ export default function IndustrySection() {
           .industry-card {
             height: clamp(24rem, 64vh, 32rem);
           }
+
+          .industry-card-media img {
+            transform: scale(1.06);
+          }
+        }
+
+        @media (hover: none), (pointer: coarse) {
+          .industry-card {
+            opacity: 1;
+          }
         }
 
         @media (max-width: 639px) {
@@ -580,6 +661,10 @@ export default function IndustrySection() {
 
           .industry-card {
             padding: 1.1rem;
+          }
+
+          .industry-card-media img {
+            transform: scale(1.07);
           }
 
           .industry-card-title {
@@ -619,16 +704,33 @@ export default function IndustrySection() {
           <div ref={viewportRef} className="industry-viewport">
             <div ref={trackRef} className="industry-track">
               {INDUSTRIES.map((industry, index) => (
-                <article
+                <a
                   key={industry.id}
+                  href={industry.href}
+                  aria-label={`Open ${industry.title} page`}
+                  onMouseMove={(event) => {
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    event.currentTarget.style.setProperty("--mouse-x", `${event.clientX - rect.left}px`);
+                    event.currentTarget.style.setProperty("--mouse-y", `${event.clientY - rect.top}px`);
+                  }}
                   ref={(el) => {
                     cardRefs.current[index] = el;
                   }}
-                  className={`industry-card${index === 0 ? " is-active" : ""}`}
+                  className="industry-card"
                 >
-                  <h3 className="industry-card-title">{industry.title}</h3>
-                  <p className="industry-card-description">{industry.description}</p>
-                </article>
+                  {INDUSTRY_CARD_ART[industry.id] ? (
+                    <div className="industry-card-media" aria-hidden="true">
+                      <img src={INDUSTRY_CARD_ART[industry.id]} alt="" loading="lazy" />
+                    </div>
+                  ) : null}
+                  <div className="industry-card-content">
+                    <h3 className="industry-card-title">
+                      <span>{industry.title}</span>
+                      <i className="bi bi-arrow-right" aria-hidden="true" />
+                    </h3>
+                    <p className="industry-card-description">{industry.description}</p>
+                  </div>
+                </a>
               ))}
             </div>
           </div>

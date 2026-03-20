@@ -94,7 +94,6 @@ const NAV_ITEMS: NavItem[] = [
       { id: 'technologies-healthcare',       label: 'Healthcare' },
       { id: 'technologies-enterprise',       label: 'Enterprise' },
       { id: 'technologies-energy',           label: 'Energy' },
-      { id: 'technologies-disaster-response', label: 'Disaster Response' },
     ],
   },
 ];

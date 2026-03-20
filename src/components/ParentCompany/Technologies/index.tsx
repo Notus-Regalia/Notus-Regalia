@@ -9,8 +9,7 @@ type TechnologiesSubtab =
   | 'technologies-civic-operations'
   | 'technologies-healthcare'
   | 'technologies-enterprise'
-  | 'technologies-energy'
-  | 'technologies-disaster-response';
+  | 'technologies-energy';
 
 interface TechnologiesProps {
   activeSubtab?: string;
@@ -22,7 +21,7 @@ const FADE_OUT_MS = 180;
 const FADE_IN_MS = 260;
 
 const getPanelFromSubtab = (subtab?: string): TechnologiesPanel => {
-  if (subtab === 'technologies-defense' || subtab === 'technologies-disaster-response') {
+  if (subtab === 'technologies-defense') {
     return 'defense';
   }
   if (subtab === 'technologies-healthcare') return 'healthcare';
@@ -35,8 +34,7 @@ const Technologies = ({ activeSubtab }: TechnologiesProps) => {
     activeSubtab === 'technologies-civic-operations' ||
     activeSubtab === 'technologies-healthcare' ||
     activeSubtab === 'technologies-enterprise' ||
-    activeSubtab === 'technologies-energy' ||
-    activeSubtab === 'technologies-disaster-response'
+    activeSubtab === 'technologies-energy'
   ) ? activeSubtab : 'technologies-civic-operations';
 
   const targetPanel = useMemo(() => getPanelFromSubtab(active), [active]);

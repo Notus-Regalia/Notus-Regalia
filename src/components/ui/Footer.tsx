@@ -349,7 +349,6 @@ const Footer = ({ onNavigate }: FooterProps) => {
         { label: 'Healthcare',       tabId: 'home' },
         { label: 'Enterprise',       tabId: 'home' },
         { label: 'Energy',           tabId: 'home' },
-        { label: 'Disaster Response',tabId: 'home' },
       ]
     },
     {

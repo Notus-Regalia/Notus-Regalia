@@ -40,8 +40,12 @@ const ClientWrapper = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tabFromUrl = params.get('tab');
+    const subtabFromUrl = params.get('subtab');
     if (tabFromUrl && isValidTab(tabFromUrl)) {
       setActiveTab(tabFromUrl);
+      setActiveSubtab(subtabFromUrl ?? DEFAULT_SUBTABS[tabFromUrl]);
+    } else {
+      setActiveSubtab(undefined);
     }
   }, [isValidTab]);
 
@@ -51,11 +55,15 @@ const ClientWrapper = () => {
         setActiveInfoContent(event.state.infoTab as InfoContentType);
         return;
       }
-      const tab = event.state?.tab;
-      if (tab && isValidTab(tab)) {
-        setActiveTab(tab);
+      const params = new URLSearchParams(window.location.search);
+      const tabFromUrl = params.get('tab');
+      const subtabFromUrl = params.get('subtab');
+      if (tabFromUrl && isValidTab(tabFromUrl)) {
+        setActiveTab(tabFromUrl);
+        setActiveSubtab(subtabFromUrl ?? DEFAULT_SUBTABS[tabFromUrl]);
       } else {
         setActiveTab('home');
+        setActiveSubtab(undefined);
       }
     };
     window.addEventListener('popstate', handlePopState);
@@ -70,15 +78,22 @@ const ClientWrapper = () => {
       gsapScrollToTop();
       return;
     }
+    const nextSubtab = DEFAULT_SUBTABS[tab as TabType];
     setActiveTab(tab);
-    setActiveSubtab(DEFAULT_SUBTABS[tab as TabType]);
+    setActiveSubtab(nextSubtab);
     const url = new URL(window.location.href);
     if (tab === 'home') {
       url.searchParams.delete('tab');
+      url.searchParams.delete('subtab');
     } else {
       url.searchParams.set('tab', tab);
+      if (nextSubtab) {
+        url.searchParams.set('subtab', nextSubtab);
+      } else {
+        url.searchParams.delete('subtab');
+      }
     }
-    window.history.pushState({ tab }, '', url);
+    window.history.pushState({ tab, subtab: nextSubtab }, '', url);
   }, [activeTab, isValidTab]);
 
 const handleInfoContentChange = useCallback((content: InfoContentType) => {
@@ -86,17 +101,38 @@ const handleInfoContentChange = useCallback((content: InfoContentType) => {
 }, []);
 
   const handleSubtabClick = useCallback((parentTabId: string, subtabId: string) => {
+    if (!isValidTab(parentTabId)) return;
+    setActiveTab(parentTabId);
     setActiveSubtab(subtabId);
-  }, []);
+    const url = new URL(window.location.href);
+    if (parentTabId === 'home') {
+      url.searchParams.delete('tab');
+      url.searchParams.delete('subtab');
+    } else {
+      url.searchParams.set('tab', parentTabId);
+      url.searchParams.set('subtab', subtabId);
+    }
+    window.history.pushState({ tab: parentTabId, subtab: subtabId }, '', url);
+  }, [isValidTab]);
 
   const handleFooterNavigate = useCallback((tabId: string, subtabId?: string, infoContent?: string) => {
     if (!isValidTab(tabId)) return;
     setActiveTab(tabId);
     setActiveSubtab(subtabId ?? DEFAULT_SUBTABS[tabId as TabType]);
     const url = new URL(window.location.href);
-    if (tabId === 'home') url.searchParams.delete('tab');
-    else url.searchParams.set('tab', tabId);
-    window.history.pushState({ tab: tabId }, '', url);
+    if (tabId === 'home') {
+      url.searchParams.delete('tab');
+      url.searchParams.delete('subtab');
+    } else {
+      url.searchParams.set('tab', tabId);
+      const nextSubtab = subtabId ?? DEFAULT_SUBTABS[tabId as TabType];
+      if (nextSubtab) {
+        url.searchParams.set('subtab', nextSubtab);
+      } else {
+        url.searchParams.delete('subtab');
+      }
+    }
+    window.history.pushState({ tab: tabId, subtab: subtabId ?? DEFAULT_SUBTABS[tabId as TabType] }, '', url);
     if (infoContent) setActiveInfoContent(infoContent as InfoContentType);
     gsapScrollToTop();
   }, [isValidTab]);

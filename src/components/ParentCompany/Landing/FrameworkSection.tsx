@@ -845,6 +845,21 @@ export default function FrameworkSection() {
           box-shadow: 0 0 6px rgba(227,27,84,0.6);
           transition: width 0.1s linear;
         }
+        @media (min-width: 768px) and (max-width: 1366px), (min-width: 768px) and (max-height: 860px) {
+          .fw-heading {
+            font-size: clamp(1.9rem, 3.6vw, 2.7rem);
+          }
+          .fw-desc {
+            font-size: clamp(0.94rem, 1.14vw, 1.06rem);
+          }
+          .fw-roster-name {
+            font-size: clamp(1.02rem, 1.58vw, 1.38rem);
+          }
+          .fw-accordion-desc {
+            font-size: clamp(0.88rem, 1.04vw, 1.02rem);
+            line-height: 1.45;
+          }
+        }
         @media(max-width:767px) {
           .fw-outer {
             height: auto;
