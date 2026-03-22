@@ -218,7 +218,30 @@ const Threads: React.FC<ThreadsProps> = ({
       container.addEventListener('mouseleave', handleMouseLeave);
     }
 
+    let isInViewport = true;
+    let isDocumentVisible = document.visibilityState === 'visible';
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const targetFrameInterval = prefersReducedMotion ? 1000 / 30 : 1000 / 45;
+    let lastRenderAt = 0;
+
+    const canRender = () => isInViewport && isDocumentVisible;
+
+    const stopRenderLoop = () => {
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+        animationFrameId.current = 0;
+      }
+    };
+
     function update(t: number) {
+      if (!canRender()) {
+        animationFrameId.current = 0;
+        return;
+      }
+      animationFrameId.current = requestAnimationFrame(update);
+      if (lastRenderAt !== 0 && t - lastRenderAt < targetFrameInterval) return;
+      lastRenderAt = t;
+
       if (enableMouseInteraction) {
         const smoothing = 0.05;
         currentMouse[0] += smoothing * (targetMouse[0] - currentMouse[0]);
@@ -232,14 +255,42 @@ const Threads: React.FC<ThreadsProps> = ({
       program.uniforms.iTime.value = t * 0.001;
 
       renderer.render({ scene: mesh });
-      animationFrameId.current = requestAnimationFrame(update);
     }
-    animationFrameId.current = requestAnimationFrame(update);
+
+    const startRenderLoop = () => {
+      if (animationFrameId.current || !canRender()) return;
+      animationFrameId.current = requestAnimationFrame(update);
+    };
+
+    const syncVisibility = () => {
+      isDocumentVisible = document.visibilityState === 'visible';
+      if (canRender()) startRenderLoop();
+      else stopRenderLoop();
+    };
+
+    document.addEventListener('visibilitychange', syncVisibility);
+
+    let observer: IntersectionObserver | null = null;
+    if (typeof IntersectionObserver !== 'undefined') {
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          isInViewport = entry.isIntersecting && entry.intersectionRatio > 0.05;
+          if (canRender()) startRenderLoop();
+          else stopRenderLoop();
+        },
+        { threshold: [0, 0.05, 0.2] }
+      );
+      observer.observe(container);
+    }
+
+    startRenderLoop();
 
     return () => {
-      if (animationFrameId.current) cancelAnimationFrame(animationFrameId.current);
+      stopRenderLoop();
       clearTimeout(resizeTimer);
       window.removeEventListener('resize', debouncedResize);
+      document.removeEventListener('visibilitychange', syncVisibility);
+      observer?.disconnect();
 
       if (enableMouseInteraction) {
         container.removeEventListener('mousemove', handleMouseMove);

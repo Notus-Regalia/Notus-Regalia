@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import governmentCardPng from "./government-card.png";
@@ -18,6 +18,13 @@ type Industry = {
   title: string;
   description: string;
   href: string;
+};
+
+type IndustryCardElement = HTMLElement & {
+  __industryGlowRaf?: number;
+  __industryGlowX?: number;
+  __industryGlowY?: number;
+  __industryGlowRect?: DOMRect;
 };
 
 const INDUSTRIES: Industry[] = [
@@ -83,6 +90,60 @@ export default function IndustrySection() {
 
   const [isMobile, setIsMobile] = useState(false);
   const [cardsVisible, setCardsVisible] = useState(3);
+
+  const queueGlowUpdate = (target: IndustryCardElement, clientX: number, clientY: number) => {
+    if (!target.__industryGlowRect) {
+      target.__industryGlowRect = target.getBoundingClientRect();
+    }
+
+    let x = clientX - target.__industryGlowRect.left;
+    let y = clientY - target.__industryGlowRect.top;
+
+    // Re-measure only when pointer leaves cached bounds (e.g., after scroll/layout shift).
+    if (
+      x < -12 ||
+      y < -12 ||
+      x > target.__industryGlowRect.width + 12 ||
+      y > target.__industryGlowRect.height + 12
+    ) {
+      target.__industryGlowRect = target.getBoundingClientRect();
+      x = clientX - target.__industryGlowRect.left;
+      y = clientY - target.__industryGlowRect.top;
+    }
+
+    target.__industryGlowX = x;
+    target.__industryGlowY = y;
+
+    if (target.__industryGlowRaf !== undefined) return;
+    target.__industryGlowRaf = window.requestAnimationFrame(() => {
+      target.style.setProperty("--mouse-x", `${target.__industryGlowX ?? 0}px`);
+      target.style.setProperty("--mouse-y", `${target.__industryGlowY ?? 0}px`);
+      target.__industryGlowRaf = undefined;
+    });
+  };
+
+  const handleCardPointerEnter = (event: ReactPointerEvent<HTMLElement>) => {
+    if (event.pointerType === "touch") return;
+    queueGlowUpdate(event.currentTarget as IndustryCardElement, event.clientX, event.clientY);
+  };
+
+  const handleCardPointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    if (event.pointerType === "touch") return;
+    queueGlowUpdate(event.currentTarget as IndustryCardElement, event.clientX, event.clientY);
+  };
+
+  const handleCardPointerLeave = (event: ReactPointerEvent<HTMLElement>) => {
+    const target = event.currentTarget as IndustryCardElement;
+    if (target.__industryGlowRaf !== undefined) {
+      window.cancelAnimationFrame(target.__industryGlowRaf);
+      target.__industryGlowRaf = undefined;
+    }
+    target.__industryGlowRect = undefined;
+    target.__industryGlowX = undefined;
+    target.__industryGlowY = undefined;
+    target.style.removeProperty("--mouse-x");
+    target.style.removeProperty("--mouse-y");
+  };
 
   useEffect(() => {
     const syncViewportState = () => {
@@ -156,12 +217,13 @@ export default function IndustrySection() {
         gsap.to(track, {
           x: () => -getTravelDistance(),
           ease: "none",
+          force3D: true,
           scrollTrigger: {
             trigger: section,
-            start: "top top",
+            start: "bottom bottom",
             end: () => `+=${getTravelDistance()}`,
             pin: sticky,
-            scrub: true,
+            scrub: 0.35,
             anticipatePin: 1,
             invalidateOnRefresh: true,
             onUpdate: (self) => setProgress(self.progress),
@@ -225,14 +287,14 @@ export default function IndustrySection() {
         }
 
         .industry-sticky {
-          min-height: 108vh;
-          height: 108vh;
+          min-height: 122vh;
+          height: 122vh;
           position: relative;
           isolation: isolate;
           display: grid;
           grid-template-rows: auto minmax(0, 1fr);
-          gap: clamp(1.1rem, 1.8vw, 1.9rem);
-          padding-block: clamp(4.2rem, 5.5vw, 6.1rem) clamp(2.4rem, 3.5vw, 3.3rem);
+          gap: clamp(1.9rem, 3.2vw, 3.2rem);
+          padding-block: clamp(5.4rem, 7.2vw, 8.2rem) clamp(1.4rem, 2.2vw, 2.2rem);
           overflow: hidden;
         }
 
@@ -332,7 +394,7 @@ export default function IndustrySection() {
 
         .industry-header {
           display: grid;
-          grid-template-columns: minmax(0, 1fr) auto;
+          grid-template-columns: minmax(0, 1fr);
           column-gap: clamp(1rem, 1.8vw, 2rem);
           align-items: end;
         }
@@ -360,13 +422,16 @@ export default function IndustrySection() {
         }
 
         .industry-progress-shell {
-          justify-self: end;
-          align-self: end;
-          margin-bottom: 0.24rem;
+          position: absolute;
+          left: 50%;
+          bottom: clamp(0.75rem, 1.8vw, 1.45rem);
+          transform: translateX(-50%);
+          z-index: 4;
+          pointer-events: none;
         }
 
         .industry-progress-track {
-          width: clamp(9.5rem, 18vw, 14rem);
+          width: clamp(11rem, 26vw, 18rem);
           height: 2px;
           border-radius: 999px;
           background: rgba(255, 255, 255, 0.12);
@@ -512,8 +577,7 @@ export default function IndustrySection() {
           object-fit: cover;
           object-position: top center;
           opacity: 0.94;
-          transform: scale(1.045);
-          filter: saturate(1.05) contrast(1.04);
+          transform: scale(1.02);
         }
 
         .industry-card-content {
@@ -583,13 +647,8 @@ export default function IndustrySection() {
             row-gap: 0.85rem;
           }
 
-          .industry-progress-shell {
-            justify-self: start;
-            margin-bottom: 0;
-          }
-
           .industry-progress-track {
-            width: clamp(9.5rem, 32vw, 13.5rem);
+            width: clamp(10rem, 42vw, 14.5rem);
           }
         }
 
@@ -601,7 +660,7 @@ export default function IndustrySection() {
           .industry-sticky {
             min-height: auto;
             height: auto;
-            gap: 1rem;
+            gap: 1.45rem;
             padding-top: 3.8rem;
             padding-bottom: 3.1rem;
           }
@@ -692,12 +751,6 @@ export default function IndustrySection() {
                   Scroll to move through the industry rail while the section stays pinned until the last card.
                 </p>
               </div>
-
-              <div className="industry-progress-shell">
-                <div className="industry-progress-track" aria-hidden="true">
-                  <span ref={progressFillRef} className="industry-progress-fill" />
-                </div>
-              </div>
             </header>
           </div>
 
@@ -708,11 +761,10 @@ export default function IndustrySection() {
                   key={industry.id}
                   href={industry.href}
                   aria-label={`Open ${industry.title} page`}
-                  onMouseMove={(event) => {
-                    const rect = event.currentTarget.getBoundingClientRect();
-                    event.currentTarget.style.setProperty("--mouse-x", `${event.clientX - rect.left}px`);
-                    event.currentTarget.style.setProperty("--mouse-y", `${event.clientY - rect.top}px`);
-                  }}
+                  onPointerEnter={handleCardPointerEnter}
+                  onPointerMove={handleCardPointerMove}
+                  onPointerLeave={handleCardPointerLeave}
+                  onPointerCancel={handleCardPointerLeave}
                   ref={(el) => {
                     cardRefs.current[index] = el;
                   }}
@@ -720,7 +772,7 @@ export default function IndustrySection() {
                 >
                   {INDUSTRY_CARD_ART[industry.id] ? (
                     <div className="industry-card-media" aria-hidden="true">
-                      <img src={INDUSTRY_CARD_ART[industry.id]} alt="" loading="lazy" />
+                      <img src={INDUSTRY_CARD_ART[industry.id]} alt="" loading="lazy" decoding="async" />
                     </div>
                   ) : null}
                   <div className="industry-card-content">
@@ -732,6 +784,12 @@ export default function IndustrySection() {
                   </div>
                 </a>
               ))}
+            </div>
+          </div>
+
+          <div className="industry-progress-shell" aria-hidden="true">
+            <div className="industry-progress-track">
+              <span ref={progressFillRef} className="industry-progress-fill" />
             </div>
           </div>
         </div>

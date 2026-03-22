@@ -44,8 +44,14 @@ const SmoothScroller = ({ children }: SmoothScrollerProps) => {
     const isMobile =
       window.matchMedia("(pointer: coarse)").matches &&
       ("ontouchstart" in window || navigator.maxTouchPoints > 0);
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+    const lowPowerDevice =
+      prefersReducedMotion ||
+      (typeof navigator.hardwareConcurrency === "number" && navigator.hardwareConcurrency <= 6) ||
+      (typeof deviceMemory === "number" && deviceMemory <= 4);
 
-    if (isMobile) {
+    if (isMobile || lowPowerDevice) {
       requestAnimationFrame(() => {
         window.scrollTo({ top: 0, left: 0, behavior: "instant" });
       });
@@ -59,9 +65,9 @@ const SmoothScroller = ({ children }: SmoothScrollerProps) => {
     smoother.current = ScrollSmoother.create({
       wrapper: "#smooth-wrapper",
       content: "#smooth-content",
-      smooth: 1.5,
-      effects: true,
-      normalizeScroll: true,
+      smooth: 0.9,
+      effects: false,
+      normalizeScroll: false,
       ignoreMobileResize: true,
     });
 

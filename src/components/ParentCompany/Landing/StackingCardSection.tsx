@@ -57,10 +57,12 @@ const CARDS = [
 export default function StackingCards() {
   const outerRef = useRef(null);
   const stickyRef = useRef(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const swipeStartXRef = useRef<number | null>(null);
   const swipeStartYRef = useRef<number | null>(null);
   const didSwipeRef = useRef(false);
-  const [progress, setProgress] = useState(0);
+  const hintVisibleRef = useRef(true);
+  const [showScrollHint, setShowScrollHint] = useState(true);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [mobileStep, setMobileStep] = useState(0);
@@ -75,10 +77,59 @@ export default function StackingCards() {
 
   useEffect(() => {
     if (isMobile) {
-      setProgress(1);
+      hintVisibleRef.current = false;
+      setShowScrollHint(false);
       setMobileStep(0);
       return;
     }
+
+    hintVisibleRef.current = true;
+    setShowScrollHint(true);
+
+    const clamp01 = (value: number) => Math.min(Math.max(value, 0), 1);
+    const easeOutCubic = (value: number) => 1 - Math.pow(1 - value, 3);
+    const updateDesktopCards = (nextProgress: number) => {
+      const cardCount = CARDS.length;
+      const transitionCount = cardCount - 1;
+      const step = 1 / transitionCount;
+      const transitionSpan = step * 0.86;
+
+      for (let index = 0; index < cardCount; index += 1) {
+        const cardEl = cardRefs.current[index];
+        if (!cardEl) continue;
+
+        const inStart = index === 0 ? 0 : (index - 1) * step;
+        const inRaw = index === 0 ? 1 : clamp01((nextProgress - inStart) / transitionSpan);
+        const inEased = index === 0 ? 1 : easeOutCubic(inRaw);
+        const queuedGap = 12;
+        const queuedDepth = Math.max(0, index - 1) * 8;
+        const translateY = index === 0 ? 0 : (1 - inEased) * (100 + queuedGap + queuedDepth);
+
+        let scale = 1;
+        let brightness = 1;
+        if (index < cardCount - 1) {
+          const outStart = index * step;
+          const outRaw = clamp01((nextProgress - outStart) / transitionSpan);
+          scale = 1 - outRaw * 0.06;
+          brightness = 1 - outRaw * 0.55;
+        }
+
+        cardEl.style.transform = `translateY(${translateY}%) scale(${scale})`;
+        cardEl.style.filter = `brightness(${brightness})`;
+        cardEl.style.zIndex = String(index + 1);
+      }
+    };
+
+    const updateHint = (nextProgress: number) => {
+      const shouldShow = nextProgress < 0.05;
+      if (shouldShow !== hintVisibleRef.current) {
+        hintVisibleRef.current = shouldShow;
+        setShowScrollHint(shouldShow);
+      }
+    };
+
+    updateDesktopCards(0);
+    updateHint(0);
 
     let ctx: gsap.Context | null = null;
     const id = setTimeout(() => {
@@ -90,7 +141,14 @@ export default function StackingCards() {
           pin: stickyRef.current,
           pinSpacing: false,
           anticipatePin: 1,
-          onUpdate: (self) => setProgress(self.progress),
+          onUpdate: (self) => {
+            updateDesktopCards(self.progress);
+            updateHint(self.progress);
+          },
+          onRefresh: (self) => {
+            updateDesktopCards(self.progress);
+            updateHint(self.progress);
+          },
         });
       });
     }, 100);
@@ -99,40 +157,6 @@ export default function StackingCards() {
       ctx?.revert();
     };
   }, [isMobile]);
-
-  const getCardStyle = (index: number) => {
-    const p = progress;
-    const cardCount = CARDS.length;
-    if (cardCount <= 1) return { zIndex: 1 };
-
-    const clamp01 = (value: number) => Math.min(Math.max(value, 0), 1);
-    const easeOutCubic = (value: number) => 1 - Math.pow(1 - value, 3);
-    const transitionCount = cardCount - 1;
-    const step = 1 / transitionCount;
-    const transitionSpan = step * 0.86;
-
-    const inStart = index === 0 ? 0 : (index - 1) * step;
-    const inRaw = index === 0 ? 1 : clamp01((p - inStart) / transitionSpan);
-    const inEased = index === 0 ? 1 : easeOutCubic(inRaw);
-    const queuedGap = 12;
-    const queuedDepth = Math.max(0, index - 1) * 8;
-    const translateY = index === 0 ? 0 : (1 - inEased) * (100 + queuedGap + queuedDepth);
-
-    let scale = 1;
-    let brightness = 1;
-    if (index < cardCount - 1) {
-      const outStart = index * step;
-      const outRaw = clamp01((p - outStart) / transitionSpan);
-      scale = 1 - outRaw * 0.06;
-      brightness = 1 - outRaw * 0.55;
-    }
-
-    return {
-      transform: `translateY(${translateY}%) scale(${scale})`,
-      filter: `brightness(${brightness})`,
-      zIndex: index + 1,
-    };
-  };
 
   const getMobileCardStyle = (index: number) => {
     const dropped = index < mobileStep;
@@ -215,11 +239,8 @@ export default function StackingCards() {
         .sc-glow::before {
           --size: 14px;
           z-index: -2;
-          filter: blur(2.5vmin);
-          animation: sc-blur-anim 3s ease-in-out alternate infinite;
-        }
-        @keyframes sc-blur-anim {
-          to { filter: blur(4vmin); transform: scale(1.04); }
+          filter: blur(2.25rem);
+          opacity: 0.55;
         }
 
         /* ── Card wrapper ── */
@@ -254,10 +275,24 @@ export default function StackingCards() {
           position: absolute;
           inset: 0;
           border-radius: 19px;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+          background-image:
+            repeating-linear-gradient(
+              0deg,
+              rgba(255,255,255,0.03) 0,
+              rgba(255,255,255,0.03) 1px,
+              transparent 1px,
+              transparent 3px
+            ),
+            repeating-linear-gradient(
+              90deg,
+              rgba(255,255,255,0.02) 0,
+              rgba(255,255,255,0.02) 1px,
+              transparent 1px,
+              transparent 4px
+            );
           pointer-events: none;
-          opacity: 0.5;
-          mix-blend-mode: overlay;
+          opacity: 0.28;
+          mix-blend-mode: soft-light;
           z-index: 0;
         }
 
@@ -713,8 +748,11 @@ export default function StackingCards() {
                 <div
                   key={card.id}
                   className="sc-card-wrap"
+                  ref={(el) => {
+                    cardRefs.current[i] = el;
+                  }}
                   style={{
-                    ...(isMobile ? getMobileCardStyle(i) : getCardStyle(i)),
+                    ...(isMobile ? getMobileCardStyle(i) : { zIndex: i + 1 }),
                   } as unknown as React.CSSProperties}
                   onMouseEnter={() => {
                     if (!isMobile) setHoveredCard(card.id);
@@ -796,7 +834,7 @@ export default function StackingCards() {
       </div>{/* end dotted bg wrapper */}
 
       {/* Scroll hint */}
-      {!isMobile && progress < 0.05 && (
+      {!isMobile && showScrollHint && (
         <div className="sc-hint">
           Scroll
           <div className="sc-hint-line" />

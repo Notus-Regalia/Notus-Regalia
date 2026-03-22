@@ -28,6 +28,7 @@ function DotPattern({
   const dotsRef    = useRef<Dot[]>([]);
   const mouseRef   = useRef({ x: -1000, y: -1000 });
   const animRef    = useRef<number | null>(null);
+  const shouldAnimateRef = useRef(false);
   const startTime  = useRef(Date.now());
   const baseRgb = useMemo(() => hexToRgb(baseColor), [baseColor]);
   const glowRgb = useMemo(() => hexToRgb(glowColor), [glowColor]);
@@ -59,10 +60,20 @@ function DotPattern({
   }, [containerRef, dotSize, gap, baseOpacity]);
 
   const draw = useCallback(() => {
+    if (!shouldAnimateRef.current) {
+      animRef.current = null;
+      return;
+    }
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!canvas) {
+      animRef.current = null;
+      return;
+    }
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+      animRef.current = null;
+      return;
+    }
     const dpr = window.devicePixelRatio || 1;
     ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
     const { x: mx, y: my } = mouseRef.current;
@@ -97,7 +108,11 @@ function DotPattern({
       ctx.beginPath(); ctx.arc(dot.x, dot.y, radius, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(${r},${g},${b},${opacity})`; ctx.fill();
     }
-    animRef.current = requestAnimationFrame(draw);
+    if (shouldAnimateRef.current) {
+      animRef.current = requestAnimationFrame(draw);
+    } else {
+      animRef.current = null;
+    }
   }, [proximity, baseRgb, glowRgb, dotSize, glowIntensity, waveSpeed]);
 
   useEffect(() => {
@@ -108,9 +123,55 @@ function DotPattern({
   }, [buildGrid, containerRef]);
 
   useEffect(() => {
-    animRef.current = requestAnimationFrame(draw);
-    return () => { if (animRef.current) cancelAnimationFrame(animRef.current); };
-  }, [draw]);
+    const container = containerRef.current;
+    if (!container) return;
+
+    let inViewport = false;
+    let docVisible = document.visibilityState === 'visible';
+
+    const stop = () => {
+      shouldAnimateRef.current = false;
+      if (animRef.current !== null) {
+        cancelAnimationFrame(animRef.current);
+        animRef.current = null;
+      }
+    };
+
+    const start = () => {
+      shouldAnimateRef.current = true;
+      if (animRef.current === null) {
+        animRef.current = requestAnimationFrame(draw);
+      }
+    };
+
+    const sync = () => {
+      if (inViewport && docVisible) start();
+      else stop();
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        inViewport = entry.isIntersecting && entry.intersectionRatio > 0.05;
+        sync();
+      },
+      { threshold: [0, 0.05, 0.2] }
+    );
+    observer.observe(container);
+
+    const onVisibilityChange = () => {
+      docVisible = document.visibilityState === 'visible';
+      sync();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    sync();
+
+    return () => {
+      observer.disconnect();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      stop();
+    };
+  }, [containerRef, draw]);
 
   useEffect(() => {
     const container = containerRef.current;
