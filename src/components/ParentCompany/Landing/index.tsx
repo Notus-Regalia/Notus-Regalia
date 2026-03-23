@@ -5,7 +5,6 @@ import AboutSection from './IndustrySection';
 import StatsSection from './StatsSection';
 import WhatWeDoBentoSection from './BentoSection';
 import FrameworkSection from './FrameworkSection';
-import FeaturesSection from './StackingCardSection';
 import ManifestoSection from './ManifestoSection';
 
 const Landing = () => {
@@ -17,17 +16,14 @@ const Landing = () => {
       {/* Stats / Pillars Strip */}
       <StatsSection />
 
-      {/* Industry */}
-      <AboutSection />
-
       {/* What We Do */}
       <WhatWeDoBentoSection />
 
+      {/* Industry */}
+      <AboutSection />
+
       {/* Intelligence Stack — isometric C2 architecture */}
       <FrameworkSection />
-
-      {/* Features / Operations */}
-      <FeaturesSection />
 
       {/* Manifesto */}
       <ManifestoSection />

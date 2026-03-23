@@ -65,7 +65,7 @@ const SmoothScroller = ({ children }: SmoothScrollerProps) => {
     smoother.current = ScrollSmoother.create({
       wrapper: "#smooth-wrapper",
       content: "#smooth-content",
-      smooth: 0.9,
+      smooth: 1.5,
       effects: false,
       normalizeScroll: false,
       ignoreMobileResize: true,
