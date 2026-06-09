@@ -248,10 +248,10 @@ const NAVBAR_CSS = `
 .logo-mark {
   display: flex; align-items: center; gap: 12px; user-select: none;
   border: none; background: transparent; padding: 0; cursor: pointer;
-  transition: transform 0.25s cubic-bezier(0.34,1.18,0.64,1);
+  transition: transform 0.15s ease-in-out;
 }
-.logo-mark:hover { transform: scale(1.08); }
-.logo-mark:active { transform: scale(1.02); }
+.logo-mark:hover { transform: scale(1.03); }
+.logo-mark:active { transform: scale(0.98); }
 .logo-icon {
   width: 42px; height: 42px; border-radius: 10px;
   background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 60%, #111 100%);
