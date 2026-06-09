@@ -19,7 +19,7 @@ type TabType = 'home' | 'company' | 'information' | 'affiliations' | 'technologi
 const VALID_TABS: TabType[] = ['home', 'company', 'information', 'affiliations', 'technologies'];
 
 const DEFAULT_SUBTABS: Partial<Record<TabType, string>> = {
-  company: 'company-overview',
+  company: 'company-sectors',
   technologies: 'technologies-civic-operations',
 };
 
@@ -82,15 +82,13 @@ const ClientWrapper = () => {
     setActiveTab(tab);
     setActiveSubtab(nextSubtab);
     const url = new URL(window.location.href);
+    url.searchParams.delete('subtab');
     if (tab === 'home') {
       url.searchParams.delete('tab');
-      url.searchParams.delete('subtab');
     } else {
       url.searchParams.set('tab', tab);
       if (nextSubtab) {
         url.searchParams.set('subtab', nextSubtab);
-      } else {
-        url.searchParams.delete('subtab');
       }
     }
     window.history.pushState({ tab, subtab: nextSubtab }, '', url);

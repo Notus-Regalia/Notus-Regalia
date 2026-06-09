@@ -61,10 +61,11 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Company',
     icon: 'bi-rocket-takeoff',
     subtabs: [
-      { id: 'company-overview',      label: 'Overview',      sectionId: 'section-overview' },
-      { id: 'company-thecompany',    label: 'The Company',   sectionId: 'section-TheCompany' },
-      { id: 'company-theorganization',  label: 'The Organization',  sectionId: 'section-TheOrganization' },
-      { id: 'company-strategiccapital',  label: 'Strategic Capital',  sectionId: 'section-StrategicCapital' },
+      { id: 'company-sectors',       label: 'Sectors',      sectionId: 'section-sectors' },
+      { id: 'company-capabilities',  label: 'Capabilities', sectionId: 'section-capabilities' },
+      { id: 'company-mission',       label: 'Mission',      sectionId: 'section-mission' },
+      { id: 'company-organization',  label: 'The Organization',  sectionId: 'section-organization' },
+      { id: 'company-investors',     label: 'Investors',    sectionId: 'section-investors' },
     ],
   },
   {
@@ -1080,10 +1081,10 @@ const Navbar = ({
       const open = (e as CustomEvent).detail?.open ?? false;
       setCompanyDetailOpen(open);
 
-      // Returning from a detail page → reset strip to "Overview"
+      // Returning from a detail page → reset strip to "Sectors"
       if (!open) {
-        setScrollSpySubtab('company-overview');
-        onSubtabClick?.('company', 'company-overview');
+        setScrollSpySubtab('company-sectors');
+        onSubtabClick?.('company', 'company-sectors');
       }
     };
     window.addEventListener('company-detail', handler);
@@ -1210,14 +1211,25 @@ const Navbar = ({
     const computeActive = () => {
       const nav = document.querySelector('.glass-navbar') as HTMLElement | null;
       const navH = nav?.offsetHeight ?? 80;
-      const scrollY = window.scrollY + navH + 40;
+      const triggerPoint = navH + 60; // Trigger point from top of viewport
+
       let active = sectionSubtabs[0].id;
+      let closestDistance = Infinity;
+
       for (const sub of sectionSubtabs) {
         const el = document.getElementById(sub.sectionId!);
-        if (el && el.getBoundingClientRect().top + window.scrollY <= scrollY) {
+        if (!el) continue;
+
+        const rect = el.getBoundingClientRect();
+        const distance = Math.abs(rect.top - triggerPoint);
+
+        // Find section closest to trigger point (top of visible area)
+        if (rect.top <= triggerPoint && distance < closestDistance) {
+          closestDistance = distance;
           active = sub.id;
         }
       }
+
       return active;
     };
 
@@ -1226,7 +1238,6 @@ const Navbar = ({
       setScrollSpySubtab(computeActive());
     };
 
-    setScrollSpySubtab(computeActive());
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       window.removeEventListener('scroll', onScroll);

@@ -15,18 +15,6 @@ const Landing = () => {
 
       {/* Stats / Pillars Strip */}
       <StatsSection />
-
-      {/* What We Do */}
-      <WhatWeDoBentoSection />
-
-      {/* Industry */}
-      <AboutSection />
-
-      {/* Intelligence Stack — isometric C2 architecture */}
-      <FrameworkSection />
-
-      {/* Manifesto */}
-      {/* <ManifestoSection /> */}
     </>
   );
 };

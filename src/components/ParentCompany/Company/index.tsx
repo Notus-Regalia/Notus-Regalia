@@ -1,11 +1,12 @@
 "use client";
 import { memo, useState, useEffect, useRef, useCallback } from 'react';
-import Overview from './OverviewGrids';
 import CompanyHeader from './CompanyHeader';
-import TheOrganization from './TheOrganization';
-import TheCompany from './TheCompany';
-import StrategicCapital from './StrategicCapital';
+import Organization from './Organization';
+import Mission from './Mission';
+import Investors from './Investors';
 import DetailView from './details';
+import IndustrySection from '../Landing/IndustrySection';
+import WhatWeDoBentoSection from '../Landing/BentoSection';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { useReveal } from '@/hooks/useScrollReveal';
 
@@ -106,10 +107,11 @@ const Company = () => {
   };
 
   /* ── Scroll-triggered entrance animations ── */
-  const overviewReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800 });
-  const companyReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
-  const orgReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
-  const capitalReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
+  const sectorsReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800 });
+  const capabilitiesReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
+  const missionReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
+  const organizationReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
+  const investorsReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
 
   if (detailPage) {
     return (
@@ -124,24 +126,29 @@ const Company = () => {
       {/* Company Header */}
       <CompanyHeader />
 
-      {/* Overview Section */}
-      <div id="section-overview" ref={overviewReveal.ref} style={overviewReveal.style}>
-        <Overview onLearnMore={() => openDetail('overview', 'section-overview')} />
+      {/* Sectors Section */}
+      <div id="section-sectors" ref={sectorsReveal.ref} style={sectorsReveal.style}>
+        <IndustrySection />
       </div>
 
-      {/* About panel: company / direction / governance / reachout */}
-      <div id="section-TheCompany" ref={companyReveal.ref} style={companyReveal.style}>
-        <TheCompany onLearnMore={(page) => openDetail(page, 'section-TheCompany')} />
+      {/* Capabilities Section */}
+      <div id="section-capabilities" ref={capabilitiesReveal.ref} style={capabilitiesReveal.style}>
+        <WhatWeDoBentoSection />
+      </div>
+
+      {/* Mission panel: company / direction / governance / reachout */}
+      <div id="section-mission" ref={missionReveal.ref} style={missionReveal.style}>
+        <Mission onLearnMore={(page) => openDetail(page, 'section-mission')} />
       </div>
 
       {/* Teams */}
-      <div id="section-TheOrganization" ref={orgReveal.ref} style={orgReveal.style}>
-        <TheOrganization />
+      <div id="section-organization" ref={organizationReveal.ref} style={organizationReveal.style}>
+        <Organization />
       </div>
 
-      {/* StrategicCapital */}
-      <div id="section-StrategicCapital" ref={capitalReveal.ref} style={capitalReveal.style}>
-        <StrategicCapital />
+      {/* Investors */}
+      <div id="section-investors" ref={investorsReveal.ref} style={investorsReveal.style}>
+        <Investors />
       </div>
     </div>
   );
