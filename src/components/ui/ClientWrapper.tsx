@@ -6,7 +6,6 @@ import Footer from './Footer';
 import LoadingScreen from './LoadingScreen';
 import CookieBanner from './CookieBanner';
 import SmoothScroller from './SmoothScroller';
-import CustomCursor from './CustomCursor';
 import type { InfoContentType } from '@/data/information-data';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 
@@ -138,11 +137,6 @@ const handleInfoContentChange = useCallback((content: InfoContentType) => {
 
   return (
     <>
-      <style>{`
-        * { cursor: none; }
-        input, textarea, select { cursor: text; }
-      `}</style>
-      <CustomCursor />
       {loading && <LoadingScreen duration={3000} onComplete={handleLoadingComplete} />}
       {/* Navbar stays outside SmoothScroller so position:fixed isn't broken by transforms */}
       <Navbar
