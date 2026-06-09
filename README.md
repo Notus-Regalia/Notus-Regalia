@@ -12,19 +12,19 @@ The site is organized around four sector-focused feature groups, each with dedic
 
 ## Tech Stack
 
-| Category | Technology |
-|---|---|
-| Framework | Next.js 15 (App Router) |
-| Language | TypeScript 5.x |
-| UI Library | React 19.x |
-| Styling | Tailwind CSS 3.x, PostCSS, Autoprefixer |
-| Animations | Framer Motion, GSAP |
-| 3D / WebGL | Spline (`@splinetool/react-spline`), `ogl` |
-| Visualization | D3, GlobeD3 |
-| Scroll | Lenis |
-| Utilities | `clsx`, `tailwind-merge` |
-| Linting | ESLint, TypeScript ESLint |
-| Deployment | Vercel |
+| Category      | Technology                                 |
+| ------------- | ------------------------------------------ |
+| Framework     | Next.js 15 (App Router)                    |
+| Language      | TypeScript 5.x                             |
+| UI Library    | React 19.x                                 |
+| Styling       | Tailwind CSS 3.x, PostCSS, Autoprefixer    |
+| Animations    | Framer Motion, GSAP                        |
+| 3D / WebGL    | Spline (`@splinetool/react-spline`), `ogl` |
+| Visualization | D3, GlobeD3                                |
+| Scroll        | Lenis                                      |
+| Utilities     | `clsx`, `tailwind-merge`                   |
+| Linting       | ESLint, TypeScript ESLint                  |
+| Deployment    | Vercel                                     |
 
 See [`package.json`](package.json) for exact dependency versions.
 

@@ -33,6 +33,7 @@ export default function DefenseSitePage() {
   const touchRef = useRef<{ startX: number; startY: number } | null>(null);
   const navCollapsedRef = useRef(false);
   const isProgrammaticScrollRef = useRef(false);
+  const programmaticScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollAnimRafRef = useRef<number | null>(null);
   const spyDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -45,6 +46,15 @@ export default function DefenseSitePage() {
     } else {
       window.scrollTo({ top: targetY, behavior: 'smooth' });
     }
+  }, []);
+
+  // ── Mark a programmatic scroll and auto-release scroll-spy after it settles ──
+  const startProgrammaticScroll = useCallback(() => {
+    isProgrammaticScrollRef.current = true;
+    if (programmaticScrollTimerRef.current) clearTimeout(programmaticScrollTimerRef.current);
+    programmaticScrollTimerRef.current = setTimeout(() => {
+      isProgrammaticScrollRef.current = false;
+    }, 1500);
   }, []);
 
   // ── Responsive ──
@@ -136,21 +146,21 @@ export default function DefenseSitePage() {
   const handleTabClick = useCallback((tabId: string) => {
     // If already on this tab and on home, use guarded scroll to avoid scroll-spy jitter
     if (tabId === activeTab && tabId === 'home' && window.scrollY > 10) {
-      isProgrammaticScrollRef.current = true;
+      startProgrammaticScroll();
       setActiveSubtab('overview');
       smoothScrollTo(0, 900);
       return;
     }
     setActiveTab(tabId);
-    isProgrammaticScrollRef.current = true;
+    startProgrammaticScroll();
     smoothScrollTo(0, 600);
-  }, [activeTab, smoothScrollTo]);
+  }, [activeTab, smoothScrollTo, startProgrammaticScroll]);
 
   // ── Arrow toggle ──
   const handleArrowToggle = useCallback((tabId: string) => {
     if (tabId !== activeTab) {
       setActiveTab(tabId);
-      isProgrammaticScrollRef.current = true;
+      startProgrammaticScroll();
       smoothScrollTo(0, 600);
       return;
     }
@@ -159,7 +169,7 @@ export default function DefenseSitePage() {
       manualOpenRef.current = next;
       return next;
     });
-  }, [activeTab, smoothScrollTo]);
+  }, [activeTab, smoothScrollTo, startProgrammaticScroll]);
 
   // ── Subtab click ──
   const handleSubtabClick = useCallback((sub: SubtabItem) => {
@@ -171,10 +181,10 @@ export default function DefenseSitePage() {
 
     // Home tab subtabs scroll to sections instead of switching content
     if (sub.sectionId && activeTab === 'home') {
-      isProgrammaticScrollRef.current = true;
       setActiveSubtab(sub.id);
       const el = document.getElementById(sub.sectionId);
       if (el) {
+        startProgrammaticScroll();
         const sm = ScrollSmoother.get();
         const navH = stripOpen ? 134 : 84;
         if (sm) {
@@ -183,16 +193,14 @@ export default function DefenseSitePage() {
           const targetY = el.getBoundingClientRect().top + window.scrollY - navH;
           window.scrollTo({ top: targetY, behavior: 'smooth' });
         }
-      } else {
-        isProgrammaticScrollRef.current = false;
       }
       return;
     }
 
     setActiveSubtab(sub.id);
-    isProgrammaticScrollRef.current = true;
+    startProgrammaticScroll();
     smoothScrollTo(0, 600);
-  }, [activeTab, smoothScrollTo, stripOpen]);
+  }, [activeTab, smoothScrollTo, stripOpen, startProgrammaticScroll]);
 
   // ── Go home ──
   const goHome = useCallback(() => {
@@ -216,13 +224,13 @@ export default function DefenseSitePage() {
     if (defenseTabIds.includes(tabId)) {
       setActiveTab(tabId);
       if (subtabId) setActiveSubtab(subtabId);
-      isProgrammaticScrollRef.current = true;
+      startProgrammaticScroll();
       smoothScrollTo(0, 600);
     } else {
       window.location.href = `/?tab=${tabId}${subtabId ? `&subtab=${subtabId}` : ''}`;
     }
     setSearchOpen(false);
-  }, [smoothScrollTo]);
+  }, [smoothScrollTo, startProgrammaticScroll]);
 
   // ── Mobile sidebar ──
   const openMobile = useCallback(() => setMobileOpen(true), []);
@@ -276,9 +284,9 @@ export default function DefenseSitePage() {
 
   const handleMobileTabClick = useCallback((tabId: string) => {
     setActiveTab(tabId); setMobileOpen(false); setMobileExpandedTab(null);
-    isProgrammaticScrollRef.current = true;
+    startProgrammaticScroll();
     smoothScrollTo(0, 600);
-  }, [smoothScrollTo]);
+  }, [smoothScrollTo, startProgrammaticScroll]);
 
   const handleMobileSubtabClick = useCallback((parentTabId: string, sub: SubtabItem) => {
     if (sub.isSpecial && sub.id === 'return-main') {
@@ -288,10 +296,10 @@ export default function DefenseSitePage() {
     setActiveTab(parentTabId); setActiveSubtab(sub.id);
     setMobileOpen(false); setMobileExpandedTab(null);
     if (sub.sectionId && parentTabId === 'home') {
-      isProgrammaticScrollRef.current = true;
       requestAnimationFrame(() => {
         const el = document.getElementById(sub.sectionId!);
         if (el) {
+          startProgrammaticScroll();
           const sm = ScrollSmoother.get();
           const navH = stripOpen ? 134 : 84;
           if (sm) {
@@ -300,15 +308,13 @@ export default function DefenseSitePage() {
             const targetY = el.getBoundingClientRect().top + window.scrollY - navH;
             window.scrollTo({ top: targetY, behavior: 'smooth' });
           }
-        } else {
-          isProgrammaticScrollRef.current = false;
         }
       });
     } else {
-      isProgrammaticScrollRef.current = true;
+      startProgrammaticScroll();
       smoothScrollTo(0, 600);
     }
-  }, [smoothScrollTo, stripOpen]);
+  }, [smoothScrollTo, stripOpen, startProgrammaticScroll]);
 
   const onSidebarTouchStart = useCallback((e: React.TouchEvent) => {
     touchRef.current = { startX: e.touches[0].clientX, startY: e.touches[0].clientY };
@@ -330,7 +336,7 @@ export default function DefenseSitePage() {
   useEffect(() => {
     const SELECTORS = [
       '.tab-item-border', '.tab-label-btn', '.tab-arrow-btn',
-      '.strip-tab', '.strip-collapse', '.logo-mark', '.mob-tab-btn',
+      '.strip-tab', '.strip-collapse', '.mob-tab-btn',
       '.mob-subtab-btn', '.mob-close', '.nav-reveal-tab', '.nav-theme-tab', '.mobile-burger',
     ].join(', ');
     const onPointerDown = (e: PointerEvent) => {
@@ -391,24 +397,57 @@ export default function DefenseSitePage() {
           {/* Main bar row */}
           <div className="w-full flex items-center" style={barStyle}>
 
-            {/* Logo — clicking goes back to main site */}
-            <button className="logo-mark flex-shrink-0" onClick={goHome} aria-label="Back to Notus Regalia" data-tooltip="Return to Main Site">
-              <div className="logo-icon">
-                <Image src="/assets/Notus-Regalia-logo.svg" alt="Notus Regalia" width={42} height={42} priority />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1 }}>
-                <span className="logo-text" style={{ fontSize: isMobile ? '0.95rem' : undefined }}>
-                  Notus <span style={{ color: '#EB1143', fontWeight: 300 }}>Regalia</span>
+            {/* ── Logo ── */}
+            <div
+              onClick={goHome}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); goHome(); } }}
+              role="button"
+              tabIndex={0}
+              aria-label="Back to Notus Regalia"
+              style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                flexShrink: 0, cursor: 'pointer', userSelect: 'none',
+                WebkitTapHighlightColor: 'transparent',
+                transform: 'translateZ(0)',
+                willChange: 'transform',
+                isolation: 'isolate',
+              }}
+            >
+              <Image
+                src="/assets/Notus-Regalia-logo.svg"
+                alt="Notus Regalia"
+                width={36}
+                height={36}
+                priority
+                style={{ width: 36, height: 36, flexShrink: 0, display: 'block' }}
+              />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4, lineHeight: 1 }}>
+                <span style={{
+                  fontFamily: 'inherit',
+                  fontSize: isMobile ? '13px' : '15px',
+                  fontWeight: 700,
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: 'var(--content-primary)',
+                  whiteSpace: 'nowrap',
+                  transform: 'translateZ(0)',
+                  display: 'inline-block',
+                }}>
+                  Notus Regalia
                 </span>
                 <span style={{
                   fontFamily: 'ui-monospace, Menlo, monospace',
-                  fontSize: '0.5rem', letterSpacing: '0.15em', textTransform: 'uppercase',
-                  color: '#E31B54', fontWeight: 600, marginTop: 6,
+                  fontSize: '7px',
+                  fontWeight: 500,
+                  letterSpacing: '0.18em',
+                  textTransform: 'uppercase',
+                  color: '#E31B54',
+                  whiteSpace: 'nowrap',
                 }}>
                   Defense Systems
                 </span>
               </div>
-            </button>
+            </div>
 
             <div className="nav-divider desktop-only" style={{ height: '32px', alignSelf: 'center' }} />
 

@@ -116,13 +116,11 @@ export const DEFENSE_NAVBAR_CSS = `
   position: fixed; top: 0; left: 0; right: 0; z-index: 60;
   --nav-scroll-progress: 0;
   background: linear-gradient(160deg, #0a0a0f 0%, #0d0d14 60%, #080810 100%);
-  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
   border-bottom: 1px solid rgba(255,255,255,0.07);
   box-shadow:
     0 8px 32px var(--glass-shadow-1), 0 12px 48px var(--glass-shadow-2),
     inset 0 1px 1px var(--glass-inset-top), inset 0 -1px 1px var(--glass-inset-bottom);
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
-  will-change: transform, opacity;
 }
 .glass-navbar.nav-collapsed {
   transform: translateY(-100%); opacity: 0; pointer-events: none;
@@ -145,38 +143,7 @@ export const DEFENSE_NAVBAR_CSS = `
 }
 :root.light .glass-navbar::after { box-shadow: 0 0 4px rgba(0,255,166,0.16), 0 0 6px rgba(227,27,84,0.1); }
 
-.logo-mark {
-  display: flex; align-items: center; gap: 12px; user-select: none;
-  border: none; background: transparent; padding: 0; cursor: pointer;
-  transition: transform 0.25s cubic-bezier(0.34,1.18,0.64,1);
-  position: relative;
-}
-.logo-mark:hover { transform: scale(1.08); }
-.logo-mark:active { transform: scale(1.02); }
-.logo-mark::after {
-  content: attr(data-tooltip);
-  position: absolute; top: calc(100% + 6px); left: 50%;
-  transform: translateX(-50%) translateY(-4px);
-  background: rgba(20,20,28,0.96); color: rgba(255,255,255,0.75);
-  font-family: ui-monospace, Menlo, monospace;
-  font-size: 0.5rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
-  padding: 3px 7px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.35); pointer-events: none; opacity: 0;
-  transition: opacity 0.18s ease, transform 0.18s ease; z-index: 100;
-}
-.logo-mark:hover::after { opacity: 1; transform: translateX(-50%) translateY(0); }
-:root.light .logo-mark::after {
-  background: rgba(255,255,255,0.97); color: rgba(0,0,0,0.8);
-  border-color: rgba(0,0,0,0.12); box-shadow: 0 4px 16px rgba(0,0,0,0.14);
-}
-.logo-icon {
-  width: 42px; height: 42px; border-radius: 10px;
-  background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 60%, #111 100%);
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  box-shadow: 0 0 14px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08);
-  overflow: hidden;
-}
-.logo-text { font-size: 1.18rem; font-weight: 800; letter-spacing: -0.03em; color: var(--content-primary); line-height: 1; }
+/* ── Logo placeholder — rebuilt below ── */
 
 .nav-reveal-tab,
 .nav-theme-tab {
@@ -191,7 +158,7 @@ export const DEFENSE_NAVBAR_CSS = `
   letter-spacing: 0.02em; cursor: pointer;
   box-shadow: -4px 4px 24px rgba(0,0,0,0.25);
   opacity: 0; pointer-events: none; transform: translateX(100%);
-  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.38s cubic-bezier(0.34, 1.18, 0.64, 1), color 0.15s ease;
+  transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.38s cubic-bezier(0.34, 1.18, 0.64, 1);
 }
 .nav-reveal-tab { top: 16px; }
 .nav-theme-tab  { top: calc(16px + 38px + 6px); }
@@ -264,25 +231,24 @@ export const DEFENSE_NAVBAR_CSS = `
 
 .tab-label-btn {
   display: inline-flex; align-items: center; gap: 7px; border: none; background: transparent;
-  cursor: pointer; font-weight: 500; letter-spacing: 0.01em; color: var(--content-faint);
+  cursor: pointer; font-weight: 500; letter-spacing: 0.01em; color: var(--content-primary);
   padding: 11px 14px 11px 20px; font-size: 0.97rem; line-height: 1;
-  transition: color 0.15s ease; user-select: none;
+  user-select: none; opacity: 0.5;
 }
-.tab-label-btn:hover, .tab-label-btn.is-active { color: var(--content-primary); }
-.tab-label-btn.is-active { font-weight: 600; }
+.tab-label-btn:hover, .tab-label-btn.is-active { opacity: 1; }
 
 .tab-sep { width: 1px; margin: 6px 0; background: var(--border-color); opacity: 0.45; flex-shrink: 0; pointer-events: none; }
 
 .tab-arrow-btn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 32px; border: none; background: transparent; cursor: pointer;
-  color: var(--content-faint); transition: color 0.15s ease, background 0.15s ease;
+  color: var(--content-primary); opacity: 0.5;
   flex-shrink: 0; padding: 0; border-radius: 0 8px 8px 0;
 }
-.tab-arrow-btn:hover { color: var(--content-primary); background: rgba(255,255,255,0.08); }
+.tab-arrow-btn:hover { opacity: 1; background: rgba(255,255,255,0.08); }
 .tab-arrow-btn .arrow-icon { font-size: 0.62rem; transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
 .tab-arrow-btn.arrow-open .arrow-icon { transform: rotate(180deg); }
-.tab-arrow-btn.arrow-open { color: var(--content-primary); background: rgba(255,255,255,0.06); }
+.tab-arrow-btn.arrow-open { opacity: 1; background: rgba(255,255,255,0.06); }
 
 .subtab-strip-outer {
   display: grid; grid-template-rows: 0fr; opacity: 0; pointer-events: none;
@@ -308,15 +274,19 @@ export const DEFENSE_NAVBAR_CSS = `
 
 .strip-tab {
   position: relative; display: inline-flex; align-items: center; justify-content: center;
-  padding: 0 22px; border: none; background: transparent;
-  color: var(--content-muted); font-size: 0.88rem; font-weight: 500;
+  padding: 0 22px !important; border: none; background: transparent;
+  color: var(--content-primary) !important; font-size: 0.88rem !important; font-weight: 500 !important;
+  opacity: 1 !important;
   cursor: pointer; flex-shrink: 0; white-space: nowrap;
-  transition: color 0.22s ease;
   border-right: 1px solid var(--border-color);
-  letter-spacing: 0.01em; z-index: 1;
+  letter-spacing: 0.01em !important; z-index: 1;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  margin: 0 !important;
+  width: fit-content !important;
 }
-.strip-tab:hover { color: var(--content-primary); }
-.strip-tab.strip-tab-active { color: var(--content-primary); font-weight: 600; }
+.strip-tab:hover { opacity: 1 !important; color: var(--content-primary) !important; }
+.strip-tab.strip-tab-active { opacity: 1 !important; color: var(--content-primary) !important; }
 .strip-tab.strip-tab-special {
   color: var(--content-faint); font-weight: 400; font-size: 0.78rem;
   letter-spacing: 0.04em; opacity: 0.7;
@@ -361,12 +331,11 @@ export const DEFENSE_NAVBAR_CSS = `
 .strip-collapse:hover i { transform: translateY(-2px); }
 
 @keyframes tabPress {
-  0%   { transform: scale(1); }
-  15%  { transform: scale(0.96); }
-  50%  { transform: scale(1.02); }
-  72%  { transform: scale(0.992); }
-  88%  { transform: scale(1.004); }
-  100% { transform: scale(1); }
+  0%   { opacity: 1; }
+  15%  { opacity: 0.55; }
+  50%  { opacity: 0.85; }
+  80%  { opacity: 0.95; }
+  100% { opacity: 1; }
 }
 .tab-pressed { animation: tabPress 0.38s cubic-bezier(0.34,1.18,0.64,1); }
 
@@ -411,7 +380,7 @@ export const DEFENSE_NAVBAR_CSS = `
 .mob-nav-list { display: flex; flex-direction: column; padding: 8px 0; flex: 1; }
 .mob-tab-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 15px 20px; border: none; background: transparent; color: var(--content-faint); font-size: 1rem; font-weight: 500; cursor: pointer; transition: color 0.12s ease, background 0.12s ease; user-select: none; }
 .mob-tab-btn:hover { color: var(--content-primary); background: var(--hover-bg); }
-.mob-tab-btn.is-active { color: var(--content-primary); font-weight: 600; background: var(--hover-bg-strong); }
+.mob-tab-btn.is-active { color: var(--content-primary); background: var(--hover-bg-strong); }
 .mob-tab-left { display: flex; align-items: center; gap: 10px; }
 .mob-tab-left i { font-size: 0.92rem; width: 20px; text-align: center; }
 .mob-tab-chevron { font-size: 0.65rem; transition: transform 0.2s ease; color: var(--content-faint); }
@@ -421,6 +390,6 @@ export const DEFENSE_NAVBAR_CSS = `
 .mob-subtabs.expanded { max-height: 500px; opacity: 1; }
 .mob-subtab-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 20px 12px 50px; border: none; background: transparent; color: var(--content-faint); font-size: 0.93rem; font-weight: 400; cursor: pointer; transition: color 0.12s ease, background 0.12s ease; user-select: none; }
 .mob-subtab-btn:hover { color: var(--content-primary); background: var(--hover-bg); }
-.mob-subtab-btn.is-active { color: var(--content-primary); font-weight: 600; position: relative; }
+.mob-subtab-btn.is-active { color: var(--content-primary); position: relative; }
 .mob-subtab-btn.is-active::before { content: ''; position: absolute; left: 36px; top: 50%; transform: translateY(-50%); width: 4px; height: 4px; border-radius: 50%; background: rgba(255,255,255,0.8); }
 `;
