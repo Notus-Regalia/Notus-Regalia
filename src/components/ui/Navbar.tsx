@@ -203,6 +203,16 @@ const NAVBAR_CSS = `
   50%      { opacity: 1; }
 }
 
+/* ── Custom cursor for interactive elements ── */
+button, a, [role="button"],
+.strip-tab, .tab-label-btn, .mob-tab-btn, .mob-subtab-btn,
+.logo-mark, [data-clickable="true"],
+input[type="checkbox"], input[type="radio"], select,
+[onclick], .clickable {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><path d="M2 2L2 28L8 22L16 30L19 28L11 20L17 20L2 2Z" fill="%23E31B54"/></svg>') 4 2, pointer;
+  transition: filter 0.3s ease;
+}
+
 /* ── Light-mode navbar ── */
 :root.light .glass-navbar {
   background: linear-gradient(to bottom, #f8fafc 0%, #eef2f6 60%);
