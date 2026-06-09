@@ -197,7 +197,7 @@ export default function StatsSection() {
         }
       `}</style>
 
-      <div className="stats-root" ref={sectionRef}>
+      <div id="section-stats" className="stats-root" ref={sectionRef}>
         {/* Ticker */}
         <div className="stats-ticker-wrap">
           <div className="stats-ticker-track" ref={tickerRef}>

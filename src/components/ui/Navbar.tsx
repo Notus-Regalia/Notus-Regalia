@@ -380,6 +380,7 @@ const NAVBAR_CSS = `
   cursor: pointer; font-weight: 500; letter-spacing: 0.01em; color: var(--content-faint);
   padding: 11px 14px 11px 20px; font-size: 0.97rem; line-height: 1;
   transition: color 0.15s ease; user-select: none;
+  white-space: nowrap; flex-shrink: 0;
 }
 .tab-label-btn:hover, .tab-label-btn.is-active { color: var(--content-primary); }
 .tab-label-btn.is-active { font-weight: 600; }
@@ -448,11 +449,13 @@ const NAVBAR_CSS = `
 }
 .tabs-row .tab-label-btn {
   padding: 9px 4px;
-  font-size: 0.97rem;
+  font-size: 0.97rem !important;
   letter-spacing: 0.01em;
   font-weight: 500;
   line-height: 1;
   transition: color 0.2s ease;
+  min-width: max-content;
+  width: auto;
 }
 .tabs-row .tab-label-btn.is-active {
   font-weight: 500;

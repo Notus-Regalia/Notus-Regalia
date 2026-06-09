@@ -26,7 +26,7 @@ const Landing = () => {
       <FrameworkSection />
 
       {/* Manifesto */}
-      <ManifestoSection />
+      {/* <ManifestoSection /> */}
     </>
   );
 };

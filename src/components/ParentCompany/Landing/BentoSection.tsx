@@ -163,7 +163,7 @@ export default function WhatWeDoBentoSection() {
 
   return (
     <>
-      <style>{`
+      <style jsx>{`
         .whatwedo-root {
           --site-gutter-inline: 2rem;
           position: relative;

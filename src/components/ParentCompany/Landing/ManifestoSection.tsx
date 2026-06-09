@@ -175,8 +175,9 @@ export default function ManifestoSection() {
         }
       `}</style>
 
-      <section 
-        className={`manifesto-root ${revealed ? "revealed" : ""}`} 
+      <section
+        id="section-manifesto"
+        className={`manifesto-root ${revealed ? "revealed" : ""}`}
         ref={sectionRef}
         onMouseMove={handleMouseMove}
       >

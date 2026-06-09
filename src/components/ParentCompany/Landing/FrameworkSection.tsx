@@ -524,8 +524,6 @@ export default function FrameworkSection() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-
         .fw-outer { height: 500vh; }
 
         .fw-sticky {
@@ -970,6 +968,7 @@ export default function FrameworkSection() {
       `}</style>
 
       <div
+        id="section-framework"
         ref={sectionRef}
         style={{
           position: "relative",
