@@ -6,7 +6,6 @@ import Footer from './Footer';
 import LoadingScreen from './LoadingScreen';
 import CookieBanner from './CookieBanner';
 import SmoothScroller from './SmoothScroller';
-import type { InfoContentType } from '@/data/information-data';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 
 const gsapScrollToTop = (smooth = true) => {
@@ -15,8 +14,8 @@ const gsapScrollToTop = (smooth = true) => {
   else window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'instant' });
 };
 
-type TabType = 'home' | 'company' | 'information' | 'affiliations' | 'technologies';
-const VALID_TABS: TabType[] = ['home', 'company', 'information', 'affiliations', 'technologies'];
+type TabType = 'home' | 'company' | 'affiliations' | 'technologies';
+const VALID_TABS: TabType[] = ['home', 'company', 'affiliations', 'technologies'];
 
 const DEFAULT_SUBTABS: Partial<Record<TabType, string>> = {
   company: 'company-sectors',
@@ -26,7 +25,6 @@ const DEFAULT_SUBTABS: Partial<Record<TabType, string>> = {
 const ClientWrapper = () => {
   const [activeTab, setActiveTab]               = useState<TabType>('home');
   const [activeSubtab, setActiveSubtab]         = useState<string | undefined>(undefined);
-  const [activeInfoContent, setActiveInfoContent] = useState<InfoContentType>('statements');
   const [loading, setLoading]                   = useState(true);
 
   const handleLoadingComplete = useCallback(() => {
@@ -50,11 +48,7 @@ const ClientWrapper = () => {
   }, [isValidTab]);
 
   useEffect(() => {
-    const handlePopState = (event: PopStateEvent) => {
-      if (event.state?.infoTab) {
-        setActiveInfoContent(event.state.infoTab as InfoContentType);
-        return;
-      }
+    const handlePopState = () => {
       const params = new URLSearchParams(window.location.search);
       const tabFromUrl = params.get('tab');
       const subtabFromUrl = params.get('subtab');
@@ -94,10 +88,6 @@ const ClientWrapper = () => {
     window.history.pushState({ tab, subtab: nextSubtab }, '', url);
   }, [activeTab, isValidTab]);
 
-const handleInfoContentChange = useCallback((content: InfoContentType) => {
-  setActiveInfoContent(content);
-}, []);
-
   const handleSubtabClick = useCallback((parentTabId: string, subtabId: string) => {
     if (!isValidTab(parentTabId)) return;
     setActiveTab(parentTabId);
@@ -113,7 +103,7 @@ const handleInfoContentChange = useCallback((content: InfoContentType) => {
     window.history.pushState({ tab: parentTabId, subtab: subtabId }, '', url);
   }, [isValidTab]);
 
-  const handleFooterNavigate = useCallback((tabId: string, subtabId?: string, infoContent?: string) => {
+  const handleFooterNavigate = useCallback((tabId: string, subtabId?: string) => {
     if (!isValidTab(tabId)) return;
     setActiveTab(tabId);
     setActiveSubtab(subtabId ?? DEFAULT_SUBTABS[tabId as TabType]);
@@ -131,7 +121,6 @@ const handleInfoContentChange = useCallback((content: InfoContentType) => {
       }
     }
     window.history.pushState({ tab: tabId, subtab: subtabId ?? DEFAULT_SUBTABS[tabId as TabType] }, '', url);
-    if (infoContent) setActiveInfoContent(infoContent as InfoContentType);
     gsapScrollToTop();
   }, [isValidTab]);
 
@@ -144,8 +133,6 @@ const handleInfoContentChange = useCallback((content: InfoContentType) => {
         setActiveTab={handleTabChange}
         activeSubtab={activeSubtab}
         onSubtabClick={handleSubtabClick}
-        activeInfoContent={activeInfoContent}
-        onInfoContentChange={handleInfoContentChange}
       />
       <SmoothScroller>
         <div className="min-h-screen theme-transition" style={{ background: 'var(--surface-primary)', color: 'var(--content-primary)' }}>
@@ -153,8 +140,6 @@ const handleInfoContentChange = useCallback((content: InfoContentType) => {
             <MainContent
               activeTab={activeTab}
               activeSubtab={activeSubtab}
-              activeInfoContent={activeInfoContent}
-              onInfoContentChange={handleInfoContentChange}
             />
           </main>
           <Footer onNavigate={handleFooterNavigate} />

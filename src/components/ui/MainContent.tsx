@@ -1,17 +1,13 @@
 "use client";
 import { useState, useEffect, useRef, Suspense, lazy } from 'react';
-import type { InfoContentType } from '@/data/information-data';
 
 const LandingTab     = lazy(() => import('@/components/ParentCompany/Landing'));
 const CompanyTab     = lazy(() => import('@/components/ParentCompany/Company'));
 const TechnologiesTab = lazy(() => import('@/components/ParentCompany/Technologies'));
-const InformationTab = lazy(() => import('@/components/ParentCompany/Information'));
 
 interface MainContentProps {
   activeTab: string;
   activeSubtab?: string;
-  activeInfoContent: InfoContentType;
-  onInfoContentChange: (content: InfoContentType) => void;
 }
 
 const TabLoadingFallback = () => (
@@ -23,7 +19,7 @@ const TabLoadingFallback = () => (
   </div>
 );
 
-const MainContent = ({ activeTab, activeSubtab, activeInfoContent, onInfoContentChange }: MainContentProps) => {
+const MainContent = ({ activeTab, activeSubtab }: MainContentProps) => {
   const [displayedTab, setDisplayedTab] = useState(activeTab);
   const mainContentRef = useRef<HTMLDivElement>(null);
 
@@ -44,13 +40,6 @@ const MainContent = ({ activeTab, activeSubtab, activeInfoContent, onInfoContent
         return <CompanyTab />;
       case 'technologies':
         return <TechnologiesTab activeSubtab={activeSubtab} />;
-      case 'information':
-        return (
-          <InformationTab
-            activeContent={activeInfoContent}
-            onContentChange={onInfoContentChange}
-          />
-        );
       default:
         return null;
     }

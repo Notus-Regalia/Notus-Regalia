@@ -1,0 +1,156 @@
+"use client";
+import { useState, useEffect, useCallback } from 'react';
+import InfoNavbar from './InfoNavbar';
+import SubtabView from './SubtabView';
+import InfoLoadingScreen from './InfoLoadingScreen';
+import CookieBanner from '@/components/ui/CookieBanner';
+import SmoothScroller from '@/components/ui/SmoothScroller';
+import Footer, { type FooterSection } from '@/components/ui/Footer';
+import { ScrollSmoother } from 'gsap/ScrollSmoother';
+import { INFO_TABS, DEFAULT_SUBTAB, SUBTAB_PARENT } from './data';
+
+// Dedicated Information Center footer columns. Own sections navigate in-app
+// (via onNavigate); the Company group redirects back to the main site section.
+const INFO_FOOTER_SECTIONS: FooterSection[] = [
+  {
+    title: 'Newsroom',
+    links: [
+      { label: 'Releases',      tabId: 'newsroom', subtabId: 'releases' },
+      { label: 'Announcements', tabId: 'newsroom', subtabId: 'announcements' },
+      { label: 'Media',         tabId: 'newsroom', subtabId: 'media' },
+      { label: 'Careers',       tabId: 'newsroom', subtabId: 'careers' },
+    ],
+  },
+  {
+    title: 'Investors',
+    links: [
+      { label: 'News',                    tabId: 'investors', subtabId: 'news' },
+      { label: 'Events & Presentation',   tabId: 'investors', subtabId: 'events' },
+      { label: 'Financial Info',          tabId: 'investors', subtabId: 'financials' },
+      { label: 'Governance',              tabId: 'investors', subtabId: 'governance' },
+      { label: 'Investor Resources',      tabId: 'investors', subtabId: 'resources' },
+    ],
+  },
+  {
+    title: 'Research',
+    links: [
+      { label: 'Case Studies',      tabId: 'research', subtabId: 'case-studies' },
+      { label: 'Technical Reports', tabId: 'research', subtabId: 'technical-reports' },
+      { label: 'Documentations',    tabId: 'research', subtabId: 'documentations' },
+      { label: 'Field Testing',     tabId: 'research', subtabId: 'field-testing' },
+      { label: 'Open Source',       tabId: 'research', subtabId: 'open-source' },
+    ],
+  },
+  {
+    title: 'Legals',
+    links: [
+      { label: 'Corporate Policies',tabId: 'legals', subtabId: 'policies' },
+      { label: 'Privacy Policy',    tabId: 'legals', subtabId: 'privacy' },
+      { label: 'Terms of Service',  tabId: 'legals', subtabId: 'terms' },
+      { label: 'Licenses',          tabId: 'legals', subtabId: 'licenses' },
+      { label: 'Brand Guidelines',  tabId: 'legals', subtabId: 'brand-guidelines' },
+    ],
+  },
+  {
+    title: 'Documents',
+    links: [
+      { label: 'Governance',    tabId: 'documents', subtabId: 'docs-governance' },
+      { label: 'Social',        tabId: 'documents', subtabId: 'docs-social' },
+      { label: 'Environmental', tabId: 'documents', subtabId: 'docs-environmental' },
+      { label: 'Media Assets',  tabId: 'documents', subtabId: 'media-assets' },
+    ],
+  },
+  {
+    title: 'Company',
+    links: [
+      { label: 'Sectors',          href: '/?tab=company&subtab=company-sectors' },
+      { label: 'Capabilities',     href: '/?tab=company&subtab=company-capabilities' },
+      { label: 'Mission',          href: '/?tab=company&subtab=company-mission' },
+      { label: 'The Organization', href: '/?tab=company&subtab=company-organization' },
+      { label: 'Investors',        href: '/?tab=company&subtab=company-investors' },
+    ],
+  },
+];
+
+const TAB_IDS = new Set(INFO_TABS.map((t) => t.id));
+const isValidTab = (id: string | null): id is string => !!id && TAB_IDS.has(id);
+const isValidSubtab = (id: string | null): id is string => !!id && id in SUBTAB_PARENT;
+
+const gsapScrollToTop = (smooth = true) => {
+  const sm = typeof window !== 'undefined' ? ScrollSmoother.get?.() : null;
+  if (sm) sm.scrollTo(0, smooth);
+  else window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'instant' });
+};
+
+const InformationCenter = () => {
+  const [activeTab, setActiveTab] = useState<string>('newsroom');
+  const [activeSubtab, setActiveSubtab] = useState<string>('releases');
+  const [loading, setLoading] = useState(true);
+
+  const handleLoadingComplete = useCallback(() => setLoading(false), []);
+
+  const resolve = useCallback((tab: string | null, subtab: string | null) => {
+    if (isValidSubtab(subtab)) return { tab: SUBTAB_PARENT[subtab], subtab };
+    if (isValidTab(tab)) return { tab, subtab: DEFAULT_SUBTAB[tab] };
+    return { tab: 'newsroom', subtab: DEFAULT_SUBTAB['newsroom'] };
+  }, []);
+
+  useEffect(() => {
+    const apply = () => {
+      const params = new URLSearchParams(window.location.search);
+      const { tab, subtab } = resolve(params.get('tab'), params.get('subtab'));
+      setActiveTab(tab);
+      setActiveSubtab(subtab);
+    };
+    apply();
+    window.addEventListener('popstate', apply);
+    return () => window.removeEventListener('popstate', apply);
+  }, [resolve]);
+
+  const navigate = useCallback((tab: string, subtab: string) => {
+    setActiveTab(tab);
+    setActiveSubtab(subtab);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', tab);
+    url.searchParams.set('subtab', subtab);
+    window.history.pushState({ tab, subtab }, '', url);
+    gsapScrollToTop(false);
+  }, []);
+
+  const handleTabClick = useCallback((tabId: string) => navigate(tabId, DEFAULT_SUBTAB[tabId]), [navigate]);
+  const handleSubtabClick = useCallback((tabId: string, subtabId: string) => navigate(tabId, subtabId), [navigate]);
+  const handleLogoClick = useCallback(() => navigate('newsroom', DEFAULT_SUBTAB['newsroom']), [navigate]);
+
+  // The Information Center footer's own columns navigate in-app; the Company
+  // column uses plain hrefs that redirect back to the main site.
+  const handleFooterNavigate = useCallback((tabId: string, subtabId?: string) => {
+    if (TAB_IDS.has(tabId)) {
+      navigate(tabId, subtabId ?? DEFAULT_SUBTAB[tabId]);
+    }
+  }, [navigate]);
+
+  return (
+    <>
+      {loading && <InfoLoadingScreen duration={3000} onComplete={handleLoadingComplete} />}
+      {/* Navbar stays outside SmoothScroller so position:fixed isn't broken by transforms */}
+      <InfoNavbar
+        activeTab={activeTab}
+        activeSubtab={activeSubtab}
+        onTabClick={handleTabClick}
+        onSubtabClick={handleSubtabClick}
+        onLogoClick={handleLogoClick}
+      />
+      <SmoothScroller>
+        <div className="min-h-screen theme-transition" style={{ background: 'var(--surface-primary)', color: 'var(--content-primary)' }}>
+          <main>
+            <SubtabView subtabId={activeSubtab} />
+          </main>
+          <Footer onNavigate={handleFooterNavigate} sections={INFO_FOOTER_SECTIONS} logoHref="/" brandSubtitle="Information Center" />
+        </div>
+      </SmoothScroller>
+      <CookieBanner visible={!loading} />
+    </>
+  );
+};
+
+export default InformationCenter;

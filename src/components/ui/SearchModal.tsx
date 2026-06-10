@@ -15,6 +15,7 @@ interface SectionItem {
   tabId: string;
   subtabId?: string;
   infoContent?: string;
+  external?: string;   // opens the Information Center site in a new tab
   icon: string;
   aka?: string;
   keywords: string[];
@@ -28,19 +29,20 @@ const ALL_SECTIONS: SectionItem[] = [
   // Company
   { label: 'Overview',          tabId: 'company',    subtabId: 'company-overview',                            icon: 'bi-grid',            aka: 'Summary, Dashboard',                          keywords: ['overview', 'summary', 'dashboard', 'about', 'company', 'grids'] },
   { label: 'The Company',       tabId: 'company',    subtabId: 'company-thecompany',                          icon: 'bi-building',        aka: 'About Us, Company Profile',                   keywords: ['company', 'about us', 'profile', 'mission', 'vision', 'who we are', 'notus', 'regalia', 'corporation', 'entity', 'holding', 'firm'] },
-  { label: 'The Organization',  tabId: 'company',    subtabId: 'company-theorganization',                     icon: 'bi-people',          aka: 'Teams, Leadership, Founders',                 keywords: ['organization', 'team', 'teams', 'leadership', 'founders', 'ceo', 'cto', 'cfo', 'coo', 'executives', 'management', 'people', 'staff', 'directors', 'board', 'officers', 'personnel'] },
+  { label: 'Executives',  tabId: 'company',    subtabId: 'company-executives',                     icon: 'bi-people',          aka: 'Teams, Leadership, Founders',                 keywords: ['executives', 'organization', 'team', 'teams', 'leadership', 'founders', 'ceo', 'cto', 'cfo', 'coo', 'management', 'people', 'staff', 'directors', 'board', 'officers', 'personnel'] },
   { label: 'Strategic Capital', tabId: 'company',    subtabId: 'company-strategiccapital',                    icon: 'bi-graph-up-arrow',  aka: 'Investments, Seed, Investors',                keywords: ['capital', 'strategic', 'investments', 'investors', 'seed', 'funding', 'finance', 'venture capital', 'vc', 'fundraise', 'round', 'valuation'] },
 
-  // Information
-  { label: 'Releases',          tabId: 'information', infoContent: 'statements',                                icon: 'bi-bell',            aka: 'Statements, Announcements',                   keywords: ['releases', 'statements', 'announcements', 'press', 'notice', 'disclosure', 'public'] },
-  { label: 'News & Media',      tabId: 'information', infoContent: 'news',                                      icon: 'bi-images',          aka: 'Media, Coverage, Press',                      keywords: ['news', 'media', 'coverage', 'press', 'articles', 'blog', 'updates'] },
-  { label: 'Attributions',      tabId: 'information', infoContent: 'attributions',                               icon: 'bi-award',           aka: 'Credits, Acknowledgments',                    keywords: ['attributions', 'credits', 'acknowledgments', 'thanks', 'recognition'] },
-  { label: 'Licenses',          tabId: 'information', infoContent: 'licenses',                                   icon: 'bi-patch-check',     aka: 'Software Licensing, Open Source',              keywords: ['licenses', 'licensing', 'open source', 'software', 'mit', 'apache', 'gpl'] },
-  { label: 'Terms & Conditions',tabId: 'information', infoContent: 'terms',                                      icon: 'bi-unlock2',         aka: 'Terms of Service, TOS, Agreement',            keywords: ['terms', 'conditions', 'tos', 'terms of service', 'agreement', 'usage', 'rules'] },
-  { label: 'Policies',          tabId: 'information', infoContent: 'policies',                                   icon: 'bi-shield-check',    aka: 'Privacy, Cookie, Acceptable Use',             keywords: ['policies', 'policy', 'privacy', 'cookie', 'cookies', 'acceptable use', 'data', 'gdpr', 'data protection', 'consent', 'tracking', 'analytics'] },
-  { label: 'Documents',         tabId: 'information', infoContent: 'documents',                                  icon: 'bi-folder',          aka: 'Legal Documents, Filings',                    keywords: ['documents', 'filings', 'legal', 'paperwork', 'files', 'official'] },
-  { label: 'Investor Relations',tabId: 'information', infoContent: 'investor-relations',                         icon: 'bi-graph-up-arrow',  aka: 'Financial, Reports, Shareholders',            keywords: ['investor', 'investors', 'relations', 'financial', 'shareholders', 'equity', 'stock', 'dividends', 'ir', 'quarterly', 'annual report'] },
-  { label: 'Report a Problem',  tabId: 'information', infoContent: 'report',                                     icon: 'bi-flag',            aka: 'Issue, Bug, Complaint',                       keywords: ['report', 'problem', 'issue', 'bug', 'complaint', 'feedback', 'abuse', 'security', 'vulnerability', 'contact legal'] },
+  // Information Center (external site)
+  { label: 'Announcements',     tabId: 'information', external: '/information?tab=newsroom&subtab=announcements', icon: 'bi-bell',           aka: 'Statements, Notices',                         keywords: ['announcements', 'statements', 'notices', 'press', 'notice', 'disclosure', 'public'] },
+  { label: 'Releases',          tabId: 'information', external: '/information?tab=newsroom&subtab=releases',     icon: 'bi-journal-richtext', aka: 'Publications, Research, Editorial',           keywords: ['releases', 'publications', 'research', 'editorial', 'essays', 'whitepaper', 'blog', 'articles'] },
+  { label: 'Media',             tabId: 'information', external: '/information?tab=newsroom&subtab=media',        icon: 'bi-images',          aka: 'News, Coverage, Press',                       keywords: ['news', 'media', 'coverage', 'press', 'articles', 'updates'] },
+  { label: 'Careers',           tabId: 'information', external: '/information?tab=newsroom&subtab=careers',      icon: 'bi-briefcase',       aka: 'Jobs, Hiring, Open Roles',                    keywords: ['careers', 'jobs', 'hiring', 'roles', 'work', 'employment', 'apply', 'recruiting'] },
+  { label: 'Licenses',          tabId: 'information', external: '/information?tab=legals&subtab=licenses',       icon: 'bi-patch-check',     aka: 'Software Licensing, Open Source',              keywords: ['licenses', 'licensing', 'open source', 'software', 'mit', 'apache', 'gpl'] },
+  { label: 'Terms of Service',  tabId: 'information', external: '/information?tab=legals&subtab=terms',          icon: 'bi-unlock2',         aka: 'Terms, TOS, Agreement',                       keywords: ['terms', 'conditions', 'tos', 'terms of service', 'agreement', 'usage', 'rules'] },
+  { label: 'Privacy Policy',    tabId: 'information', external: '/information?tab=legals&subtab=privacy',        icon: 'bi-shield-check',    aka: 'Privacy, Cookie, Data',                       keywords: ['privacy', 'policy', 'cookie', 'cookies', 'data', 'gdpr', 'data protection', 'consent', 'tracking', 'analytics'] },
+  { label: 'Corporate Policies',tabId: 'information', external: '/information?tab=legals&subtab=policies',       icon: 'bi-journal-check',   aka: 'Acceptable Use, Conduct',                     keywords: ['policies', 'policy', 'acceptable use', 'conduct', 'code of conduct', 'whistleblower', 'compliance'] },
+  { label: 'Documents',         tabId: 'information', external: '/information?tab=documents&subtab=docs-governance', icon: 'bi-folder',       aka: 'Legal Documents, Filings',                    keywords: ['documents', 'filings', 'legal', 'paperwork', 'files', 'official', 'governance', 'environmental', 'social'] },
+  { label: 'Investor Relations',tabId: 'information', external: '/information?tab=investors&subtab=resources',   icon: 'bi-graph-up-arrow',  aka: 'Financial, Reports, Shareholders',            keywords: ['investor', 'investors', 'relations', 'financial', 'shareholders', 'equity', 'stock', 'dividends', 'ir', 'quarterly', 'annual report', 'events', 'governance'] },
 
   // Technologies
   { label: 'Defense',           tabId: 'technologies', subtabId: 'defense',                                      icon: 'bi-shield',          aka: 'Military, Security, Intelligence',            keywords: ['defense', 'military', 'security', 'intelligence', 'warfare', 'weapons', 'tactical', 'army', 'navy'] },
@@ -49,11 +51,11 @@ const ALL_SECTIONS: SectionItem[] = [
 ];
 
 const TRENDING: SectionItem[] = ALL_SECTIONS.filter(i =>
-  ['The Company', 'The Organization', 'Strategic Capital'].includes(i.label)
+  ['The Company', 'Executives', 'Strategic Capital'].includes(i.label)
 );
 
 const SUGGESTED: SectionItem[] = ALL_SECTIONS.filter(i =>
-  ['Home', 'Overview', 'Releases', 'Technologies', 'Policies'].includes(i.label)
+  ['Home', 'Overview', 'Releases', 'Technologies', 'Corporate Policies'].includes(i.label)
 ).map(i => {
   // For Technologies without a subtab, just point to the tab
   if (i.label === 'Technologies') return { ...i, subtabId: undefined };
@@ -64,8 +66,8 @@ const TECHNOLOGIES_ENTRY: SectionItem = { label: 'Technologies', tabId: 'technol
 if (!SUGGESTED.find(s => s.label === 'Technologies')) {
   SUGGESTED.push(TECHNOLOGIES_ENTRY);
 }
-// Also add Information general entry
-const INFO_ENTRY: SectionItem = { label: 'Information', tabId: 'information', icon: 'bi-pin', aka: 'Info Hub', keywords: ['information', 'info'] };
+// Also add an Information Center general entry (external site)
+const INFO_ENTRY: SectionItem = { label: 'Information Center', tabId: 'information', external: '/information', icon: 'bi-box-arrow-up-right', aka: 'Newsroom, Investors, Legals, Documents', keywords: ['information', 'info', 'center', 'newsroom', 'investors', 'legals', 'documents'] };
 SUGGESTED.push(INFO_ENTRY);
 
 
@@ -261,6 +263,11 @@ const SearchModal = ({ isOpen, onClose, onNavigate }: SearchModalProps) => {
   }, [onClose]);
 
   const handleItemClick = useCallback((item: SectionItem) => {
+    if (item.external) {
+      window.open(item.external, '_blank', 'noopener,noreferrer');
+      onClose();
+      return;
+    }
     onNavigate?.(item.tabId, item.subtabId, item.infoContent);
     onClose();
   }, [onNavigate, onClose]);

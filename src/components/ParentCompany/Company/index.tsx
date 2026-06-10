@@ -1,7 +1,7 @@
 "use client";
 import { memo, useState, useEffect, useRef, useCallback } from 'react';
 import CompanyHeader from './CompanyHeader';
-import Organization from './Organization';
+import Executives from './Executives';
 import Mission from './Mission';
 import Investors from './Investors';
 import DetailView from './details';
@@ -110,7 +110,7 @@ const Company = () => {
   const sectorsReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800 });
   const capabilitiesReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
   const missionReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
-  const organizationReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
+  const executivesReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
   const investorsReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
 
   if (detailPage) {
@@ -142,8 +142,8 @@ const Company = () => {
       </div>
 
       {/* Teams */}
-      <div id="section-organization" ref={organizationReveal.ref} style={organizationReveal.style}>
-        <Organization />
+      <div id="section-executives" ref={executivesReveal.ref} style={executivesReveal.style}>
+        <Executives />
       </div>
 
       {/* Investors */}

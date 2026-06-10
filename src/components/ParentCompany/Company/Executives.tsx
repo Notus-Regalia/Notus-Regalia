@@ -234,9 +234,9 @@ const FounderCard = memo(({ founder, index, onExpand, revealed }: { founder: Fou
 FounderCard.displayName = 'FounderCard';
 
 /* ─────────────────────────────────────────
-   ORGANIZATION SECTION
+   EXECUTIVES SECTION
 ───────────────────────────────────────── */
-const Organization = () => {
+const Executives = () => {
   const [activeFounder, setActiveFounder] = useState<Founder | null>(null);
   const handleExpand = useCallback((f: Founder) => {
     setActiveFounder(f);
@@ -604,11 +604,11 @@ const Organization = () => {
       `}</style>
 
       <div style={{ paddingBottom: '8rem' }}>
-        <section id="section-organization" className="teams-root">
+        <section id="section-executives" className="teams-root">
           <div className="teams-hero" ref={heroReveal.ref} style={heroReveal.style}>
             <div className="teams-hero-left">
               <div className="teams-eyebrow"><span className="teams-eyebrow-dot" />Governance Structure</div>
-              <h2 className="teams-heading">The Organization</h2>
+              <h2 className="teams-heading">Executives</h2>
               <p className="teams-sub">
                 The Notus Regalia is built on layered authority and specialised execution —
                 four founders at the apex, six units in motion, founded on 2026.
@@ -643,4 +643,4 @@ const Organization = () => {
   );
 };
 
-export default memo(Organization);
+export default memo(Executives);

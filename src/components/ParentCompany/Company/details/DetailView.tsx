@@ -22,7 +22,7 @@ const PAGES: Record<string, { meta: PageMeta; Content: () => React.JSX.Element }
 };
 
 /*
- * Responsive horizontal padding matching Investors / The Organization:
+ * Responsive horizontal padding matching Investors / Executives:
  *   base  → 2rem
  *   640px → 4rem
  *   768px → 6rem

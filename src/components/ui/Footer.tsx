@@ -212,11 +212,31 @@ function CopyIcon({ copied }: { copied: boolean }) {
   );
 }
 
-interface FooterProps {
-  onNavigate?: (tabId: string, subtabId?: string, infoContent?: string) => void;
+export interface FooterLink {
+  label: string;
+  tabId?: string;
+  subtabId?: string;
+  infoContent?: string;
+  href?: string;
+  external?: string;   // opens in a new tab (e.g. the Information Center site)
 }
 
-const Footer = ({ onNavigate }: FooterProps) => {
+export interface FooterSection {
+  title: string;
+  links: FooterLink[];
+}
+
+interface FooterProps {
+  onNavigate?: (tabId: string, subtabId?: string, infoContent?: string) => void;
+  /** Override the default link columns (used by the Information Center). */
+  sections?: FooterSection[];
+  /** Where the brand logo links to (defaults to the main-site top). */
+  logoHref?: string;
+  /** Optional small sub-label shown under the brand wordmark. */
+  brandSubtitle?: string;
+}
+
+const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brandSubtitle }: FooterProps) => {
   const footerRef  = useRef<HTMLElement>(null);
   const splitRef   = useRef<HTMLDivElement>(null);
   const nlBgRef    = useRef<HTMLDivElement>(null);
@@ -373,33 +393,26 @@ const Footer = ({ onNavigate }: FooterProps) => {
     setTimeout(() => setSubmitState('idle'), 4000);
   };
 
-  interface FooterLink {
-    label: string;
-    tabId?: string;
-    subtabId?: string;
-    infoContent?: string;
-    href?: string;
-  }
-
-  const sections: { title: string; links: FooterLink[] }[] = [
+  const defaultSections: FooterSection[] = [
     {
       title: 'Company',
       links: [
-        { label: 'Overview',          tabId: 'company', subtabId: 'company-overview' },
-        { label: 'The Company',       tabId: 'company', subtabId: 'company-thecompany' },
-        { label: 'The Organization',  tabId: 'company', subtabId: 'company-theorganization' },
-        { label: 'Strategic Capital', tabId: 'company', subtabId: 'company-strategiccapital' },
+        { label: 'Sectors',          tabId: 'company', subtabId: 'company-sectors' },
+        { label: 'Capabilities',     tabId: 'company', subtabId: 'company-capabilities' },
+        { label: 'Mission',          tabId: 'company', subtabId: 'company-mission' },
+        { label: 'Executives',       tabId: 'company', subtabId: 'company-executives' },
+        { label: 'Investors',        tabId: 'company', subtabId: 'company-investors' },
       ]
     },
     {
-      title: 'Information',
+      title: 'Information Center',
       links: [
-        { label: 'Releases',           tabId: 'information', infoContent: 'statements' },
-        { label: 'News & Media',       tabId: 'information', infoContent: 'news' },
-        { label: 'Investor Relations', tabId: 'information', infoContent: 'investor-relations' },
-        { label: 'Documents',          tabId: 'information', infoContent: 'documents' },
-        { label: 'Attributions',       tabId: 'information', infoContent: 'attributions' },
-        { label: 'Report',             tabId: 'information', infoContent: 'report' },
+        { label: 'Releases',           external: '/information?tab=newsroom&subtab=releases' },
+        { label: 'Announcements',      external: '/information?tab=newsroom&subtab=announcements' },
+        { label: 'Careers',            external: '/information?tab=newsroom&subtab=careers' },
+        { label: 'Investor Relations', external: '/information?tab=investors&subtab=resources' },
+        { label: 'Research',           external: '/information?tab=research&subtab=case-studies' },
+        { label: 'Documents',          external: '/information?tab=documents&subtab=docs-governance' },
       ]
     },
     {
@@ -424,20 +437,23 @@ const Footer = ({ onNavigate }: FooterProps) => {
       links: [
         { label: 'Contact & Support', href: '/contact' },
         { label: 'Feedback',          href: '/contact' },
-        { label: 'Site Settings',     tabId: 'information', infoContent: 'policies' },
+        { label: 'Corporate Policies', external: '/information?tab=legals&subtab=policies' },
         { label: 'Request a Demo',    href: '/contact' },
       ]
     },
     {
       title: 'Legal',
       links: [
-        { label: 'Acceptable Use Policy', tabId: 'information', infoContent: 'use-policy' },
-        { label: 'Terms & Conditions',    tabId: 'information', infoContent: 'terms' },
-        { label: 'Privacy Policy',        tabId: 'information', infoContent: 'privacy' },
-        { label: 'Licenses',              tabId: 'information', infoContent: 'licenses' },
+        { label: 'Corporate Policies', external: '/information?tab=legals&subtab=policies' },
+        { label: 'Privacy Policy',     external: '/information?tab=legals&subtab=privacy' },
+        { label: 'Terms of Service',   external: '/information?tab=legals&subtab=terms' },
+        { label: 'Licenses',           external: '/information?tab=legals&subtab=licenses' },
+        { label: 'Brand Guidelines',   external: '/information?tab=legals&subtab=brand-guidelines' },
       ]
     },
   ];
+
+  const sections: FooterSection[] = sectionsProp ?? defaultSections;
 
   return (
     <footer ref={footerRef} className="nr-footer">
@@ -1084,7 +1100,7 @@ const Footer = ({ onNavigate }: FooterProps) => {
           {/* Brand */}
           <div className="flex flex-col items-center lg:items-start lg:w-1/3 space-y-6">
             <a
-              href="/#hero" aria-label="Go to top"
+              href={logoHref} aria-label="Go to top"
               className="nr-logo-wrap group inline-flex"
               onMouseMove={(e) => {
                 const r = e.currentTarget.getBoundingClientRect();
@@ -1106,6 +1122,20 @@ const Footer = ({ onNavigate }: FooterProps) => {
               <h3 className="nr-brand-title">
                 Notus <span style={{ color: '#EB1143', fontWeight: 300 }}>Regalia</span>
               </h3>
+              {brandSubtitle && (
+                <div
+                  style={{
+                    fontSize: '0.72rem',
+                    fontWeight: 600,
+                    letterSpacing: '0.28em',
+                    textTransform: 'uppercase',
+                    color: 'var(--f-text-secondary)',
+                    marginTop: '0.85rem',
+                  }}
+                >
+                  {brandSubtitle}
+                </div>
+              )}
               <div className="nr-tagline">
                 <p>Beyond Perception.</p>
                 <p>Beyond Form.</p>
@@ -1127,7 +1157,16 @@ const Footer = ({ onNavigate }: FooterProps) => {
                 <ul className="space-y-2.5 mt-4">
                   {section.links.map((link, linkIdx) => (
                     <li key={linkIdx}>
-                      {link.tabId && onNavigate ? (
+                      {link.external ? (
+                        <a
+                          href={link.external}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="nr-nav-link"
+                        >
+                          {link.label}
+                        </a>
+                      ) : link.tabId && onNavigate ? (
                         <a
                           href="#"
                           className="nr-nav-link"

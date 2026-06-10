@@ -173,7 +173,6 @@ const Mission = memo(({ onLearnMore }: { onLearnMore?: (page: string) => void })
             <div ref={navRef} className={styles.gridNavigation} data-hydrated={hydrated ? "true" : undefined} style={{ opacity: hydrated ? 1 : 0, transition: hydrated ? 'opacity 0.2s ease' : 'none' }}>
               <div className={styles.activeSelector} style={selectorStyles}>
                 <div className={styles.selectorBackground} />
-                <div className={styles.selectorBorder} />
                 <div className={styles.selectorCrimson} />
                 {CORNER_POSITIONS.map((corner, idx) => (
                   <div
