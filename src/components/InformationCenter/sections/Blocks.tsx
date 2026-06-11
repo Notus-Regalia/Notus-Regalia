@@ -709,6 +709,125 @@ const NoteBlock = ({ text }: { text: string }) => (
 );
 
 // ─────────────────────────────────────────────────────────────
+//  Preferences — cookie consent + user preference toggles
+// ─────────────────────────────────────────────────────────────
+const Toggle = ({ on, locked, onChange }: { on: boolean; locked?: boolean; onChange?: () => void }) => (
+  <button
+    type="button"
+    role="switch"
+    aria-checked={on}
+    disabled={locked}
+    onClick={locked ? undefined : onChange}
+    className="relative flex-shrink-0 rounded-full transition-colors"
+    style={{
+      width: 42, height: 24,
+      background: on ? '#E31B54' : 'var(--hover-bg-strong, rgba(120,120,130,0.3))',
+      border: '1px solid var(--border-color)',
+      cursor: locked ? 'not-allowed' : 'pointer',
+      opacity: locked ? 0.55 : 1,
+    }}
+  >
+    <span
+      className="absolute top-1/2 rounded-full transition-all"
+      style={{
+        width: 18, height: 18,
+        left: on ? 21 : 3,
+        transform: 'translateY(-50%)',
+        background: '#fff',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
+      }}
+    />
+  </button>
+);
+
+type PrefRow = { id: string; title: string; desc: string; locked?: boolean; default: boolean };
+type PrefGroup = { heading: string; rows: PrefRow[] };
+
+const PREF_GROUPS: PrefGroup[] = [
+  {
+    heading: 'Cookie Settings',
+    rows: [
+      { id: 'essential',     title: 'Strictly Necessary', desc: 'Required for the site to function. Always on.', locked: true, default: true },
+      { id: 'analytics',     title: 'Analytics',          desc: 'Helps us understand usage to improve the experience.', default: true },
+      { id: 'personalization', title: 'Personalization',  desc: 'Remembers your choices to tailor content.', default: true },
+      { id: 'marketing',     title: 'Marketing',          desc: 'Used to measure and deliver relevant campaigns.', default: false },
+    ],
+  },
+  {
+    heading: 'User Preferences',
+    rows: [
+      { id: 'emails',        title: 'Product & Release Emails', desc: 'Occasional updates about new releases and research.', default: false },
+      { id: 'reducedMotion', title: 'Reduced Motion',           desc: 'Minimize animations and motion effects.', default: false },
+      { id: 'highContrast',  title: 'High Contrast',            desc: 'Increase contrast for improved readability.', default: false },
+    ],
+  },
+];
+
+const PreferencesBlock = () => {
+  const [state, setState] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    PREF_GROUPS.forEach((g) => g.rows.forEach((r) => { init[r.id] = r.default; }));
+    return init;
+  });
+  const [saved, setSaved] = useState(false);
+
+  const toggle = (id: string) => {
+    setState((s) => ({ ...s, [id]: !s[id] }));
+    setSaved(false);
+  };
+
+  return (
+    <div className="space-y-10">
+      {PREF_GROUPS.map((group) => (
+        <div key={group.heading}>
+          <BlockHeading>{group.heading}</BlockHeading>
+          <div className="space-y-3">
+            {group.rows.map((row) => (
+              <div
+                key={row.id}
+                className="flex items-center justify-between gap-5 rounded-2xl p-4 sm:p-5"
+                style={{ background: 'var(--hover-bg)', border: '1px solid var(--border-color)' }}
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold text-sm sm:text-base" style={{ color: 'var(--content-secondary)' }}>{row.title}</span>
+                    {row.locked && (
+                      <span className="text-[0.6rem] uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ background: 'var(--hover-bg-strong, rgba(120,120,130,0.18))', color: 'var(--content-muted)' }}>Required</span>
+                    )}
+                  </div>
+                  <p className="text-xs sm:text-sm mt-1 leading-relaxed" style={{ color: 'var(--content-muted)' }}>{row.desc}</p>
+                </div>
+                <Toggle on={state[row.id]} locked={row.locked} onChange={() => toggle(row.id)} />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <div className="flex flex-wrap items-center gap-3 pt-2">
+        <button
+          type="button"
+          onClick={() => setSaved(true)}
+          className="brand-btn"
+          onMouseMove={(e) => {
+            const r = e.currentTarget.getBoundingClientRect();
+            e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - r.left}px`);
+            e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - r.top}px`);
+          }}
+        >
+          Save preferences
+        </button>
+        {saved && (
+          <span className="text-sm inline-flex items-center gap-1.5" style={{ color: 'var(--content-muted)' }}>
+            <i className="bi bi-check-circle-fill" style={{ color: '#22c55e' }} /> Preferences saved
+          </span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────
 //  Dispatcher
 // ─────────────────────────────────────────────────────────────
 const BlockRenderer = ({ block }: { block: ContentBlock }) => {
@@ -723,6 +842,7 @@ const BlockRenderer = ({ block }: { block: ContentBlock }) => {
     case 'hero':      return <HeroFeature stories={block.stories} />;
     case 'publicationGrid': return <PublicationGridBlock heading={block.heading} items={block.items} />;
     case 'note':      return <NoteBlock text={block.text} />;
+    case 'preferences': return <PreferencesBlock />;
     default:          return null;
   }
 };

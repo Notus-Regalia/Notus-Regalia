@@ -397,9 +397,8 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
     {
       title: 'Company',
       links: [
-        { label: 'Sectors',          tabId: 'company', subtabId: 'company-sectors' },
-        { label: 'Capabilities',     tabId: 'company', subtabId: 'company-capabilities' },
         { label: 'Mission',          tabId: 'company', subtabId: 'company-mission' },
+        { label: 'Industries',       tabId: 'company', subtabId: 'company-sectors' },
         { label: 'Executives',       tabId: 'company', subtabId: 'company-executives' },
         { label: 'Investors',        tabId: 'company', subtabId: 'company-investors' },
       ]
@@ -437,18 +436,21 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
       links: [
         { label: 'Contact & Support', href: '/contact' },
         { label: 'Feedback',          href: '/contact' },
-        { label: 'Corporate Policies', external: '/information?tab=legals&subtab=policies' },
+        { label: 'Preferences',       external: '/information?tab=settings&subtab=preferences' },
+        { label: 'Sitemap',           external: '/sitemap' },
+        { label: 'Status',            external: '/status' },
         { label: 'Request a Demo',    href: '/contact' },
       ]
     },
     {
       title: 'Legal',
       links: [
-        { label: 'Corporate Policies', external: '/information?tab=legals&subtab=policies' },
-        { label: 'Privacy Policy',     external: '/information?tab=legals&subtab=privacy' },
-        { label: 'Terms of Service',   external: '/information?tab=legals&subtab=terms' },
-        { label: 'Licenses',           external: '/information?tab=legals&subtab=licenses' },
-        { label: 'Brand Guidelines',   external: '/information?tab=legals&subtab=brand-guidelines' },
+        { label: 'Corporate Policies',     external: '/information?tab=legals&subtab=policies' },
+        { label: 'NR Human Rights Policy', external: '/information?tab=legals&subtab=human-rights' },
+        { label: 'Privacy Policy',         external: '/information?tab=legals&subtab=privacy' },
+        { label: 'Terms of Service',       external: '/information?tab=legals&subtab=terms' },
+        { label: 'Licenses',               external: '/information?tab=legals&subtab=licenses' },
+        { label: 'Brand Guidelines',       external: '/information?tab=legals&subtab=brand-guidelines' },
       ]
     },
   ];

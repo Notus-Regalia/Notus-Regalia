@@ -1,11 +1,17 @@
 "use client";
 import Image from 'next/image';
-import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
+import { Fragment, useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import SearchModal from './SearchModal';
 import ThemeToggle from './ThemeToggle';
 import { useTheme } from '@/context/ThemeContext';
 import { NAVBAR_CSS } from './navbar-styles';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
+import {
+  COMPANY_SUBTABS,
+  getCompanySubtab,
+  type CompanySubtab,
+  type CompanySection,
+} from '@/data/company-nav';
 
 /* ── GSAP-aware scroll helpers ────────────────────────────────── */
 const gsapScrollTo = (target: HTMLElement | number, smooth = true) => {
@@ -59,14 +65,9 @@ const NAV_ITEMS: NavItem[] = [
     id: 'company',
     label: 'Company',
     icon: 'bi-rocket-takeoff',
-    subtabs: [
-      { id: 'company-sectors',       label: 'Sectors',      sectionId: 'section-sectors' },
-      { id: 'company-capabilities',  label: 'Capabilities', sectionId: 'section-capabilities' },
-      { id: 'company-mission',       label: 'Mission',      sectionId: 'section-mission' },
-      { id: 'company-executives',  label: 'Executives',  sectionId: 'section-executives' },
-      { id: 'company-investors',     label: 'Investors',    sectionId: 'section-investors' },
-      { id: 'company-information-center', label: 'Information Center', external: '/information' },
-    ],
+    // Each Company subtab is a standalone page; its in-page sections are
+    // defined in src/data/company-nav.ts and drive the breadcrumb strip.
+    subtabs: COMPANY_SUBTABS.map(s => ({ id: s.id, label: s.label, external: s.external })),
   },
   {
     id: 'technologies',
@@ -359,67 +360,66 @@ const StripRow = memo(({
 StripRow.displayName = 'StripRow';
 
 // ─────────────────────────────────────────────────────────────
-//  CompanyStripContent — subtab buttons + indicator for use
-//  inside the crossfade company strip (no outer wrapper)
+//  Company strip — dual-mode (subtab nav ⟷ breadcrumbs)
 // ─────────────────────────────────────────────────────────────
-const COMPANY_SUBTABS = NAV_ITEMS.find(i => i.id === 'company')!.subtabs!;
 
-interface CompanyStripContentProps {
-  activeSubtabId: string | null;
-  onSubtabClick: (sub: SubtabItem) => void;
-  onCollapse: () => void;
-  isMobile?: boolean;
-}
-
-const CompanyStripContent = memo(({
-  activeSubtabId, onSubtabClick, onCollapse, isMobile,
-}: CompanyStripContentProps) => {
-  const btnRefs  = useRef<(HTMLButtonElement | null)[]>([]);
+/* Sliding active indicator shared by both strip layers. Buttons are keyed,
+   placement walks offsetLeft up to the track so it works with leading
+   anchors/separators in the flow. */
+const useSlidingIndicator = (activeKey: string | null, visible: boolean) => {
   const trackRef = useRef<HTMLDivElement | null>(null);
+  const btnRefs  = useRef<Map<string, HTMLButtonElement | null>>(new Map());
 
   const [indStyle, setIndStyle] = useState<{ left: number; width: number } | null>(null);
   const [animate, setAnimate]   = useState(false);
   const hasPlacedRef            = useRef(false);
-  const [atEnd, setAtEnd]       = useState(false);
 
-  const updateScrollState = useCallback(() => {
-    const track = trackRef.current;
-    if (!track) return;
-    const maxScroll = track.scrollWidth - track.clientWidth;
-    setAtEnd(maxScroll > 0 && track.scrollLeft >= maxScroll - 2);
+  const setBtnRef = useCallback((key: string) => (el: HTMLButtonElement | null) => {
+    btnRefs.current.set(key, el);
   }, []);
 
-  useEffect(() => {
-    const track = trackRef.current;
-    if (!track || !isMobile) return;
-    track.addEventListener('scroll', updateScrollState, { passive: true });
-    updateScrollState();
-    return () => track.removeEventListener('scroll', updateScrollState);
-  }, [isMobile, updateScrollState]);
-
   const place = useCallback((shouldAnimate: boolean) => {
-    const idx = COMPANY_SUBTABS.findIndex(s => s.id === activeSubtabId);
-    const btn = btnRefs.current[idx];
     const track = trackRef.current;
-    if (!btn || !track) return;
-    const tRect = track.getBoundingClientRect();
-    const bRect = btn.getBoundingClientRect();
-    setIndStyle({ left: bRect.left - tRect.left + track.scrollLeft, width: bRect.width });
-    if (shouldAnimate) setAnimate(true);
+    const btn = activeKey ? btnRefs.current.get(activeKey) : null;
+    if (!track || !btn) return;
+
+    let left = 0;
+    let el: HTMLElement | null = btn;
+    while (el && el !== track) {
+      left += el.offsetLeft;
+      el = el.offsetParent as HTMLElement | null;
+    }
+    const width = btn.offsetWidth;
+
+    if (!shouldAnimate) {
+      setAnimate(false);
+      setIndStyle({ left, width });
+      requestAnimationFrame(() => setAnimate(true));
+    } else {
+      setAnimate(true);
+      setIndStyle({ left, width });
+    }
     hasPlacedRef.current = true;
-  }, [activeSubtabId]);
+
+    // Keep the active button centred when the track overflows (mobile)
+    if (track.scrollWidth > track.clientWidth + 2) {
+      const target = left + width / 2 - track.clientWidth / 2;
+      track.scrollTo({ left: Math.max(0, target), behavior: 'smooth' });
+    }
+  }, [activeKey]);
 
   useEffect(() => {
-    place(hasPlacedRef.current);
-  }, [activeSubtabId]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (visible) place(hasPlacedRef.current);
+  }, [activeKey, visible]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Re-place on mount
+  // (Re-)enter: place without animation once layout settles
   useEffect(() => {
-    const t = setTimeout(() => place(false), 40);
+    if (!visible) { hasPlacedRef.current = false; return; }
+    const t = setTimeout(() => place(false), 60);
     return () => clearTimeout(t);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const indicatorCSSStyle: React.CSSProperties = {
+  const indicatorStyle: React.CSSProperties = {
     left: indStyle?.left ?? 0,
     width: indStyle?.width ?? 0,
     opacity: indStyle ? 1 : 0,
@@ -428,9 +428,32 @@ const CompanyStripContent = memo(({
       : 'none',
   };
 
+  return { trackRef, setBtnRef, indicatorStyle };
+};
+
+/* Far-right strip arrow: collapses on desktop, scrolls the track on mobile */
+const useStripArrow = (
+  trackRef: React.RefObject<HTMLDivElement | null>,
+  isMobile: boolean | undefined,
+  onCollapse: () => void,
+) => {
+  const [atEnd, setAtEnd] = useState(false);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || !isMobile) return;
+    const update = () => {
+      const maxScroll = track.scrollWidth - track.clientWidth;
+      setAtEnd(maxScroll > 0 && track.scrollLeft >= maxScroll - 2);
+    };
+    track.addEventListener('scroll', update, { passive: true });
+    update();
+    return () => track.removeEventListener('scroll', update);
+  }, [isMobile, trackRef]);
+
   const handleArrowClick = useCallback(() => {
-    if (isMobile && trackRef.current) {
-      const track = trackRef.current;
+    const track = trackRef.current;
+    if (isMobile && track) {
       if (atEnd) {
         track.scrollTo({ left: 0, behavior: 'smooth' });
       } else {
@@ -441,49 +464,140 @@ const CompanyStripContent = memo(({
     } else {
       onCollapse();
     }
-  }, [isMobile, atEnd, onCollapse]);
+  }, [isMobile, atEnd, onCollapse, trackRef]);
 
   const arrowIcon = isMobile
     ? (atEnd ? 'bi-chevron-left' : 'bi-chevron-right')
     : 'bi-chevron-up';
 
+  return { handleArrowClick, arrowIcon };
+};
+
+const StripIndicator = ({ style }: { style: React.CSSProperties }) => (
+  <div className="strip-indicator" style={style} aria-hidden>
+    <div className="strip-indicator-bg" />
+    <div className="strip-indicator-corner tl" />
+    <div className="strip-indicator-corner tr" />
+    <div className="strip-indicator-corner bl" />
+    <div className="strip-indicator-corner br" />
+  </div>
+);
+
+/* Layer A — main subtab navigation:
+   | Mission | Industries | Executives | Investors | Information Center | */
+interface CompanyNavLayerProps {
+  visible: boolean;
+  activeSubtabId: string;
+  onNavigate: (sub: CompanySubtab) => void;
+  onExpandCrumbs: () => void;
+  onCollapse: () => void;
+  isMobile?: boolean;
+}
+
+const CompanyNavLayer = memo(({
+  visible, activeSubtabId, onNavigate, onExpandCrumbs, onCollapse, isMobile,
+}: CompanyNavLayerProps) => {
+  const { trackRef, setBtnRef, indicatorStyle } = useSlidingIndicator(activeSubtabId, visible);
+  const { handleArrowClick, arrowIcon } = useStripArrow(trackRef, isMobile, onCollapse);
+
   return (
-    <>
+    <div className={`strip-crossfade-layer strip-flip-nav ${visible ? 'strip-layer-visible' : 'strip-layer-hidden'}`}>
       <div className="strip-tabs-track" ref={trackRef}>
-        <div className="strip-indicator" style={indicatorCSSStyle} aria-hidden>
-          <div className="strip-indicator-bg" />
-          <div className="strip-indicator-corner tl" />
-          <div className="strip-indicator-corner tr" />
-          <div className="strip-indicator-corner bl" />
-          <div className="strip-indicator-corner br" />
-        </div>
-        {COMPANY_SUBTABS.map((sub, idx) => {
-          const button = (
-            <button
-              key={sub.id}
-              ref={el => { btnRefs.current[idx] = el; }}
-              className={`strip-tab${activeSubtabId === sub.id ? ' strip-tab-active' : ''}${sub.external ? ' strip-tab-external' : ''}`}
-              style={{ '--si': idx, ...(sub.external ? { display: 'inline-flex', alignItems: 'center', gap: '0.4rem' } : null) } as React.CSSProperties}
-              onClick={() => sub.external ? window.open(sub.external, '_blank', 'noopener,noreferrer') : onSubtabClick(sub)}
-            >
-              {sub.label}
-              {sub.external && <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.7rem' }} />}
-            </button>
-          );
-          return button;
-        })}
+        <StripIndicator style={indicatorStyle} />
+        {COMPANY_SUBTABS.map((sub, idx) => (
+          <button
+            key={sub.id}
+            ref={setBtnRef(sub.id)}
+            className={`strip-tab${activeSubtabId === sub.id ? ' strip-tab-active' : ''}${sub.external ? ' strip-tab-external' : ''}`}
+            style={{ '--si': idx, ...(sub.external ? { display: 'inline-flex', alignItems: 'center', gap: '0.4rem' } : null) } as React.CSSProperties}
+            onClick={() => {
+              if (sub.external) window.open(sub.external, '_blank', 'noopener,noreferrer');
+              else if (sub.id === activeSubtabId) onExpandCrumbs(); // re-click active → expand breadcrumbs
+              else onNavigate(sub);
+            }}
+          >
+            {sub.label}
+            {sub.external && <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.7rem' }} />}
+          </button>
+        ))}
       </div>
       <button
         className="strip-collapse"
         onClick={handleArrowClick}
-        aria-label={isMobile ? 'Scroll Company sections' : 'Hide Company sections'}
+        aria-label={isMobile ? 'Scroll Company pages' : 'Hide Company pages'}
       >
         <i className={`bi ${arrowIcon}`} />
       </button>
-    </>
+    </div>
   );
 });
-CompanyStripContent.displayName = 'CompanyStripContent';
+CompanyNavLayer.displayName = 'CompanyNavLayer';
+
+/* Layer B — expanded breadcrumbs of the active subtab page:
+   | Sectors ▸ | Overview › Industries › Explore */
+interface CompanyCrumbsLayerProps {
+  visible: boolean;
+  subtab: CompanySubtab;
+  activeSectionId: string | null;
+  onCrumbClick: (section: CompanySection) => void;
+  onShowNav: () => void;
+  onCollapse: () => void;
+  isMobile?: boolean;
+}
+
+const CompanyCrumbsLayer = memo(({
+  visible, subtab, activeSectionId, onCrumbClick, onShowNav, onCollapse, isMobile,
+}: CompanyCrumbsLayerProps) => {
+  const { trackRef, setBtnRef, indicatorStyle } = useSlidingIndicator(activeSectionId, visible);
+  const { handleArrowClick, arrowIcon } = useStripArrow(trackRef, isMobile, onCollapse);
+  const sections = subtab.sections ?? [];
+
+  return (
+    <div className={`strip-crossfade-layer strip-flip-crumbs ${visible ? 'strip-layer-visible' : 'strip-layer-hidden'}`}>
+      <div className="strip-tabs-track" ref={trackRef}>
+        <button
+          className="strip-anchor"
+          onClick={onShowNav}
+          aria-label="Close breadcrumbs and show all Company pages"
+          title="Close breadcrumbs"
+        >
+          <span className="strip-anchor-burger" aria-hidden>
+            <span /><span /><span />
+          </span>
+          <span className="strip-anchor-label">{subtab.label}</span>
+          <i className="bi bi-x-lg strip-anchor-close" aria-hidden />
+        </button>
+
+        <StripIndicator style={indicatorStyle} />
+
+        {sections.map((sec, idx) => (
+          <Fragment key={sec.id}>
+            {idx > 0 && (
+              <span className="strip-crumb-sep" aria-hidden>
+                <i className="bi bi-chevron-right" />
+              </span>
+            )}
+            <button
+              ref={setBtnRef(sec.id)}
+              className={`strip-crumb${activeSectionId === sec.id ? ' strip-crumb-active' : ''}`}
+              onClick={() => onCrumbClick(sec)}
+            >
+              {sec.label}
+            </button>
+          </Fragment>
+        ))}
+      </div>
+      <button
+        className="strip-collapse"
+        onClick={handleArrowClick}
+        aria-label={isMobile ? `Scroll ${subtab.label} sections` : `Hide ${subtab.label} sections`}
+      >
+        <i className={`bi ${arrowIcon}`} />
+      </button>
+    </div>
+  );
+});
+CompanyCrumbsLayer.displayName = 'CompanyCrumbsLayer';
 
 // ─────────────────────────────────────────────────────────────
 //  Main component
@@ -510,24 +624,52 @@ const Navbar = ({
   const manualOpenRef            = useRef(false);
   const isProgrammaticScrollRef  = useRef(false);
   const programmaticScrollTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [scrollSpySubtab, setScrollSpySubtab] = useState<string | null>(null);
   const [companyDetailOpen, setCompanyDetailOpen] = useState(false);
 
+  // ── Company strip: dual mode (breadcrumbs ⟷ subtab nav) ──
+  // Default to the main subtab nav so freshly entering the Company tab shows
+  // the subtab strip (not breadcrumbs) until the timer flips it.
+  const [stripMode, setStripMode] = useState<'crumbs' | 'nav'>('nav');
+  const [modeEpoch, setModeEpoch] = useState(0); // bump to restart the auto-switch timer
+  const [scrollSpySection, setScrollSpySection] = useState<string | null>(null);
+  // First-open choreography: on a fresh entry into the Company tab the strip
+  // stays in nav mode and waits for the user to scroll; 1.5s after scrolling it
+  // shows breadcrumbs for 3s, returns to nav, then the normal 10s auto-switch
+  // takes over. While this is active the 10s timer is suppressed.
+  const [firstOpenActive, setFirstOpenActive] = useState(false);
+  // Set when the user picks a new page from the main subtab strip: keep nav
+  // mode visible so its indicator slides to the new active subtab, then reveal
+  // breadcrumbs after a short delay (instead of switching instantly).
+  const navSlideThenCrumbsRef = useRef(false);
+  // Tracks the previous active tab so we can tell a fresh entry into the
+  // Company tab from a subtab change while already on it.
+  const prevActiveTabRef = useRef(activeTab);
+
+  // Active standalone Company page (falls back to Sectors)
+  const companySubtab = useMemo(
+    () => getCompanySubtab(activeSubtab),
+    [activeSubtab],
+  );
+
   // ── Listen for company detail page events ──
+  // The Company component fires `open: false` on mount too, so only treat a
+  // true→false transition as "returned from a detail page" (→ breadcrumbs).
+  // Otherwise a fresh tab entry would immediately flip out of nav mode.
+  const detailWasOpenRef = useRef(false);
   useEffect(() => {
     const handler = (e: Event) => {
       const open = (e as CustomEvent).detail?.open ?? false;
       setCompanyDetailOpen(open);
 
-      // Returning from a detail page → reset strip to "Sectors"
-      if (!open) {
-        setScrollSpySubtab('company-sectors');
-        onSubtabClick?.('company', 'company-sectors');
+      if (!open && detailWasOpenRef.current) {
+        setStripMode('crumbs');
+        setModeEpoch(n => n + 1);
       }
+      detailWasOpenRef.current = open;
     };
     window.addEventListener('company-detail', handler);
     return () => window.removeEventListener('company-detail', handler);
-  }, [onSubtabClick]);
+  }, []);
 
   // ── Collapse / show nav ──
   const handleCollapseNav = useCallback(() => {
@@ -629,25 +771,151 @@ const Navbar = ({
     };
   }, [setNavProgress]);
 
-  // When active tab changes: open strip, reset scroll-spy to first subtab
+  // When active tab changes: open strip
   useEffect(() => {
     manualOpenRef.current = false;
     const item = NAV_ITEMS.find(i => i.id === activeTab);
-    if (!item?.subtabs?.length) { setStripOpen(false); setScrollSpySubtab(null); return; }
+    if (!item?.subtabs?.length) { setStripOpen(false); return; }
     setStripOpen(true);
-    setScrollSpySubtab(activeSubtab ?? item.subtabs[0].id);
-  }, [activeTab, activeSubtab]);
+  }, [activeTab]);
 
-  // Scroll-spy: compute the active section on scroll. IntersectionObserver is
-  // unreliable here because GSAP ScrollSmoother moves content via transform
-  // inside a position:fixed wrapper, so we measure positions directly instead —
-  // driven by native scroll AND the smoother's own "update" event.
+  // When the Company page (subtab) changes: reset scroll-spy to the first
+  // section and restart the auto-switch timer.
+  //   • From the main subtab strip → stay in nav mode so the selection
+  //     indicator slides to the new active subtab, then reveal breadcrumbs
+  //     after 3s.
+  //   • From any other source (footer, search, deep link, initial load) →
+  //     show the page's breadcrumbs immediately.
   useEffect(() => {
-    const item = NAV_ITEMS.find(i => i.id === activeTab);
-    if (!item?.subtabs?.length) return;
+    const wasCompany = prevActiveTabRef.current === 'company';
+    prevActiveTabRef.current = activeTab;
 
-    const sectionSubtabs = item.subtabs.filter(s => s.sectionId);
-    if (!sectionSubtabs.length) return;
+    // Leaving the Company tab → reset to the nav mode while the strip is hidden,
+    // so the next visit starts on the subtab strip without an animated flip.
+    // (The auto-switch timer below is already gated on activeTab, so nothing
+    // ticks in the background while on another tab.)
+    if (activeTab !== 'company') {
+      navSlideThenCrumbsRef.current = false;
+      setFirstOpenActive(false);
+      setStripMode('nav');
+      return;
+    }
+
+    setScrollSpySection(companySubtab.sections?.[0]?.id ?? null);
+
+    // Fresh entry into the Company tab → show the main subtab strip and hand off
+    // to the scroll-driven first-open choreography (below). The 10s timer stays
+    // suppressed until that finishes.
+    if (!wasCompany) {
+      navSlideThenCrumbsRef.current = false;
+      setStripMode('nav');
+      setFirstOpenActive(true);
+      return;
+    }
+
+    // Picking a subtab from the main strip → keep nav mode so the indicator
+    // slides to it, then reveal breadcrumbs after 3s; the 10s cadence follows.
+    if (navSlideThenCrumbsRef.current) {
+      navSlideThenCrumbsRef.current = false;
+      setFirstOpenActive(false);
+      setStripMode('nav');
+      setModeEpoch(n => n + 1);
+      const t = setTimeout(() => {
+        setStripMode('crumbs');
+        setModeEpoch(n => n + 1);
+      }, 3000);
+      return () => clearTimeout(t);
+    }
+
+    // Subtab changed from elsewhere (footer, search, deep link) while already on
+    // the tab → show that page's breadcrumbs immediately.
+    setFirstOpenActive(false);
+    setStripMode('crumbs');
+    setModeEpoch(n => n + 1);
+  }, [activeTab, companySubtab]);
+
+  // First-open choreography: wait for the user to scroll, then 1.5s later show
+  // breadcrumbs for 3s, return to the subtab strip, and start the 10s cadence.
+  useEffect(() => {
+    if (!firstOpenActive || activeTab !== 'company') return;
+
+    let scrolled = false;
+    let afterScroll: ReturnType<typeof setTimeout> | undefined;
+    let crumbsHold: ReturnType<typeof setTimeout> | undefined;
+
+    const getScroll = () => {
+      const sm = ScrollSmoother.get?.();
+      return sm ? sm.scrollTop() : window.scrollY;
+    };
+
+    const smoother = ScrollSmoother.get() as {
+      scrollTrigger?: {
+        addEventListener?: (event: string, cb: () => void) => void;
+        removeEventListener?: (event: string, cb: () => void) => void;
+      };
+    } | null;
+
+    const detachScroll = () => {
+      window.removeEventListener('scroll', onScroll);
+      smoother?.scrollTrigger?.removeEventListener?.('update', onScroll);
+    };
+
+    const onScroll = () => {
+      if (scrolled || getScroll() <= 24) return;
+      scrolled = true;
+      detachScroll();
+      // 1.5s after the user has scrolled → show breadcrumbs
+      afterScroll = setTimeout(() => {
+        setStripMode('crumbs');
+        // hold breadcrumbs for 9s → back to the subtab strip + start 10s cadence
+        crumbsHold = setTimeout(() => {
+          setStripMode('nav');
+          setFirstOpenActive(false);
+          setModeEpoch(n => n + 1);
+        }, 9000);
+      }, 1500);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    smoother?.scrollTrigger?.addEventListener?.('update', onScroll);
+
+    return () => {
+      detachScroll();
+      if (afterScroll) clearTimeout(afterScroll);
+      if (crumbsHold) clearTimeout(crumbsHold);
+    };
+  }, [firstOpenActive, activeTab]);
+
+  // Auto-switch the company strip between breadcrumbs and the main subtab
+  // navigation 10 seconds after the *last* switch. This is a self-rescheduling
+  // timeout (not a fixed interval) keyed on `stripMode` + `modeEpoch`, so every
+  // forced switch — whether by the timer firing or by any click trigger
+  // (anchor toggle, subtab navigate, breadcrumb click, re-clicking the Company
+  // tab) — restarts a fresh 10s countdown. That prevents a manual switch and
+  // the timer from double-triggering back-to-back.
+  useEffect(() => {
+    if (activeTab !== 'company' || !stripOpen || companyDetailOpen || firstOpenActive) return;
+    const t = setTimeout(() => {
+      setStripMode(m => (m === 'crumbs' ? 'nav' : 'crumbs'));
+    }, 10000);
+    return () => clearTimeout(t);
+  }, [activeTab, stripOpen, companyDetailOpen, firstOpenActive, stripMode, modeEpoch]);
+
+  const toggleStripMode = useCallback(() => {
+    setFirstOpenActive(false); // any manual switch cancels the first-open wait
+    setStripMode(m => (m === 'crumbs' ? 'nav' : 'crumbs'));
+    setModeEpoch(n => n + 1);
+  }, []);
+
+  // Scroll-spy over the active Company page's sections (breadcrumbs).
+  // IntersectionObserver is unreliable here because GSAP ScrollSmoother moves
+  // content via transform inside a position:fixed wrapper, so we measure
+  // positions directly instead — driven by native scroll AND the smoother's
+  // own "update" event.
+  useEffect(() => {
+    if (activeTab !== 'company' || companyDetailOpen) return;
+    const sections = companySubtab.sections ?? [];
+    if (!sections.length) return;
 
     let rafId: number | null = null;
 
@@ -660,21 +928,21 @@ const Navbar = ({
       const line = navH + 8; // reference line just below the navbar
 
       // Active section = the last one whose top has crossed above the line.
-      let bestSub: SubtabItem | null = null;
+      let bestSec: CompanySection | null = null;
       let bestTop = -Infinity;
-      for (const sub of sectionSubtabs) {
-        const el = document.getElementById(sub.sectionId!);
+      for (const sec of sections) {
+        const el = document.getElementById(sec.id);
         if (!el) continue;
         const top = el.getBoundingClientRect().top;
         if (top - line <= 0 && top > bestTop) {
           bestTop = top;
-          bestSub = sub;
+          bestSec = sec;
         }
       }
       // Above the first section's trigger point → default to the first section.
-      if (!bestSub) bestSub = sectionSubtabs[0];
+      if (!bestSec) bestSec = sections[0];
 
-      setScrollSpySubtab(prev => (prev === bestSub!.id ? prev : bestSub!.id));
+      setScrollSpySection(prev => (prev === bestSec!.id ? prev : bestSec!.id));
     };
 
     const schedule = () => {
@@ -700,7 +968,7 @@ const Navbar = ({
       smoother?.scrollTrigger?.removeEventListener?.('update', schedule);
       if (rafId !== null) cancelAnimationFrame(rafId);
     };
-  }, [activeTab]);
+  }, [activeTab, companySubtab, companyDetailOpen]);
 
   useEffect(() => () => {
     if (programmaticScrollTimer.current) clearTimeout(programmaticScrollTimer.current);
@@ -709,13 +977,23 @@ const Navbar = ({
   // ── Tab label click ──
   // Main-tab switches just fade; instant scroll-to-top happens while content is invisible
   const handleTabClick = useCallback((tabId: string) => {
+    // Re-clicking the already-active Company tab forces the main subtab strip
+    // (closes any open breadcrumbs) and restarts the 10s auto-switch timer.
+    if (tabId === 'company' && activeTab === 'company') {
+      navSlideThenCrumbsRef.current = false;
+      setFirstOpenActive(false);
+      setStripOpen(true);
+      manualOpenRef.current = true;
+      setStripMode('nav');
+      setModeEpoch(n => n + 1);
+    }
     setActiveTab(tabId);
     setNavProgress(0);
     setTimeout(() => {
       gsapScrollToTop(false);
       syncNavProgressFor(450);
     }, 150);
-  }, [setActiveTab, setNavProgress, syncNavProgressFor]);
+  }, [activeTab, setActiveTab, setNavProgress, syncNavProgressFor]);
 
   // ── Arrow click ──
   const handleArrowToggle = useCallback((tabId: string) => {
@@ -746,7 +1024,6 @@ const Navbar = ({
     }
     onSubtabClick?.(parentTabId, sub.id);
     if (sub.sectionId) {
-      setScrollSpySubtab(sub.id);
       isProgrammaticScrollRef.current = true;
       if (programmaticScrollTimer.current) clearTimeout(programmaticScrollTimer.current);
       programmaticScrollTimer.current = setTimeout(() => {
@@ -777,6 +1054,37 @@ const Navbar = ({
     }
   }, [activeTab, setActiveTab, onSubtabClick, setNavProgress, syncNavProgressFor]);
 
+  // ── Company strip: navigate to another standalone subtab page ──
+  // The Company tab runs its own fade transition + scroll-to-top on swap,
+  // so we only update state/URL here and keep the progress border in sync.
+  const handleCompanyNavigate = useCallback((sub: CompanySubtab) => {
+    // Keep the nav-mode indicator visible so it slides to the new subtab; the
+    // subtab-change effect reveals breadcrumbs 3s later.
+    navSlideThenCrumbsRef.current = true;
+    setFirstOpenActive(false);
+    onSubtabClick?.('company', sub.id);
+    setNavProgress(0);
+    syncNavProgressFor(1200);
+  }, [onSubtabClick, setNavProgress, syncNavProgressFor]);
+
+  // ── Company strip: breadcrumb click → scroll to the section ──
+  const handleCrumbClick = useCallback((sec: CompanySection) => {
+    setFirstOpenActive(false);
+    setScrollSpySection(sec.id);
+    setModeEpoch(n => n + 1); // interacting restarts the auto-switch timer
+    isProgrammaticScrollRef.current = true;
+    if (programmaticScrollTimer.current) clearTimeout(programmaticScrollTimer.current);
+    programmaticScrollTimer.current = setTimeout(() => {
+      isProgrammaticScrollRef.current = false;
+    }, 1200);
+
+    const el = document.getElementById(sec.id);
+    if (el) {
+      gsapScrollTo(el);
+      syncNavProgressFor(1600);
+    }
+  }, [syncNavProgressFor]);
+
   // ── Search ──
   const openSearch  = useCallback(() => setSearchOpen(true),  []);
   const closeSearch = useCallback(() => setSearchOpen(false), []);
@@ -791,6 +1099,11 @@ const Navbar = ({
   const handleSearchNavigate = useCallback((tabId: string, subtabId?: string) => {
     setActiveTab(tabId);
     if (subtabId) onSubtabClick?.(tabId, subtabId);
+    if (tabId === 'company') {
+      // Company runs its own page transition + scroll-to-top on subtab swap
+      syncNavProgressFor(1200);
+      return;
+    }
     // Find matching subtab's sectionId so we can scroll to it
     const navItem = NAV_ITEMS.find(i => i.id === tabId);
     const sub = navItem?.subtabs?.find(s => s.id === subtabId);
@@ -832,7 +1145,10 @@ const Navbar = ({
     }
     setActiveTab(parentTabId); onSubtabClick?.(parentTabId, sub.id);
     setMobileOpen(false); setMobileExpandedTab(null);
-    if (sub.sectionId) {
+    if (parentTabId === 'company') {
+      // Company runs its own page transition + scroll-to-top on subtab swap
+      syncNavProgressFor(1200);
+    } else if (sub.sectionId) {
       requestAnimationFrame(() => {
         const el = document.getElementById(sub.sectionId!);
         if (el) {
@@ -869,7 +1185,7 @@ const Navbar = ({
   useEffect(() => {
     const SELECTORS = [
       '.tab-item-border', '.tab-label-btn', '.tab-arrow-btn',
-      '.strip-tab', '.strip-collapse',
+      '.strip-tab', '.strip-anchor', '.strip-crumb', '.strip-collapse',
       '.logo-mark', '.mob-tab-btn', '.mob-subtab-btn',
       '.mob-close', '.mob-search', '.nav-reveal-tab', '.nav-theme-tab', '.mobile-burger',
     ].join(', ');
@@ -1003,10 +1319,14 @@ const Navbar = ({
         </div>
 
         {/* ══ SUBTAB STRIP — active tab only ══ */}
-        {/* Company tab: single strip with crossfading inner layers */}
+        {/* Company tab: single strip with crossfading inner layers
+            (detail back-link / main subtab nav / active-page breadcrumbs) */}
         <div className={`subtab-strip-outer${activeTab === 'company' && stripOpen ? ' strip-visible' : ''}`}>
           <div className="subtab-strip-clip">
-            <div className="subtab-strip-inner" style={{ position: 'relative' }}>
+            <div
+              className={`subtab-strip-inner company-strip${stripMode === 'crumbs' && !companyDetailOpen ? ' mode-crumbs' : ''}`}
+              style={{ position: 'relative' }}
+            >
                 {/* Layer 1: "Return to Previous Page" — visible when detail open */}
                 <div className={`strip-crossfade-layer ${companyDetailOpen ? 'strip-layer-visible' : 'strip-layer-hidden'}`}>
                   <div className="strip-tabs-track">
@@ -1027,15 +1347,25 @@ const Navbar = ({
                     <i className="bi bi-chevron-up" />
                   </button>
                 </div>
-                {/* Layer 2: Normal subtabs — visible when NOT in detail */}
-                <div className={`strip-crossfade-layer ${!companyDetailOpen ? 'strip-layer-visible' : 'strip-layer-hidden'}`}>
-                  <CompanyStripContent
-                    activeSubtabId={(scrollSpySubtab ?? activeSubtab) ?? null}
-                    onSubtabClick={(sub) => handleSubtabClick('company', sub)}
-                    onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
-                    isMobile={isMobile}
-                  />
-                </div>
+                {/* Layer 2: main subtab navigation */}
+                <CompanyNavLayer
+                  visible={!companyDetailOpen && stripMode === 'nav'}
+                  activeSubtabId={companySubtab.id}
+                  onNavigate={handleCompanyNavigate}
+                  onExpandCrumbs={toggleStripMode}
+                  onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
+                  isMobile={isMobile}
+                />
+                {/* Layer 3: breadcrumbs of the active standalone page */}
+                <CompanyCrumbsLayer
+                  visible={!companyDetailOpen && stripMode === 'crumbs'}
+                  subtab={companySubtab}
+                  activeSectionId={scrollSpySection}
+                  onCrumbClick={handleCrumbClick}
+                  onShowNav={toggleStripMode}
+                  onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
+                  isMobile={isMobile}
+                />
               </div>
             </div>
           </div>
@@ -1043,7 +1373,7 @@ const Navbar = ({
         {NAV_ITEMS.filter(item => item.subtabs?.length && item.id !== 'company').map((item) => {
           const isActiveItem   = item.id === activeTab;
           const isVisible      = isActiveItem && stripOpen;
-          const activeSubtabId = isActiveItem ? (activeSubtab ?? scrollSpySubtab) : undefined;
+          const activeSubtabId = isActiveItem ? (activeSubtab ?? item.subtabs![0].id) : undefined;
 
           return (
             <StripRow

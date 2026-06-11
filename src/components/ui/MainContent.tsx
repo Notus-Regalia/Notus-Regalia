@@ -37,7 +37,7 @@ const MainContent = ({ activeTab, activeSubtab }: MainContentProps) => {
       case 'home':
         return <LandingTab />;
       case 'company':
-        return <CompanyTab />;
+        return <CompanyTab activeSubtab={activeSubtab} />;
       case 'technologies':
         return <TechnologiesTab activeSubtab={activeSubtab} />;
       default:

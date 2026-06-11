@@ -54,12 +54,10 @@ interface AboutLearnMoreButtonProps {
 }
 
 const AboutLearnMoreButton = memo<AboutLearnMoreButtonProps>(({ onClick, onMouseMove }) => (
-  <div className={styles.lmBorder}>
-    <button className={styles.lmBtn} onClick={onClick} onMouseMove={onMouseMove} style={{ cursor: 'pointer' }}>
-      <span>Learn More</span>
-      <i className="bi bi-arrow-up-right-square"></i>
-    </button>
-  </div>
+  <button className="brand-btn" onClick={onClick} onMouseMove={onMouseMove}>
+    <span>Learn More</span>
+    <i className="bi bi-arrow-up-right-square"></i>
+  </button>
 ));
 AboutLearnMoreButton.displayName = "AboutLearnMoreButton";
 
@@ -122,46 +120,47 @@ const Mission = memo(({ onLearnMore }: { onLearnMore?: (page: string) => void })
 
         <div className="relative z-10 h-full">
 
-          {/* ── About Us Header ── */}
+          {/* ── Section header strip — title only ── */}
           <div
             ref={headerReveal.ref}
             style={{
               width: '100%',
-              maxWidth: '100%',
               display: 'flex',
-              flexDirection: 'column',
               alignItems: 'center',
-              textAlign: 'center',
-              paddingTop: '6rem',
-              paddingBottom: '4rem',
+              justifyContent: 'center',
+              gap: 'clamp(0.85rem, 2vw, 1.25rem)',
+              padding: '0.5rem clamp(1.5rem, 5vw, 4rem)',
+              marginTop: '1.5rem',
               background: 'transparent',
               ...headerReveal.style,
             }}
           >
-            <div className={styles.eyebrow}>
-              <span className={styles.eyebrowDot} />
-              Company Profile
-            </div>
-
-            <h2 className={styles.aboutHeaderTitle}>Mission</h2>
-            <p
-              className={styles.aboutHeaderDesc}
+            <span
+              aria-hidden
               style={{
-                display: 'block',
-                margin: '0 auto',
-                textAlign: 'center',
-                maxWidth: '90vw',
-                fontSize: 'clamp(0.85rem, 2.5vw, 1.2rem)',
+                width: '4px',
+                height: 'clamp(2rem, 4.5vw, 2.9rem)',
+                borderRadius: '2px',
+                background: '#E31B54',
+                flexShrink: 0,
+              }}
+            />
+            <h2
+              style={{
+                margin: 0,
+                fontSize: 'clamp(2rem, 5.5vw, 3.2rem)',
+                fontWeight: 700,
+                letterSpacing: '-0.025em',
+                lineHeight: 1,
+                color: 'var(--content-primary)',
               }}
             >
-              We build with intention — exploring the intersection of technology, design, and human experience.
-            </p>
-
-            <div className={styles.headerRule} />
+              Our Company
+            </h2>
           </div>
 
           {/* ── Panel ── */}
-          <div ref={panelReveal.ref} style={{ marginTop: "3rem", position: 'relative', ...panelReveal.style }}>
+          <div ref={panelReveal.ref} style={{ marginTop: "1.5rem", position: 'relative', ...panelReveal.style }}>
 
           {/* Mobile scroll hint tooltip */}
           <div className={styles.scrollHint} aria-hidden="true">

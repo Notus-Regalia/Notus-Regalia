@@ -249,10 +249,11 @@ const StripRow = memo(({ item, isVisible, activeSubtabId, onSubtabClick, onColla
                 key={sub.id}
                 ref={el => { btnRefs.current[idx] = el; }}
                 className={`strip-tab${activeSubtabId === sub.id ? ' strip-tab-active' : ''}`}
-                style={{ '--si': idx } as React.CSSProperties}
+                style={{ '--si': idx, ...(sub.external ? { display: 'inline-flex', alignItems: 'center', gap: '0.4rem' } : null) } as React.CSSProperties}
                 onClick={() => onSubtabClick(sub)}
               >
                 {sub.label}
+                {sub.external && <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.7rem' }} />}
               </button>
             ))}
           </div>
@@ -370,6 +371,7 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
   }, [activeTab, onTabClick]);
 
   const handleStripSubtabClick = useCallback((tabId: string, sub: InfoSubtab) => {
+    if (sub.external) { window.open(sub.external, '_blank', 'noopener,noreferrer'); return; }
     onSubtabClick(tabId, sub.id);
   }, [onSubtabClick]);
 
@@ -396,6 +398,11 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
   const closeMobile = useCallback(() => { setMobileOpen(false); setMobileExpandedTab(null); }, []);
   const toggleMobileTab = useCallback((id: string) => setMobileExpandedTab(p => p === id ? null : id), []);
   const handleMobileSubtabClick = useCallback((tabId: string, sub: InfoSubtab) => {
+    if (sub.external) {
+      window.open(sub.external, '_blank', 'noopener,noreferrer');
+      setMobileOpen(false); setMobileExpandedTab(null);
+      return;
+    }
     onSubtabClick(tabId, sub.id);
     setMobileOpen(false); setMobileExpandedTab(null);
   }, [onSubtabClick]);
@@ -576,6 +583,7 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
                       onClick={() => handleMobileSubtabClick(item.id, sub)}
                     >
                       {sub.label}
+                      {sub.external && <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.7rem', marginLeft: '0.4rem' }} />}
                     </button>
                   ))}
                 </div>

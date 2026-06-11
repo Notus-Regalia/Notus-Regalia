@@ -360,12 +360,32 @@ export default function WhatWeDoBentoSection() {
           cursor: pointer;
           transition: border-color 180ms ease, color 180ms ease, background 180ms ease;
         }
+        /* Brand rainbow border on hover */
+        .ww-card-cta::before {
+          content: '';
+          position: absolute;
+          inset: -2px;
+          border-radius: 4px;
+          padding: 1px;
+          background: radial-gradient(
+            120px circle at 50% 50%,
+            rgba(0, 255, 166, 0.9), rgba(255, 215, 0, 0.7), rgba(236, 72, 153, 0.7),
+            rgba(147, 51, 234, 0.6), rgba(59, 130, 246, 0.5), transparent 70%
+          );
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          pointer-events: none;
+        }
 
         .ww-card-cta:hover {
           border-color: rgba(255, 255, 255, 0.5);
           color: rgba(255, 255, 255, 1);
           background: rgba(12, 16, 25, 0.84);
         }
+        .ww-card-cta:hover::before { opacity: 1; }
 
         .ww-card-kicker {
           display: inline-flex;

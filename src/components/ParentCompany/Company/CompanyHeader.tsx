@@ -53,8 +53,9 @@ const CompanyHeader = memo(() => {
       <div
         className="relative flex items-center justify-center overflow-hidden"
         style={{
-          height: "clamp(280px, 45vh, 500px)",
-          paddingTop: "72px",
+          height: "clamp(340px, 48vh, 520px)",
+          // Clear the fixed navbar (~84px) + subtab strip (~50px).
+          paddingTop: "clamp(132px, 16vh, 172px)",
         }}
       >
         <StarfieldBackground

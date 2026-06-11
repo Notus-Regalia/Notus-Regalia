@@ -5,6 +5,7 @@
 export interface InfoSubtab {
   id: string;
   label: string;
+  external?: string;  // when set, the subtab opens this URL instead of rendering content
 }
 
 export interface InfoTab {
@@ -63,7 +64,8 @@ export type ContentBlock =
   | { type: 'publications'; featured: PublicationItem; items: PublicationItem[] }
   | { type: 'hero'; stories: PublicationItem[] }
   | { type: 'publicationGrid'; heading?: string; items: PublicationItem[] }
-  | { type: 'note'; text: string };
+  | { type: 'note'; text: string }
+  | { type: 'preferences' };                                      // cookie + user preference toggles
 
 export interface SubtabContent {
   header: {
@@ -119,6 +121,7 @@ export const INFO_TABS: InfoTab[] = [
     icon: 'bi-shield-check',
     subtabs: [
       { id: 'policies', label: 'Corporate Policies' },
+      { id: 'human-rights', label: 'NR Human Rights Policy' },
       { id: 'privacy',  label: 'Privacy Policy' },
       { id: 'terms',    label: 'Terms of Service' },
       { id: 'licenses', label: 'Licenses' },
@@ -136,6 +139,16 @@ export const INFO_TABS: InfoTab[] = [
       { id: 'media-assets',       label: 'Media Assets' },
     ],
   },
+  {
+    id: 'settings',
+    label: 'Settings',
+    icon: 'bi-gear',
+    subtabs: [
+      { id: 'preferences', label: 'Preferences' },
+      { id: 'sitemap',     label: 'Sitemap', external: '/sitemap' },
+      { id: 'status',      label: 'Status', external: '/status' },
+    ],
+  },
 ];
 
 export const DEFAULT_SUBTAB: Record<string, string> = {
@@ -144,12 +157,15 @@ export const DEFAULT_SUBTAB: Record<string, string> = {
   research:  'case-studies',
   legals:    'policies',
   documents: 'docs-governance',
+  settings:  'preferences',
 };
 
 // subtab id → parent tab id (for eyebrow + url integrity)
 export const SUBTAB_PARENT: Record<string, string> = (() => {
   const map: Record<string, string> = {};
-  for (const tab of INFO_TABS) for (const sub of tab.subtabs) map[sub.id] = tab.id;
+  for (const tab of INFO_TABS) for (const sub of tab.subtabs) {
+    if (!sub.external) map[sub.id] = tab.id; // external subtabs have no in-page content
+  }
   return map;
 })();
 
@@ -632,6 +648,47 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
     ],
   },
 
+  'human-rights': {
+    header: {
+      eyebrow: 'Legals',
+      title: 'NR Human Rights Policy',
+      description: 'Our commitment to upholding human rights across our operations, products, and partnerships.',
+    },
+    blocks: [
+      {
+        type: 'text',
+        heading: 'Principles',
+        paragraphs: [
+          'Notus Regalia upholds the inherent dignity of every individual affected by our work and opposes discrimination in all forms across hiring, deployment, and partnership.',
+          'We design systems that respect human rights and resist misuse — by intent and by safeguard.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'Safeguards',
+        paragraphs: [
+          'We conduct human-rights due diligence on engagements before and during deployment, and apply contractual and technical limits on how our systems may be used.',
+          'High-sensitivity programs and partnerships are subject to independent oversight review.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'Report an Issue',
+        paragraphs: [
+          'If you believe our work has caused or contributed to a human-rights concern, contact our Human Rights Office at humanrights@notusregalia.com.',
+          'Reports may be made confidentially and without retaliation.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'Transparency',
+        paragraphs: [
+          'We publish annual disclosures on human-rights performance and remediation, maintain anonymized grievance records, and govern this policy at board level.',
+        ],
+      },
+    ],
+  },
+
   privacy: {
     header: {
       eyebrow: 'Legals',
@@ -881,4 +938,17 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
       },
     ],
   },
+
+  // ══ SETTINGS ══════════════════════════════════════════════
+  preferences: {
+    header: {
+      eyebrow: 'Settings',
+      title: 'Preferences',
+      description: 'Manage your cookie consent, privacy choices, and how Notus Regalia experiences behave for you.',
+    },
+    blocks: [
+      { type: 'preferences' },
+    ],
+  },
+
 };

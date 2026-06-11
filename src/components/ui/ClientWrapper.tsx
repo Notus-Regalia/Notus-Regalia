@@ -18,7 +18,7 @@ type TabType = 'home' | 'company' | 'affiliations' | 'technologies';
 const VALID_TABS: TabType[] = ['home', 'company', 'affiliations', 'technologies'];
 
 const DEFAULT_SUBTABS: Partial<Record<TabType, string>> = {
-  company: 'company-sectors',
+  company: 'company-mission',
   technologies: 'technologies-civic-operations',
 };
 
@@ -102,6 +102,16 @@ const ClientWrapper = () => {
     }
     window.history.pushState({ tab: parentTabId, subtab: subtabId }, '', url);
   }, [isValidTab]);
+
+  // In-page "Continue Exploring" links on Company subtab pages
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const subtab = (e as CustomEvent).detail?.subtab;
+      if (typeof subtab === 'string') handleSubtabClick('company', subtab);
+    };
+    window.addEventListener('company-navigate', handler);
+    return () => window.removeEventListener('company-navigate', handler);
+  }, [handleSubtabClick]);
 
   const handleFooterNavigate = useCallback((tabId: string, subtabId?: string) => {
     if (!isValidTab(tabId)) return;

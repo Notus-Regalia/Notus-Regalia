@@ -352,7 +352,8 @@ input[type="checkbox"], input[type="radio"], select,
 .strip-tab {
   position: relative;
   display: inline-flex; align-items: center; justify-content: center;
-  padding: 0 22px;
+  padding: 0 32px;
+  min-width: 132px;
   border: none; background: transparent;
   color: var(--content-muted); font-size: 0.88rem; font-weight: 500;
   cursor: pointer; flex-shrink: 0; white-space: nowrap;
@@ -416,7 +417,96 @@ input[type="checkbox"], input[type="radio"], select,
   animation-delay: calc(var(--si, 0) * 0.045s + 0.06s);
 }
 
-/* ── Crossfade layers inside the company strip when toggling detail/subtabs ── */
+/* ── Company strip: dual-mode (breadcrumbs ⟷ subtab nav) ── */
+/* Expanded anchor for the active subtab page (left edge of breadcrumb mode).
+   Single toggle button: hamburger + label + close icon. Clicking it closes
+   the breadcrumbs and shows the main subtab nav. */
+.strip-anchor {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 0 18px 0 24px;
+  min-width: 240px;
+  border: none; background: rgba(255,255,255,0.04);
+  color: var(--content-primary);
+  font-size: 1.02rem; font-weight: 700; letter-spacing: 0.005em;
+  cursor: pointer; flex-shrink: 0; white-space: nowrap;
+  border-right: 1px solid var(--border-color);
+  transition: background 0.2s ease, color 0.2s ease;
+  z-index: 1;
+}
+:root.light .strip-anchor { background: rgba(0,0,0,0.035); }
+.strip-anchor:hover { background: rgba(255,255,255,0.08); }
+:root.light .strip-anchor:hover { background: rgba(0,0,0,0.06); }
+
+.strip-anchor-label { flex: 1; text-align: center; }
+
+/* Close icon (right side of the title) */
+.strip-anchor-close {
+  font-size: 0.72rem; color: var(--content-faint); flex-shrink: 0;
+  transition: transform 0.24s cubic-bezier(0.34, 1.18, 0.64, 1), color 0.2s ease;
+}
+.strip-anchor:hover .strip-anchor-close { color: var(--content-primary); transform: rotate(90deg) scale(1.12); }
+
+/* Animated hamburger (built from bars so it can morph) */
+.strip-anchor-burger {
+  position: relative;
+  display: inline-flex; flex-direction: column; justify-content: center;
+  gap: 4px;
+  width: 18px; height: 14px;
+  flex-shrink: 0;
+  transition: transform 0.32s cubic-bezier(0.34, 1.18, 0.64, 1);
+}
+.strip-anchor:hover .strip-anchor-burger { transform: translateX(-2px); }
+.strip-anchor-burger span {
+  display: block; height: 2px; width: 100%;
+  border-radius: 999px;
+  background: var(--content-faint);
+  transform-origin: left center;
+  transition:
+    transform 0.34s cubic-bezier(0.34, 1.18, 0.64, 1),
+    width 0.34s cubic-bezier(0.34, 1.18, 0.64, 1),
+    background 0.2s ease;
+}
+/* Resting state: staggered widths for a modern, dynamic look */
+.strip-anchor-burger span:nth-child(1) { width: 70%; }
+.strip-anchor-burger span:nth-child(3) { width: 85%; }
+/* Hover: bars stagger-slide and settle to full width, top→bottom cascade */
+.strip-anchor:hover .strip-anchor-burger span { background: var(--content-primary); width: 100%; }
+.strip-anchor:hover .strip-anchor-burger span:nth-child(1) { transform: translateX(3px); transition-delay: 0s; }
+.strip-anchor:hover .strip-anchor-burger span:nth-child(2) { transform: translateX(3px); transition-delay: 0.05s; }
+.strip-anchor:hover .strip-anchor-burger span:nth-child(3) { transform: translateX(3px); transition-delay: 0.1s; }
+
+/* Breadcrumb items of the active page's sections */
+.strip-crumb {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0 32px;
+  min-width: 132px;
+  border: none; background: transparent;
+  color: var(--content-muted); font-size: 0.84rem; font-weight: 500;
+  cursor: pointer; flex-shrink: 0; white-space: nowrap;
+  letter-spacing: 0.01em;
+  transition: color 0.22s ease;
+  z-index: 1;
+}
+.strip-crumb:hover { color: var(--content-primary); }
+.strip-crumb.strip-crumb-active { color: var(--content-primary); font-weight: 600; }
+
+.strip-crumb-sep {
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--content-faint); opacity: 0.5; font-size: 0.58rem;
+  flex-shrink: 0; pointer-events: none; z-index: 1;
+}
+
+@media (max-width: 640px) {
+  .strip-anchor { min-width: 168px; padding: 0 14px 0 18px; font-size: 0.92rem; gap: 10px; }
+  .strip-crumb { padding: 0 20px; min-width: 96px; font-size: 0.8rem; }
+}
+
+/* ── Layers inside the company strip when toggling detail/subtabs ── */
+/* Parent gives the flip its depth */
+.company-strip { perspective: 1100px; }
+
 .strip-crossfade-layer {
   position: absolute;
   inset: 0;
@@ -433,6 +523,23 @@ input[type="checkbox"], input[type="radio"], select,
   opacity: 0;
   pointer-events: none;
 }
+
+/* ── Card-flip between the main subtab nav and the breadcrumbs ──
+   Nav lives "above" and breadcrumbs "below" so the two always rotate in the
+   same direction around the horizontal axis — a continuous flip-board swap
+   rather than a plain crossfade. The detail back-link layer keeps the fade. */
+.strip-flip-nav,
+.strip-flip-crumbs {
+  transform-origin: center center;
+  will-change: transform, opacity;
+  transition:
+    transform 0.52s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.34s ease;
+}
+.strip-flip-nav.strip-layer-visible,
+.strip-flip-crumbs.strip-layer-visible { transform: rotateX(0deg); opacity: 1; }
+.strip-flip-nav.strip-layer-hidden    { transform: rotateX(90deg);  opacity: 0; }
+.strip-flip-crumbs.strip-layer-hidden { transform: rotateX(-90deg); opacity: 0; }
 
 /* ── Collapse chevron at the far right of strip ── */
 .strip-collapse {
@@ -473,6 +580,8 @@ input[type="checkbox"], input[type="radio"], select,
 .tab-label-btn,
 .tab-arrow-btn,
 .strip-tab,
+.strip-anchor,
+.strip-crumb,
 .strip-collapse,
 .logo-mark,
 .mob-tab-btn,
@@ -506,7 +615,7 @@ input[type="checkbox"], input[type="radio"], select,
   .nav-reveal-tab { top: 12px; padding: 7px 11px 7px 10px; font-size: 0.74rem; }
   .nav-theme-tab  { top: calc(12px + 34px + 5px); padding: 7px 11px 7px 10px; font-size: 0.74rem; }
   .nav-icon-btn-wrap::after { display: none; }
-  .strip-tab { padding: 0 14px; font-size: 0.82rem; }
+  .strip-tab { padding: 0 20px; min-width: 96px; font-size: 0.82rem; }
   .strip-collapse { padding: 0 14px; }
   .strip-collapse:hover i { transform: translateX(2px); }
 }

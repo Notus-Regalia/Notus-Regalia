@@ -1,0 +1,123 @@
+/* ─────────────────────────────────────────────────────────────
+   Company navigation model.
+
+   Each Company subtab is a standalone page with its own sections.
+   `sections[].id` doubles as the DOM id of the section wrapper on
+   that page — the navbar breadcrumb strip scrollspies against it.
+   ───────────────────────────────────────────────────────────── */
+
+export interface CompanySection {
+  id: string;     // DOM id of the section on the subtab page
+  label: string;  // breadcrumb label
+}
+
+export interface CompanySubtab {
+  id: string;
+  label: string;
+  external?: string;  // opens this URL in a new tab instead of a page
+  hero?: {
+    eyebrow?: string;
+    title: string;
+    subtitle: string;
+  };
+  sections?: CompanySection[];
+}
+
+export const COMPANY_SUBTABS: CompanySubtab[] = [
+  {
+    id: 'company-mission',
+    label: 'Mission',
+    hero: {
+      eyebrow: 'Company Profile',
+      title: 'Mission',
+      subtitle: 'Why we build — our philosophy, direction, and the governance that keeps us accountable.',
+    },
+    sections: [
+      { id: 'mission-our-company', label: 'Our Company' },
+      { id: 'mission-what-we-do',  label: 'What we Engineer' },
+      { id: 'mission-roadmap',     label: 'Roadmap' },
+      { id: 'mission-explore',     label: 'Explore' },
+    ],
+  },
+  {
+    id: 'company-sectors',
+    label: 'Industries',
+    hero: {
+      title: 'Industries',
+      subtitle: 'Five sectors, one operational backbone — the industries we serve and the systems that bind them.',
+    },
+    sections: [
+      { id: 'sectors-overview',   label: 'Overview' },
+      { id: 'sectors-industries', label: 'Sectors' },
+      { id: 'sectors-explore',    label: 'Explore' },
+    ],
+  },
+  {
+    id: 'company-executives',
+    label: 'Executives',
+    hero: {
+      eyebrow: 'Governance Structure',
+      title: 'Executives',
+      subtitle: 'The leadership behind Notus Regalia — founders and officers steering the mission.',
+    },
+    sections: [
+      { id: 'executives-overview',   label: 'Overview' },
+      { id: 'executives-leadership', label: 'Leadership' },
+      { id: 'executives-explore',    label: 'Explore' },
+    ],
+  },
+  {
+    id: 'company-investors',
+    label: 'Investors',
+    hero: {
+      eyebrow: 'Capital Structure',
+      title: 'Investors',
+      subtitle: 'Our capital structure and the partners who back the mission across every phase.',
+    },
+    sections: [
+      { id: 'investors-overview', label: 'Overview' },
+      { id: 'investors-capital',  label: 'Capital' },
+      { id: 'investors-explore',  label: 'Explore' },
+    ],
+  },
+  {
+    id: 'company-ventures',
+    label: 'Ventures',
+    hero: {
+      title: 'Ventures',
+      subtitle: 'The companies we build, back, and incubate — from wholly-owned subsidiaries to early-stage startups.',
+    },
+    sections: [
+      { id: 'ventures-subsidiaries', label: 'Subsidiaries' },
+      { id: 'ventures-portfolio',    label: 'Portfolio Companies' },
+      { id: 'ventures-startups',     label: 'Startups' },
+      { id: 'ventures-explore',      label: 'Explore' },
+    ],
+  },
+  {
+    id: 'company-human-rights',
+    label: 'Human Rights',
+    hero: {
+      title: 'NR Human Rights Policy',
+      subtitle: 'Our commitment to upholding human rights across our operations, products, and partnerships.',
+    },
+    sections: [
+      { id: 'hr-principles',   label: 'Principles' },
+      { id: 'hr-safeguards',   label: 'Safeguards' },
+      { id: 'hr-report',       label: 'Report an issue' },
+      { id: 'hr-transparency', label: 'Transparency' },
+      { id: 'hr-learn-more',   label: 'Learn more' },
+    ],
+  },
+  {
+    id: 'company-information-center',
+    label: 'Information Center',
+    external: '/information',
+  },
+];
+
+export const DEFAULT_COMPANY_SUBTAB = 'company-mission';
+
+export const getCompanySubtab = (id?: string | null): CompanySubtab =>
+  COMPANY_SUBTABS.find(s => s.id === id && !s.external)
+  ?? COMPANY_SUBTABS.find(s => s.id === DEFAULT_COMPANY_SUBTAB)!;

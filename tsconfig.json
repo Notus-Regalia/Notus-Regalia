@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "ignoreDeprecations": "6.0",
     "lib": [
       "dom",
       "dom.iterable",
@@ -8,7 +7,7 @@
     ],
     "jsx": "preserve",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "allowJs": true,
     "strict": false,

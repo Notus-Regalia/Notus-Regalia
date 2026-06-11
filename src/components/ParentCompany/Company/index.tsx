@@ -1,26 +1,34 @@
 "use client";
-import { memo, useState, useEffect, useRef, useCallback } from 'react';
-import CompanyHeader from './CompanyHeader';
-import Executives from './Executives';
-import Mission from './Mission';
-import Investors from './Investors';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import DetailView from './details';
-import IndustrySection from '../Landing/IndustrySection';
-import WhatWeDoBentoSection from '../Landing/BentoSection';
+import {
+  SectorsPage,
+  MissionPage,
+  ExecutivesPage,
+  InvestorsPage,
+  VenturesPage,
+  HumanRightsPage,
+} from './subpages/pages';
+import { getCompanySubtab } from '@/data/company-nav';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
-import { useReveal } from '@/hooks/useScrollReveal';
 
 /* ── Transition timings (ms) ── */
 const FADE_OUT = 280;
 const FADE_IN  = 350;
 
-const Company = () => {
+interface CompanyProps {
+  activeSubtab?: string;
+}
+
+const Company = ({ activeSubtab }: CompanyProps) => {
+  /* Resolve the requested subtab page (external entries fall back to default) */
+  const targetSubtab = getCompanySubtab(activeSubtab).id;
+
+  const [displayedSubtab, setDisplayedSubtab] = useState(targetSubtab);
   const [detailPage, setDetailPage] = useState<string | null>(null);
-  const returnSectionRef = useRef<string | null>(null);
 
   /* Phase: 'idle' → 'fade-out' → swap → 'fade-in' → 'idle' */
   const [phase, setPhase] = useState<'idle' | 'fade-out' | 'fade-in'>('idle');
-  const pendingRef = useRef<string | null | undefined>(undefined); // queued value for detailPage
 
   /* ── Scroll helper (works with/without ScrollSmoother) ── */
   const scrollToTop = useCallback(() => {
@@ -29,15 +37,16 @@ const Company = () => {
     else { window.scrollTo({ top: 0 }); }
   }, []);
 
-  /* ── Transition engine ── */
-  const runTransition = useCallback((nextPage: string | null) => {
-    if (phase !== 'idle') return; // ignore during in-flight transition
-    pendingRef.current = nextPage;
+  /* ── Transition engine: fade out, apply swap, fade in ── */
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
+
+  const runTransition = useCallback((apply: () => void) => {
+    if (phaseRef.current !== 'idle') return; // ignore during in-flight transition
     setPhase('fade-out');
 
     setTimeout(() => {
-      // Swap content
-      setDetailPage(nextPage);
+      apply();
 
       // Jump to top instantly (before fade-in so user doesn't see scroll)
       scrollToTop();
@@ -45,33 +54,36 @@ const Company = () => {
       // Start fade-in on next frame so the DOM has the new content
       requestAnimationFrame(() => {
         setPhase('fade-in');
-
-        // After fade-in, cleanup
-        setTimeout(() => {
-          setPhase('idle');
-          pendingRef.current = undefined;
-        }, FADE_IN);
+        setTimeout(() => setPhase('idle'), FADE_IN);
       });
     }, FADE_OUT);
-  }, [phase, scrollToTop]);
+  }, [scrollToTop]);
 
-  /* ── Public actions ── */
-  const openDetail = useCallback((page: string, sectionId?: string) => {
-    returnSectionRef.current = sectionId ?? null;
-    runTransition(page);
+  /* ── Subtab page switching ──
+     Runs whenever the requested subtab differs from the displayed one.
+     Re-checked when phase returns to idle so rapid clicks settle on the
+     latest target. */
+  useEffect(() => {
+    if (phase !== 'idle') return;
+    if (targetSubtab === displayedSubtab) return;
+    runTransition(() => {
+      setDisplayedSubtab(targetSubtab);
+      setDetailPage(null);
+    });
+  }, [targetSubtab, displayedSubtab, detailPage, phase, runTransition]);
+
+  /* ── Detail page actions (Mission "Learn More") ── */
+  const openDetail = useCallback((page: string) => {
+    runTransition(() => setDetailPage(page));
   }, [runTransition]);
 
   const closeDetail = useCallback(() => {
-    runTransition(null);
+    runTransition(() => setDetailPage(null));
   }, [runTransition]);
 
   // Dispatch navbar events when detail state changes
   useEffect(() => {
-    if (detailPage) {
-      window.dispatchEvent(new CustomEvent('company-detail', { detail: { open: true } }));
-    } else {
-      window.dispatchEvent(new CustomEvent('company-detail', { detail: { open: false } }));
-    }
+    window.dispatchEvent(new CustomEvent('company-detail', { detail: { open: !!detailPage } }));
   }, [detailPage]);
 
   // Listen for strip "Return to Previous Page" click
@@ -94,24 +106,13 @@ const Company = () => {
   /* ── Transition style ── */
   const wrapStyle: React.CSSProperties = {
     opacity: phase === 'fade-out' ? 0 : 1,
-    transform: phase === 'fade-out'
-      ? 'translateY(12px)'
-      : phase === 'fade-in'
-        ? 'translateY(0)'
-        : 'translateY(0)',
+    transform: phase === 'fade-out' ? 'translateY(12px)' : 'translateY(0)',
     transition: phase === 'fade-out'
       ? `opacity ${FADE_OUT}ms ease, transform ${FADE_OUT}ms ease`
       : phase === 'fade-in'
         ? `opacity ${FADE_IN}ms ease, transform ${FADE_IN}ms ease`
         : 'none',
   };
-
-  /* ── Scroll-triggered entrance animations ── */
-  const sectorsReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800 });
-  const capabilitiesReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
-  const missionReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
-  const executivesReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
-  const investorsReveal = useReveal('fade-up', { threshold: 0.08, rootMargin: '0px 0px -40px 0px', duration: 800, cssDelay: 80 });
 
   if (detailPage) {
     return (
@@ -121,35 +122,21 @@ const Company = () => {
     );
   }
 
+  const renderPage = () => {
+    switch (displayedSubtab) {
+      case 'company-sectors':      return <SectorsPage />;
+      case 'company-executives':   return <ExecutivesPage />;
+      case 'company-investors':    return <InvestorsPage />;
+      case 'company-ventures':     return <VenturesPage />;
+      case 'company-human-rights': return <HumanRightsPage />;
+      case 'company-mission':
+      default:                     return <MissionPage onLearnMore={openDetail} />;
+    }
+  };
+
   return (
     <div style={{ paddingTop: 'env(safe-area-inset-top)', ...wrapStyle }}>
-      {/* Company Header */}
-      <CompanyHeader />
-
-      {/* Sectors Section */}
-      <div id="section-sectors" ref={sectorsReveal.ref} style={sectorsReveal.style}>
-        <IndustrySection />
-      </div>
-
-      {/* Capabilities Section */}
-      <div id="section-capabilities" ref={capabilitiesReveal.ref} style={capabilitiesReveal.style}>
-        <WhatWeDoBentoSection />
-      </div>
-
-      {/* Mission panel: company / direction / governance / reachout */}
-      <div id="section-mission" ref={missionReveal.ref} style={missionReveal.style}>
-        <Mission onLearnMore={(page) => openDetail(page, 'section-mission')} />
-      </div>
-
-      {/* Teams */}
-      <div id="section-executives" ref={executivesReveal.ref} style={executivesReveal.style}>
-        <Executives />
-      </div>
-
-      {/* Investors */}
-      <div id="section-investors" ref={investorsReveal.ref} style={investorsReveal.style}>
-        <Investors />
-      </div>
+      {renderPage()}
     </div>
   );
 };
