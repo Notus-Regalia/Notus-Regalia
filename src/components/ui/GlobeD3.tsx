@@ -283,14 +283,14 @@ const GlobeD3 = ({ onCountrySelect, theme, deselectSignal, focusSignal }: { onCo
         new Promise<void>(res => {
           if ((window as any).d3) { d3 = (window as any).d3; res(); return; }
           const s = document.createElement('script');
-          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js';
+          s.src = '/vendor/d3.v7.8.5.min.js';  // self-hosted: external CDN is blocked by CSP in production
           s.onload = () => { d3 = (window as any).d3; res(); };
           document.head.appendChild(s);
         }),
         new Promise<void>(res => {
           if ((window as any).topojson) { topojson = (window as any).topojson; res(); return; }
           const s = document.createElement('script');
-          s.src = 'https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js';
+          s.src = '/vendor/topojson.v3.0.2.min.js';  // self-hosted: external CDN is blocked by CSP in production
           s.onload = () => { topojson = (window as any).topojson; res(); };
           document.head.appendChild(s);
         }),

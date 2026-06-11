@@ -61,9 +61,10 @@ export default function MicropageLayout({
         .mp-logo-btn {
           display: flex; align-items: center; gap: 12px;
           border: none; background: transparent; padding: 0; cursor: pointer;
-          transition: transform 0.25s cubic-bezier(0.34,1.18,0.64,1);
+          transition: opacity 0.2s ease;
         }
-        .mp-logo-btn:hover { transform: scale(1.05); }
+        .mp-logo-btn:hover { opacity: 0.78; }
+        .mp-logo-btn:active { opacity: 0.6; }
         .mp-logo-icon {
           width: 38px; height: 38px; border-radius: 8px;
           background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 60%, #111 100%);

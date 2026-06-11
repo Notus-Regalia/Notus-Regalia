@@ -66,10 +66,10 @@ input[type="checkbox"], input[type="radio"], select,
 .logo-mark {
   display: flex; align-items: center; gap: 12px; user-select: none;
   border: none; background: transparent; padding: 0; cursor: pointer;
-  transition: transform 0.15s ease-in-out;
+  transition: opacity 0.2s ease;
 }
-.logo-mark:hover { transform: scale(1.03); }
-.logo-mark:active { transform: scale(0.98); }
+.logo-mark:hover { opacity: 0.78; }
+.logo-mark:active { opacity: 0.6; }
 .logo-icon {
   width: 42px; height: 42px; border-radius: 10px;
   background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 60%, #111 100%);

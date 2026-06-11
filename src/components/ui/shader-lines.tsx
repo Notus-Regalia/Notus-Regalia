@@ -8,7 +8,10 @@ declare global {
   }
 }
 
-const THREE_SRC = "https://cdnjs.cloudflare.com/ajax/libs/three.js/89/three.min.js"
+// Self-hosted so it loads under our Content-Security-Policy (script-src 'self').
+// An external CDN URL is blocked by CSP in production, which left the shader
+// header background blank on the deployed (Vercel) build while working locally.
+const THREE_SRC = "/vendor/three.r89.min.js"
 
 export function ShaderAnimation() {
   const containerRef = useRef<HTMLDivElement>(null)
