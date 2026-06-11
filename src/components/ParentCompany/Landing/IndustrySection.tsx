@@ -32,7 +32,7 @@ const INDUSTRIES: Industry[] = [
     id: "government",
     title: "Government",
     description: "Unified public-sector systems for faster, accountable, and coordinated service delivery.",
-    href: "/?tab=technologies&subtab=technologies-civic-operations",
+    href: "/technologies/civic-operations",
   },
   {
     id: "defense",
@@ -44,19 +44,19 @@ const INDUSTRIES: Industry[] = [
     id: "healthcare",
     title: "Healthcare",
     description: "Clinical platforms that improve coordination, data trust, and care delivery speed.",
-    href: "/?tab=technologies&subtab=technologies-healthcare",
+    href: "/technologies/healthcare",
   },
   {
     id: "enterprise",
     title: "Enterprise",
     description: "Execution systems that align workflows, visibility, and cross-functional decisions.",
-    href: "/?tab=technologies&subtab=technologies-enterprise",
+    href: "/technologies/enterprise",
   },
   {
     id: "energy",
     title: "Energy",
     description: "Infrastructure intelligence for uptime, early risk signals, and resilient grid continuity.",
-    href: "/?tab=technologies&subtab=technologies-energy",
+    href: "/technologies/energy",
   },
 ];
 

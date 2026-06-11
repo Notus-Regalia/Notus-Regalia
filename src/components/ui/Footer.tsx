@@ -406,12 +406,12 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
     {
       title: 'Information Center',
       links: [
-        { label: 'Releases',           external: '/information?tab=newsroom&subtab=releases' },
-        { label: 'Announcements',      external: '/information?tab=newsroom&subtab=announcements' },
-        { label: 'Careers',            external: '/information?tab=newsroom&subtab=careers' },
-        { label: 'Investor Relations', external: '/information?tab=investors&subtab=resources' },
-        { label: 'Research',           external: '/information?tab=research&subtab=case-studies' },
-        { label: 'Documents',          external: '/information?tab=documents&subtab=docs-governance' },
+        { label: 'Releases',           external: '/information/newsroom/releases' },
+        { label: 'Announcements',      external: '/information/newsroom/announcements' },
+        { label: 'Careers',            external: '/information/newsroom/careers' },
+        { label: 'Investor Relations', external: '/information/investors/resources' },
+        { label: 'Research',           external: '/information/research/case-studies' },
+        { label: 'Documents',          external: '/information/documents/docs-governance' },
       ]
     },
     {
@@ -436,7 +436,7 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
       links: [
         { label: 'Contact & Support', href: '/contact' },
         { label: 'Feedback',          href: '/contact' },
-        { label: 'Preferences',       external: '/information?tab=settings&subtab=preferences' },
+        { label: 'Preferences',       external: '/information/settings/preferences' },
         { label: 'Sitemap',           external: '/sitemap' },
         { label: 'Status',            external: '/status' },
         { label: 'Request a Demo',    href: '/contact' },
@@ -445,12 +445,12 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
     {
       title: 'Legal',
       links: [
-        { label: 'Corporate Policies',     external: '/information?tab=legals&subtab=policies' },
-        { label: 'NR Human Rights Policy', external: '/information?tab=legals&subtab=human-rights' },
-        { label: 'Privacy Policy',         external: '/information?tab=legals&subtab=privacy' },
-        { label: 'Terms of Service',       external: '/information?tab=legals&subtab=terms' },
-        { label: 'Licenses',               external: '/information?tab=legals&subtab=licenses' },
-        { label: 'Brand Guidelines',       external: '/information?tab=legals&subtab=brand-guidelines' },
+        { label: 'Corporate Policies',     external: '/information/legals/policies' },
+        { label: 'NR Human Rights Policy', external: '/information/legals/human-rights' },
+        { label: 'Privacy Policy',         external: '/information/legals/privacy' },
+        { label: 'Terms of Service',       external: '/information/legals/terms' },
+        { label: 'Licenses',               external: '/information/legals/licenses' },
+        { label: 'Brand Guidelines',       external: '/information/legals/brand-guidelines' },
       ]
     },
   ];

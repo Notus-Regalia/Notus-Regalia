@@ -9,6 +9,7 @@ import { DEFENSE_NAVBAR_CSS } from './styles';
 import StripRow from './StripRow';
 import DefenseHero from './DefenseHero';
 import DefenseContent from './DefenseContent';
+import { rootHref } from '@/utils/routes';
 import DefenseLoadingScreen from './DefenseLoadingScreen';
 import SmoothScroller from '@/components/ui/SmoothScroller';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
@@ -175,7 +176,7 @@ export default function DefenseSitePage() {
   const handleSubtabClick = useCallback((sub: SubtabItem) => {
     // Special subtabs (e.g. "Return to Main Site")
     if (sub.isSpecial && sub.id === 'return-main') {
-      window.location.href = '/?tab=technologies';
+      window.location.href = '/technologies';
       return;
     }
 
@@ -204,7 +205,7 @@ export default function DefenseSitePage() {
 
   // ── Go home ──
   const goHome = useCallback(() => {
-    window.location.href = '/?tab=technologies';
+    window.location.href = '/technologies';
   }, []);
 
   // ── Search ──
@@ -227,7 +228,7 @@ export default function DefenseSitePage() {
       startProgrammaticScroll();
       smoothScrollTo(0, 600);
     } else {
-      window.location.href = `/?tab=${tabId}${subtabId ? `&subtab=${subtabId}` : ''}`;
+      window.location.href = rootHref(tabId, subtabId);
     }
     setSearchOpen(false);
   }, [smoothScrollTo, startProgrammaticScroll]);
@@ -290,7 +291,7 @@ export default function DefenseSitePage() {
 
   const handleMobileSubtabClick = useCallback((parentTabId: string, sub: SubtabItem) => {
     if (sub.isSpecial && sub.id === 'return-main') {
-      window.location.href = '/?tab=technologies';
+      window.location.href = '/technologies';
       return;
     }
     setActiveTab(parentTabId); setActiveSubtab(sub.id);
@@ -370,7 +371,7 @@ export default function DefenseSitePage() {
 
   // Footer navigate — route back to main site sections
   const handleFooterNavigate = useCallback((tabId: string) => {
-    window.location.href = `/?tab=${tabId}`;
+    window.location.href = rootHref(tabId);
   }, []);
 
   return (

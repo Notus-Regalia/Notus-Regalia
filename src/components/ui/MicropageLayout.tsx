@@ -2,6 +2,7 @@
 import { useCallback } from 'react';
 import Image from 'next/image';
 import { useTheme } from '@/context/ThemeContext';
+import { rootHref } from '@/utils/routes';
 
 interface MicropageLayoutProps {
   title: string;
@@ -23,10 +24,8 @@ export default function MicropageLayout({
   const { theme, toggleTheme } = useTheme();
 
   const goBack = useCallback(() => {
-    const url = new URL(window.location.origin);
-    if (parentTab) url.searchParams.set('tab', parentTab);
-    window.location.href = url.toString();
-  }, [parentTab]);
+    window.location.href = parentTab ? rootHref(parentTab, parentSubtab) : '/';
+  }, [parentTab, parentSubtab]);
 
   return (
     <>
@@ -105,7 +104,7 @@ export default function MicropageLayout({
             <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
               <button className="mp-logo-btn" onClick={goBack} title="Back to Notus Regalia">
                 <div className="mp-logo-icon">
-                  <Image src="/assets/notus-regalia-logo.svg" alt="Logo" width={24} height={24} />
+                  <Image src="/assets/Notus-Regalia-logo.svg" alt="Logo" width={24} height={24} />
                 </div>
                 <span style={{ fontSize: '1.05rem', fontWeight: 800, letterSpacing: '-0.03em', color: 'var(--content-primary)', lineHeight: 1 }}>
                   Notus Regalia

@@ -257,7 +257,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: 'Media Resources',
         columns: 3,
         items: [
-          { icon: 'bi-images', title: 'Press Kit', body: 'Logos, executive headshots, and approved boilerplate.', cta: 'Browse Media Assets', href: '?tab=documents&subtab=media-assets' },
+          { icon: 'bi-images', title: 'Press Kit', body: 'Logos, executive headshots, and approved boilerplate.', cta: 'Browse Media Assets', href: '/information/documents/media-assets' },
           { icon: 'bi-file-earmark-text', title: 'Fact Sheet', body: 'Company overview, structure, and operating principles.', cta: 'Download PDF', href: '/documents/fact-sheet.pdf' },
           { icon: 'bi-envelope', title: 'Press Contact', body: 'Reach the communications desk directly.', cta: 'press@notusregalia.com', href: 'mailto:press@notusregalia.com' },
         ],
@@ -821,7 +821,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
           { icon: 'bi-fonts', title: 'Typography', body: 'Use the system wordmark styling. Do not substitute decorative fonts for the name.' },
           { icon: 'bi-arrows-fullscreen', title: 'Clear Space', body: 'Preserve clear space around the logo equal to the height of the mark.' },
           { icon: 'bi-ban', title: 'Don\'ts', body: 'No drop shadows, gradients, outlines, or busy backgrounds behind the mark.' },
-          { icon: 'bi-images', title: 'Get Assets', body: 'Download approved logos and the press kit from Media Assets.', cta: 'Open Media Assets', href: '?tab=documents&subtab=media-assets' },
+          { icon: 'bi-images', title: 'Get Assets', body: 'Download approved logos and the press kit from Media Assets.', cta: 'Open Media Assets', href: '/information/documents/media-assets' },
         ],
       },
       {

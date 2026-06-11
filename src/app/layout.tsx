@@ -9,12 +9,9 @@ export const metadata: Metadata = {
   title: "Notus Regalia",
   description: "Building Systems, Ventures, and Future Companies",
   icons: {
-    icon: [
-      { url: '/assets/notus-regalia-logo.svg', type: 'image/svg+xml' },
-      { url: '/favicon-32.png', type: 'image/png' },
-      { url: '/favicon.ico', type: 'image/x-icon' },
-    ],
-    apple: [{ url: '/assets/notus-regalia-logo.svg' }]
+    icon: [{ url: '/assets/Notus-Regalia-logo.svg', type: 'image/svg+xml' }],
+    shortcut: [{ url: '/assets/Notus-Regalia-logo.svg', type: 'image/svg+xml' }],
+    apple: [{ url: '/assets/Notus-Regalia-logo.svg' }],
   }
 };
 

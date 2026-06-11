@@ -8,6 +8,7 @@ import SmoothScroller from '@/components/ui/SmoothScroller';
 import Footer, { type FooterSection } from '@/components/ui/Footer';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { INFO_TABS, DEFAULT_SUBTAB, SUBTAB_PARENT } from './data';
+import { infoHref, parseInfoPath } from '@/utils/routes';
 
 // Dedicated Information Center footer columns. Own sections navigate in-app
 // (via onNavigate); the Company group redirects back to the main site section.
@@ -63,10 +64,10 @@ const INFO_FOOTER_SECTIONS: FooterSection[] = [
   {
     title: 'Company',
     links: [
-      { label: 'Mission',          href: '/?tab=company&subtab=company-mission' },
-      { label: 'Industries',       href: '/?tab=company&subtab=company-sectors' },
-      { label: 'Executives',       href: '/?tab=company&subtab=company-executives' },
-      { label: 'Investors',        href: '/?tab=company&subtab=company-investors' },
+      { label: 'Mission',          href: '/company/mission' },
+      { label: 'Industries',       href: '/company/sectors' },
+      { label: 'Executives',       href: '/company/executives' },
+      { label: 'Investors',        href: '/company/investors' },
     ],
   },
 ];
@@ -96,8 +97,8 @@ const InformationCenter = () => {
 
   useEffect(() => {
     const apply = () => {
-      const params = new URLSearchParams(window.location.search);
-      const { tab, subtab } = resolve(params.get('tab'), params.get('subtab'));
+      const parsed = parseInfoPath(window.location.pathname);
+      const { tab, subtab } = resolve(parsed.tab, parsed.subtab);
       setActiveTab(tab);
       setActiveSubtab(subtab);
     };
@@ -109,10 +110,7 @@ const InformationCenter = () => {
   const navigate = useCallback((tab: string, subtab: string) => {
     setActiveTab(tab);
     setActiveSubtab(subtab);
-    const url = new URL(window.location.href);
-    url.searchParams.set('tab', tab);
-    url.searchParams.set('subtab', subtab);
-    window.history.pushState({ tab, subtab }, '', url);
+    window.history.pushState({ tab, subtab }, '', infoHref(tab, subtab));
     gsapScrollToTop(false);
   }, []);
 

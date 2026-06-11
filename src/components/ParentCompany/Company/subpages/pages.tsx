@@ -254,7 +254,7 @@ export const HumanRightsPage = memo(() => {
         title="Learn more"
         subtitle="Read the full NR Human Rights Policy and related corporate policies in our Information Center."
       >
-        <CtaLink href="/information?tab=legals&subtab=human-rights" label="Open the Information Center" icon="bi-box-arrow-up-right" />
+        <CtaLink href="/information/legals/human-rights" label="Open the Information Center" icon="bi-box-arrow-up-right" />
       </ContentSection>
     </>
   );
