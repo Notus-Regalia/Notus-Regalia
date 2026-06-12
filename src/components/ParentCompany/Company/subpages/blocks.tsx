@@ -159,7 +159,7 @@ export const trackBrandGlow = (e: React.MouseEvent<HTMLElement>) => {
   e.currentTarget.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
 };
 
-/* Internal CTA link (e.g. → Information Center). */
+/* Internal CTA link (e.g. → Information Central). */
 export const CtaLink = memo(({ href, label, icon = "bi-arrow-right" }: { href: string; label: string; icon?: string }) => (
   <a className="brand-btn" href={href} style={{ marginTop: "1.25rem" }} onMouseMove={trackBrandGlow}>
     <span>{label}</span>

@@ -365,7 +365,7 @@ input[type="checkbox"], input[type="radio"], select,
 .strip-tab:hover { color: var(--content-primary); }
 .strip-tab.strip-tab-active { color: var(--content-primary); font-weight: 600; }
 
-/* Enclose the external item (Information Center) like a grid cell. */
+/* Enclose the external item (Information Central) like a grid cell. */
 .strip-tab-external {
   border-left: 1px solid var(--border-color);
   border-right: 1px solid var(--border-color);

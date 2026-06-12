@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Info Center',
+  title: 'Info Central',
   description: 'Newsroom, investor relations, legal, and corporate documents for Notus Regalia.',
 };
 

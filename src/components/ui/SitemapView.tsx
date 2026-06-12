@@ -78,7 +78,7 @@ const SITES: Site[] = [
   },
   {
     id: "info",
-    label: "Information Center",
+    label: "Information Central",
     sub: "Resource Hub",
     groups: [
       {
@@ -116,7 +116,10 @@ const SITES: Site[] = [
           { label: "Corporate Policies",     href: "/information/legals/policies" },
           { label: "NR Human Rights Policy", href: "/information/legals/human-rights" },
           { label: "Privacy Policy",         href: "/information/legals/privacy" },
+          { label: "Cookie Policy",          href: "/information/legals/cookie-policy" },
           { label: "Terms of Service",       href: "/information/legals/terms" },
+          { label: "Acceptable Use Policy",  href: "/information/legals/acceptable-use" },
+          { label: "Vulnerability Disclosure", href: "/information/legals/vulnerability-disclosure" },
           { label: "Licenses",               href: "/information/legals/licenses" },
           { label: "Brand Guidelines",       href: "/information/legals/brand-guidelines" },
         ],

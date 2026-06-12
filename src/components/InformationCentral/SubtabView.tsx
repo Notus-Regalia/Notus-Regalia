@@ -29,7 +29,8 @@ const SubtabView = memo(({ subtabId }: { subtabId: string }) => {
         style={{ background: 'var(--gradient-section)' }}
       >
         <div className="px-4 sm:px-8 lg:px-20 pt-14 sm:pt-20 pb-14 sm:pb-20">
-          <div className="max-w-6xl mx-auto">
+          {/* Legal documents render fully justified for a formal, print-like reading texture */}
+          <div className="max-w-6xl mx-auto" style={content.justify ? { textAlign: 'justify', hyphens: 'auto' } : undefined}>
             <SubtabBody blocks={content.blocks} />
           </div>
         </div>

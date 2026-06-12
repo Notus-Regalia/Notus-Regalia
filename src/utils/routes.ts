@@ -1,14 +1,14 @@
 /* ─────────────────────────────────────────────────────────────
    Centralized URL <-> state routing for the path-based navigation.
 
-   The site root ("/") and the Information Center ("/information") are
+   The site root ("/") and the Information Central ("/information") are
    both client-side single-page apps: content is swapped in React state
    and the URL is kept in sync via history.pushState. These helpers are
    the single source of truth for translating between the in-app
    tab/subtab ids and the clean path URLs the address bar shows.
 
      Root SPA:     /company/sectors        <-> tab=company,  subtab=company-sectors
-     Info Center:  /information/newsroom/releases <-> tab=newsroom, subtab=releases
+     Info Central:  /information/newsroom/releases <-> tab=newsroom, subtab=releases
 
    Root subtab ids carry a redundant "<tab>-" prefix (e.g. company-sectors);
    it is stripped for the URL slug and re-added when parsing back.
@@ -56,12 +56,12 @@ export const parseRootPath = (pathname: string): { tab: RootTab; subtab?: string
   return { tab, subtab: slug ? slugToSubtab(tab, slug) : DEFAULT_SUBTABS[tab] };
 };
 
-// ── Information Center ─────────────────────────────────────────
+// ── Information Central ─────────────────────────────────────────
 // Info subtab ids are already unique/clean, so they pass through as-is.
 export const infoHref = (tab: string, subtab?: string | null): string =>
   subtab ? `/information/${tab}/${subtab}` : `/information/${tab}`;
 
-/** Parse a pathname into the Info Center's {tab, subtab} (segments after /information). */
+/** Parse a pathname into the Info Central's {tab, subtab} (segments after /information). */
 export const parseInfoPath = (pathname: string): { tab: string | null; subtab: string | null } => {
   const segs = pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
   // segs[0] === 'information'

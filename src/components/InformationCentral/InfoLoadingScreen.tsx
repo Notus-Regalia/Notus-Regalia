@@ -6,8 +6,8 @@ interface InfoLoadingScreenProps {
   onComplete: () => void;
 }
 
-/** Dedicated loading screen for the Information Center — mirrors the main
- *  site's loading animation but with the "Information Center" sub-label. */
+/** Dedicated loading screen for the Information Central — mirrors the main
+ *  site's loading animation but with the "Information Central" sub-label. */
 const InfoLoadingScreen = ({ duration = 3000, onComplete }: InfoLoadingScreenProps) => {
   const [phase, setPhase] = useState<'filling' | 'done'>('filling');
 
@@ -34,7 +34,7 @@ const InfoLoadingScreen = ({ duration = 3000, onComplete }: InfoLoadingScreenPro
           {' '}
           <span className="nr-loading-text nr-loading-accent">Regalia</span>
         </h1>
-        <div className="nr-loading-tagline">Information Center</div>
+        <div className="nr-loading-tagline">Information Central</div>
       </div>
 
       <style>{`

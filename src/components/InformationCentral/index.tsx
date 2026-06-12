@@ -10,7 +10,7 @@ import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { INFO_TABS, DEFAULT_SUBTAB, SUBTAB_PARENT } from './data';
 import { infoHref, parseInfoPath } from '@/utils/routes';
 
-// Dedicated Information Center footer columns. Own sections navigate in-app
+// Dedicated Information Central footer columns. Own sections navigate in-app
 // (via onNavigate); the Company group redirects back to the main site section.
 const INFO_FOOTER_SECTIONS: FooterSection[] = [
   {
@@ -82,7 +82,7 @@ const gsapScrollToTop = (smooth = true) => {
   else window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'instant' });
 };
 
-const InformationCenter = () => {
+const InformationCentral = () => {
   const [activeTab, setActiveTab] = useState<string>('newsroom');
   const [activeSubtab, setActiveSubtab] = useState<string>('releases');
   const [loading, setLoading] = useState(true);
@@ -118,7 +118,7 @@ const InformationCenter = () => {
   const handleSubtabClick = useCallback((tabId: string, subtabId: string) => navigate(tabId, subtabId), [navigate]);
   const handleLogoClick = useCallback(() => navigate('newsroom', DEFAULT_SUBTAB['newsroom']), [navigate]);
 
-  // The Information Center footer's own columns navigate in-app; the Company
+  // The Information Central footer's own columns navigate in-app; the Company
   // column uses plain hrefs that redirect back to the main site.
   const handleFooterNavigate = useCallback((tabId: string, subtabId?: string) => {
     if (TAB_IDS.has(tabId)) {
@@ -142,7 +142,7 @@ const InformationCenter = () => {
           <main>
             <SubtabView subtabId={activeSubtab} />
           </main>
-          <Footer onNavigate={handleFooterNavigate} sections={INFO_FOOTER_SECTIONS} logoHref="/" brandSubtitle="Information Center" />
+          <Footer onNavigate={handleFooterNavigate} sections={INFO_FOOTER_SECTIONS} logoHref="/" brandSubtitle="Information Central" />
         </div>
       </SmoothScroller>
       <CookieBanner visible={!loading} />
@@ -150,4 +150,4 @@ const InformationCenter = () => {
   );
 };
 
-export default InformationCenter;
+export default InformationCentral;

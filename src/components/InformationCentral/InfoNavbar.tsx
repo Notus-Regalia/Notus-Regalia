@@ -464,7 +464,7 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
       <nav ref={navContainerRef} className={`glass-navbar${navCollapsed ? ' nav-collapsed' : ''}`}>
         {/* ══ MAIN BAR ROW ══ */}
         <div className="w-full flex items-center" style={barStyle}>
-          <button className="logo-mark flex-shrink-0" onClick={onLogoClick} aria-label="Information Center home">
+          <button className="logo-mark flex-shrink-0" onClick={onLogoClick} aria-label="Information Central home">
             <div className="logo-icon">
               <Image src="/assets/Notus-Regalia-logo.svg" alt="Notus Regalia" width={42} height={42} priority />
             </div>
@@ -475,8 +475,8 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
               >
                 Notus <span style={{ color: '#EB1143', fontWeight: 300 }}>Regalia</span>
               </div>
-              <div className="info-logo-subtitle" aria-label="Information Center">
-                {'Information Center'.split('').map((ch, i) =>
+              <div className="info-logo-subtitle" aria-label="Information Central">
+                {'Information Central'.split('').map((ch, i) =>
                   ch === ' '
                     ? <span key={i} className="gap" aria-hidden />
                     : <span key={i} aria-hidden>{ch}</span>
@@ -550,7 +550,7 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
       <div className={`mob-overlay${mobileOpen ? ' open' : ''}`} onClick={closeMobile} />
       <div className={`mob-sidebar${mobileOpen ? ' open' : ''}`}>
         <div className="mob-header">
-          <span className="mob-header-title">Information Center</span>
+          <span className="mob-header-title">Information Central</span>
           <button className="mob-close" onClick={closeMobile} aria-label="Close menu">
             <i className="bi bi-x-lg" />
           </button>

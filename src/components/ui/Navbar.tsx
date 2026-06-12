@@ -484,7 +484,7 @@ const StripIndicator = ({ style }: { style: React.CSSProperties }) => (
 );
 
 /* Layer A — main subtab navigation:
-   | Mission | Industries | Executives | Investors | Information Center | */
+   | Mission | Industries | Executives | Investors | Information Central | */
 interface CompanyNavLayerProps {
   visible: boolean;
   activeSubtabId: string;

@@ -141,13 +141,39 @@ ReleasesBlock.displayName = 'ReleasesBlock';
 // ─────────────────────────────────────────────────────────────
 //  Text
 // ─────────────────────────────────────────────────────────────
+// ── Inline markdown-style links: "[label](href)" inside copy ──
+// Internal paths navigate in place; http(s) and document/mailto
+// targets open per the same conventions used by card hrefs.
+const renderInline = (text: string) => {
+  const parts = text.split(/(\[[^\]]+\]\([^)\s]+\))/g);
+  if (parts.length === 1) return text;
+  return parts.map((part, i) => {
+    const m = part.match(/^\[([^\]]+)\]\(([^)\s]+)\)$/);
+    if (!m) return part;
+    const [, label, href] = m;
+    const newTab = href.startsWith('http') || href.startsWith('/documents') || href.startsWith('mailto');
+    return (
+      <a
+        key={i}
+        href={href}
+        target={newTab && !href.startsWith('mailto') ? '_blank' : undefined}
+        rel={href.startsWith('http') ? 'noopener noreferrer' : undefined}
+        className="underline underline-offset-2 transition-opacity hover:opacity-75"
+        style={{ color: 'var(--content-secondary)', textDecorationColor: 'var(--border-color)' }}
+      >
+        {label}
+      </a>
+    );
+  });
+};
+
 const TextBlock = ({ heading, paragraphs }: { heading?: string; paragraphs: string[] }) => (
   <div>
     {heading && <BlockHeading>{heading}</BlockHeading>}
     <div className="space-y-4">
       {paragraphs.map((p, i) => (
         <p key={i} className="text-base sm:text-lg leading-relaxed" style={{ color: 'var(--content-muted)' }}>
-          {p}
+          {renderInline(p)}
         </p>
       ))}
     </div>
@@ -216,7 +242,8 @@ const CardsBlock = ({ heading, columns = 3, items }: { heading?: string; columns
               </div>
               <h4 className="font-semibold text-base sm:text-lg leading-snug" style={{ color: 'var(--content-primary)' }}>{c.title}</h4>
               {c.meta && <div className="mt-1 text-xs sm:text-sm" style={{ color: 'var(--content-muted)' }}>{c.meta}</div>}
-              {c.body && <p className="mt-3 text-sm sm:text-base leading-relaxed flex-1" style={{ color: 'var(--content-muted)' }}>{c.body}</p>}
+              {/* Only parse inline links when the card itself isn't an anchor (no nested <a>) */}
+              {c.body && <p className="mt-3 text-sm sm:text-base leading-relaxed flex-1" style={{ color: 'var(--content-muted)' }}>{c.href ? c.body : renderInline(c.body)}</p>}
               {c.cta && (
                 <div className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium" style={{ color: 'var(--content-secondary)' }}>
                   {c.cta}
@@ -266,7 +293,12 @@ const DocumentsBlock = ({ heading, items }: { heading?: string; items: DocItem[]
             </span>
             <span className="text-xs" style={{ color: 'var(--content-muted)' }}>{doc.year}</span>
           </div>
-          <h4 className="font-semibold text-sm sm:text-base leading-snug flex-1" style={{ color: 'var(--content-primary)' }}>{doc.title}</h4>
+          <div className="flex-1">
+            <h4 className="font-semibold text-sm sm:text-base leading-snug" style={{ color: 'var(--content-primary)' }}>{doc.title}</h4>
+            {doc.description && (
+              <p className="mt-2 text-xs sm:text-sm leading-relaxed" style={{ color: 'var(--content-muted)' }}>{doc.description}</p>
+            )}
+          </div>
           <div className="mt-4 inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium opacity-70 group-hover:opacity-100 transition-opacity" style={{ color: 'var(--content-secondary)' }}>
             <i className="bi bi-download" /> Download PDF
           </div>
@@ -704,7 +736,7 @@ const NoteBlock = ({ text }: { text: string }) => (
     style={{ background: 'var(--hover-bg)', border: '1px dashed var(--border-dashed)' }}
   >
     <i className="bi bi-info-circle text-lg mt-0.5 flex-shrink-0" style={{ color: 'var(--content-secondary)' }} />
-    <p className="text-sm sm:text-base leading-relaxed" style={{ color: 'var(--content-muted)' }}>{text}</p>
+    <p className="text-sm sm:text-base leading-relaxed" style={{ color: 'var(--content-muted)' }}>{renderInline(text)}</p>
   </div>
 );
 

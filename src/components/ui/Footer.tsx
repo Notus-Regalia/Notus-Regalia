@@ -218,7 +218,7 @@ export interface FooterLink {
   subtabId?: string;
   infoContent?: string;
   href?: string;
-  external?: string;   // opens in a new tab (e.g. the Information Center site)
+  external?: string;   // opens in a new tab (e.g. the Information Central site)
 }
 
 export interface FooterSection {
@@ -228,7 +228,7 @@ export interface FooterSection {
 
 interface FooterProps {
   onNavigate?: (tabId: string, subtabId?: string, infoContent?: string) => void;
-  /** Override the default link columns (used by the Information Center). */
+  /** Override the default link columns (used by the Information Central). */
   sections?: FooterSection[];
   /** Where the brand logo links to (defaults to the main-site top). */
   logoHref?: string;
@@ -404,7 +404,7 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
       ]
     },
     {
-      title: 'Information Center',
+      title: 'Information Central',
       links: [
         { label: 'Releases',           external: '/information/newsroom/releases' },
         { label: 'Announcements',      external: '/information/newsroom/announcements' },
@@ -448,7 +448,10 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
         { label: 'Corporate Policies',     external: '/information/legals/policies' },
         { label: 'NR Human Rights Policy', external: '/information/legals/human-rights' },
         { label: 'Privacy Policy',         external: '/information/legals/privacy' },
+        { label: 'Cookie Policy',          external: '/information/legals/cookie-policy' },
         { label: 'Terms of Service',       external: '/information/legals/terms' },
+        { label: 'Acceptable Use Policy',  external: '/information/legals/acceptable-use' },
+        { label: 'Vulnerability Disclosure', external: '/information/legals/vulnerability-disclosure' },
         { label: 'Licenses',               external: '/information/legals/licenses' },
         { label: 'Brand Guidelines',       external: '/information/legals/brand-guidelines' },
       ]

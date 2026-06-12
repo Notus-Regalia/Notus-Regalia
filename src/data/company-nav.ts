@@ -110,8 +110,8 @@ export const COMPANY_SUBTABS: CompanySubtab[] = [
     ],
   },
   {
-    id: 'company-information-center',
-    label: 'Information Center',
+    id: 'company-information-central',
+    label: 'Information Central',
     external: '/information',
   },
 ];
