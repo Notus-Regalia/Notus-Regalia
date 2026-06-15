@@ -41,6 +41,12 @@ export interface AboutGridItem {
 
 // ─── Teams ────────────────────────────────────────────────────────────────────
 
+export interface FounderEducation {
+  school: string;
+  degree: string;
+  years: string;
+}
+
 export interface Founder {
   id: string;
   codename: string;
@@ -51,6 +57,10 @@ export interface Founder {
   bio: string;
   since: string;
   linkedin: string;
+  instagram?: string;
+  x?: string;
+  github?: string;
+  education: FounderEducation[];
 }
 
 export interface DynastyStat {
@@ -70,6 +80,12 @@ export const FOUNDERS: Founder[] = [
     bio: "Leading the Notus Dynasty with an unwavering focus on long-term vision and strategic direction. Responsible for shaping the organizational culture and ensuring every unit operates in alignment with the dynasty's core mission.",
     since: '2021',
     linkedin: '#',
+    instagram: '#',
+    x: '#',
+    github: '#',
+    education: [
+      { school: 'University Name', degree: 'BS Information Technology', years: '2022 — Present' },
+    ],
   },
   {
     id: 'F-002',
@@ -81,6 +97,12 @@ export const FOUNDERS: Founder[] = [
     bio: 'Architect of the operational backbone that keeps six active units running with precision. Converts high-level strategy into executable systems, ensuring efficiency and accountability across all levels of the organization.',
     since: '2021',
     linkedin: '#',
+    instagram: '#',
+    x: '#',
+    github: '#',
+    education: [
+      { school: 'University Name', degree: 'BS Computer Engineering', years: '2022 — Present' },
+    ],
   },
   {
     id: 'F-003',
@@ -92,6 +114,12 @@ export const FOUNDERS: Founder[] = [
     bio: "Drives the technological foundation of the dynasty — from internal infrastructure to external-facing systems. Ensures every tool, platform, and pipeline is built to scale alongside the organization's ambitions.",
     since: '2021',
     linkedin: '#',
+    instagram: '#',
+    x: '#',
+    github: '#',
+    education: [
+      { school: 'University Name', degree: 'BS Computer Science', years: '2022 — Present' },
+    ],
   },
   {
     id: 'F-004',
@@ -103,6 +131,12 @@ export const FOUNDERS: Founder[] = [
     bio: 'Defines the visual language and creative identity of the Notus Dynasty. Responsible for every touchpoint of brand perception — from aesthetics and communications to the emotional resonance the organization creates.',
     since: '2021',
     linkedin: '#',
+    instagram: '#',
+    x: '#',
+    github: '#',
+    education: [
+      { school: 'University Name', degree: 'BS Multimedia Arts', years: '2022 — Present' },
+    ],
   },
 ];
 

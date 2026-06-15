@@ -100,6 +100,6 @@ export const config = {
   // Static assets (_next/static, images, favicon) are excluded to avoid
   // penalising normal browsing.
   matcher: [
-    '/((?!_next/static|_next/image|favicon\\.ico|assets/|robots\\.txt|sitemap\\.xml|world-110m\\.json).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|assets/|robots\\.txt|sitemap\\.xml|world-110m\\.json|google[0-9a-f]+\\.html).*)',
   ],
 };

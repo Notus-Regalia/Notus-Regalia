@@ -97,12 +97,8 @@ export const MissionPage = memo(({ onLearnMore }: { onLearnMore?: (page: string)
 MissionPage.displayName = "MissionPage";
 
 export const ExecutivesPage = memo(() => {
-  const tab = getCompanySubtab('company-executives');
   return (
     <>
-      <div id="executives-overview">
-        <PageHero {...tab.hero!} />
-      </div>
       <RevealSection id="executives-leadership">
         <Executives />
       </RevealSection>

@@ -7,8 +7,10 @@ export default function SitemapPage() {
   const year = new Date().getFullYear();
 
   return (
+    // `dark` re-scopes every theme token to the dark set — this page is
+    // always dark even when the site theme is light.
     <main
-      className="min-h-screen flex flex-col"
+      className="dark min-h-screen flex flex-col"
       style={{ background: 'var(--surface-primary)', color: 'var(--content-primary)' }}
     >
       {/* Header — shader background */}

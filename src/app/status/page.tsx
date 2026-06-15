@@ -5,8 +5,10 @@ import StatusTracker from '@/components/ui/StatusTracker';
 export default function StatusPage() {
   const year = new Date().getFullYear();
   return (
+    // `dark` re-scopes every theme token to the dark set — this page is
+    // always dark even when the site theme is light.
     <main
-      className="min-h-screen"
+      className="dark min-h-screen"
       style={{ background: 'var(--surface-primary)', color: 'var(--content-primary)' }}
     >
       <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 py-14 sm:py-20">

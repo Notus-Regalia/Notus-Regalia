@@ -257,6 +257,12 @@ export default function SitemapView() {
       <style>{`
         .sm-root { position: relative; }
 
+        /* The sitemap page is always dark — restore the dark strip colors that
+           the global :root.light overrides would otherwise flip. */
+        :root.light .sm-root .strip-indicator-bg { background: rgba(255,255,255,0.06); }
+        :root.light .sm-root .strip-anchor { background: rgba(255,255,255,0.04); }
+        :root.light .sm-root .strip-anchor:hover { background: rgba(255,255,255,0.08); }
+
         /* Frame the strip fully — on the live site the navbar closes the box;
            standalone it needs its own complete (square) border grid. */
         .sm-root .subtab-strip-outer.strip-visible {

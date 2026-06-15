@@ -45,11 +45,15 @@ const INFO_FOOTER_SECTIONS: FooterSection[] = [
   {
     title: 'Legals',
     links: [
-      { label: 'Corporate Policies',tabId: 'legals', subtabId: 'policies' },
-      { label: 'Privacy Policy',    tabId: 'legals', subtabId: 'privacy' },
-      { label: 'Terms of Service',  tabId: 'legals', subtabId: 'terms' },
-      { label: 'Licenses',          tabId: 'legals', subtabId: 'licenses' },
-      { label: 'Brand Guidelines',  tabId: 'legals', subtabId: 'brand-guidelines' },
+      { label: 'Corporate Policies',       tabId: 'legals', subtabId: 'policies' },
+      { label: 'NR Human Rights Policy',   tabId: 'legals', subtabId: 'human-rights' },
+      { label: 'Privacy Policy',           tabId: 'legals', subtabId: 'privacy' },
+      { label: 'Cookie Policy',            tabId: 'legals', subtabId: 'cookie-policy' },
+      { label: 'Terms of Service',         tabId: 'legals', subtabId: 'terms' },
+      { label: 'Acceptable Use Policy',    tabId: 'legals', subtabId: 'acceptable-use' },
+      { label: 'Vulnerability Disclosure', tabId: 'legals', subtabId: 'vulnerability-disclosure' },
+      { label: 'Licenses',                 tabId: 'legals', subtabId: 'licenses' },
+      { label: 'Brand Guidelines',         tabId: 'legals', subtabId: 'brand-guidelines' },
     ],
   },
   {

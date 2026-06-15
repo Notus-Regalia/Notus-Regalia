@@ -61,7 +61,6 @@ export const COMPANY_SUBTABS: CompanySubtab[] = [
       subtitle: 'The leadership behind Notus Regalia — founders and officers steering the mission.',
     },
     sections: [
-      { id: 'executives-overview',   label: 'Overview' },
       { id: 'executives-leadership', label: 'Leadership' },
       { id: 'executives-explore',    label: 'Explore' },
     ],
