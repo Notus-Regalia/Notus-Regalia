@@ -1,102 +1,62 @@
 # Notus Regalia
 
-**Notus Regalia** is an official company website built as a modern, performance-first frontend using Next.js and TypeScript. It showcases our core sectors — Defense, Healthcare, Civic, and Parent Company — through a polished, animated experience designed for demos, client presentations, and public-facing communications.
+> **⚠ Confidential — Operating in Stealth.**
+> Notus Regalia is currently operating in stealth mode. This repository and all associated materials are strictly confidential and proprietary. Do not disclose, distribute, reference, or share any part of this project — including its existence, contents, branding, or direction — outside the organization. Access is restricted to authorized personnel only.
 
 ---
 
-## Overview
+## About
 
-The site is organized around four sector-focused feature groups, each with dedicated landing, information, company, and technologies pages. A shared component library keeps the UI consistent across all pages, and smooth animations and 3D elements give the experience a distinctive, premium feel.
+**Notus Regalia** is a modern holding company advancing strategic innovation across **Defense, Intelligence, Healthcare, Civic Infrastructure, Energy, and Disaster Response** — building and scaling mission-critical systems that strengthen resilience across every sector it serves.
 
----
-
-## Tech Stack
-
-| Category      | Technology                                 |
-| ------------- | ------------------------------------------ |
-| Framework     | Next.js 15 (App Router)                    |
-| Language      | TypeScript 5.x                             |
-| UI Library    | React 19.x                                 |
-| Styling       | Tailwind CSS 3.x, PostCSS, Autoprefixer    |
-| Animations    | Framer Motion, GSAP                        |
-| 3D / WebGL    | Spline (`@splinetool/react-spline`), `ogl` |
-| Visualization | D3, GlobeD3                                |
-| Scroll        | Lenis                                      |
-| Utilities     | `clsx`, `tailwind-merge`                   |
-| Linting       | ESLint, TypeScript ESLint                  |
-| Deployment    | Vercel                                     |
-
-See [`package.json`](package.json) for exact dependency versions.
+Founded in 2025, the Company operates as a founder-led platform that pairs long-term vision with disciplined execution across its ventures.
 
 ---
 
-## Getting Started
+## What We Do
 
-**Prerequisites:** Node.js 18+ and npm.
+Notus Regalia functions as a venture-building platform rather than a single standalone business. We develop, govern, and scale ventures through a centralized operating framework, allocating capital and effort toward opportunities with outsized, durable impact.
 
-```bash
-# 1. Install dependencies
-npm install
+Our focus areas span:
 
-# 2. Start the development server
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) to view the site locally.
-
-### Other scripts
-
-```bash
-npm run build   # Production build
-npm run start   # Start production server
-npm run lint    # Run ESLint
-```
+- **Defense** — systems and capabilities for security and national resilience.
+- **Intelligence** — analytical and information infrastructure for informed decision-making.
+- **Healthcare** — solutions that improve outcomes and access.
+- **Civic Infrastructure** — platforms supporting government and public services.
+- **Energy** — technologies advancing resilient and sustainable power.
+- **Disaster Response** — systems that strengthen preparedness and recovery.
 
 ---
 
-## Project Structure
+## Our Approach
 
-```
-src/
-├── app/                    # Next.js App Router pages and layouts
-│   ├── contact/
-│   ├── defense/
-│   └── ...
-├── components/             # Feature and UI components
-│   ├── DefenseSector/
-│   ├── HealthcareSector/
-│   ├── CivicSector/
-│   ├── ParentCompany/
-│   └── ui/                 # Shared UI library (nav, footer, modals, loaders)
-├── styles/                 # Global and component CSS modules
-├── hooks/                  # Custom React hooks
-└── utils/                  # Helper utilities
-```
+- **Holding company model.** We oversee multiple ventures under a unified operating and governance framework.
+- **Cross-sector mandate.** Our work is sector-agnostic by design, directing resources toward the highest-impact opportunities.
+- **Founder governance.** The Company is run as a founder-operator platform, governed with institutional discipline and long-term ownership principles.
+- **Stealth operations.** Operating in stealth enables focused development, reduced external signaling, and strategic optionality ahead of any public exposure.
 
 ---
 
-## Sectors
+## Confidentiality & Stealth Notice
 
-The site is organized around four primary sectors, each containing **Landing**, **Information**, **Company**, and **Technologies** pages:
+Notus Regalia is in an active stealth phase. All information contained in or related to this repository is confidential and proprietary.
 
-- **Defense** — capabilities and technologies for defense applications
-- **Healthcare** — solutions and innovations in the healthcare space
-- **Civic** — public sector and civic engagement offerings
-- **Parent Company** — corporate overview, leadership, and company-wide information
+- Do not publish, post, or reference this project publicly.
+- Do not share access, source, screenshots, or details with unauthorized parties.
+- Treat the Company's identity, plans, and materials as non-public information.
 
----
-
-## Contributing
-
-1. Fork the repo and create a feature branch
-2. Follow the existing code style — TypeScript, Tailwind utility classes, and ESLint rules
-3. If adding a new component, include a brief usage example in `src/components/`
-4. Open a pull request with a clear description of your changes
-
-For bugs or questions, open an issue in this repository or reach out through the [contact page](https://yourwebsite.com/contact).
+Suspected leaks or unauthorized access should be reported to the Company immediately through approved internal channels.
 
 ---
 
-## License
+## Documentation
 
-ISC — see [`package.json`](package.json) for details.
+This README is a company overview only. Technical, developer, and operational documentation is maintained separately as internal documentation and is not included here.
+
+---
+
+## License & Ownership
+
+**Proprietary — © Notus Regalia. All rights reserved.**
+
+This repository and its contents are confidential and proprietary to Notus Regalia. Unauthorized copying, distribution, modification, or use of any part of this material, in whole or in part, is strictly prohibited.
