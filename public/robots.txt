@@ -3,33 +3,12 @@
 # The data-nosnippet attribute on those DOM nodes is used to suppress
 # that content from appearing in search result snippets.
 User-agent: *
-Disallow: /contact
 Allow: /
 
-# ── AI Training Crawlers (block entirely) ─────────────────────────────────────
-User-agent: GPTBot
-Disallow: /
-
-User-agent: ChatGPT-User
-Disallow: /
-
-User-agent: CCBot
-Disallow: /
-
-User-agent: anthropic-ai
-Disallow: /
-
-User-agent: Claude-Web
-Disallow: /
-
-User-agent: Bytespider
-Disallow: /
-
-User-agent: ImagesiftBot
-Disallow: /
-
-User-agent: cohere-ai
-Disallow: /
+# ── AI crawlers ───────────────────────────────────────────────────────────────
+# Intentionally allowed for discoverability — lets AI assistants (ChatGPT,
+# Claude, Perplexity, etc.) crawl, cite, and surface Notus Regalia. They inherit
+# the rules in "User-agent: *" above (full site).
 
 # ── Sitemap ───────────────────────────────────────────────────────────────────
 Sitemap: https://www.notusregalia.tech/sitemap.xml

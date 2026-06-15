@@ -1,16 +1,17 @@
 import type { MetadataRoute } from 'next';
+import { SITE_URL as CANONICAL_SITE_URL } from '@/utils/site';
 
 // Canonical, indexable public URLs. Excludes routes blocked from search:
-//   /contact         — Disallow in robots.txt + noindex in next.config.ts
 //   /teams, /about   — noindex in next.config.ts
 // Keep this list in sync with the human-facing sitemap in
 // src/components/ui/SitemapView.tsx when public routes change.
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.notusregalia.tech').replace(/\/$/, '');
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? CANONICAL_SITE_URL).replace(/\/$/, '');
 
 // [path, priority]
 const ROUTES: [string, number][] = [
   ['/', 1.0],
   ['/defense', 0.9],
+  ['/contact', 0.5],
   ['/status', 0.3],
 
   // Company

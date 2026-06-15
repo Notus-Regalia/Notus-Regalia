@@ -27,6 +27,10 @@ const cspDirectives = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
+  // Pin the file-tracing root to this project. Without it, Next infers the
+  // workspace root from the nearest lockfile and warns when several exist.
+  outputFileTracingRoot: __dirname,
+
   // Add security headers - SELECTIVE blocking for Teams/About pages only
   async headers() {
     const securityHeaders = [
@@ -84,32 +88,32 @@ const nextConfig: NextConfig = {
         headers: securityHeaders,
       },
       {
-        // ONLY block Teams page from search indexing
+        // Teams route — indexable
         source: '/teams/:path*',
         headers: [
           {
             key: 'X-Robots-Tag',
-            value: 'noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate',
+            value: 'index, follow',
           },
         ],
       },
       {
-        // ONLY block About page from search indexing (if it contains executive info)
+        // About route — indexable
         source: '/about/:path*',
         headers: [
           {
             key: 'X-Robots-Tag',
-            value: 'noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate',
+            value: 'index, follow',
           },
         ],
       },
       {
-        // Sensitive contact route should not be indexed
+        // Contact route is indexable for discoverability
         source: '/contact/:path*',
         headers: [
           {
             key: 'X-Robots-Tag',
-            value: 'noindex, nofollow, noarchive, nosnippet, noimageindex, notranslate',
+            value: 'index, follow',
           },
         ],
       },

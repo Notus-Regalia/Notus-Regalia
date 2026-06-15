@@ -4,10 +4,8 @@ import CursorClickPulse from "@/components/ui/CursorClickPulse";
 import "./globals.css";
 import "@/styles/About.module.css";
 import { Analytics } from "@vercel/analytics/next"
+import { SITE_URL, SITE_NAME } from "@/utils/site";
 
-// Canonical origin. Keep in sync with NEXT_PUBLIC_SITE_URL and sitemap.ts.
-const SITE_URL = "https://www.notusregalia.tech";
-const SITE_NAME = "Notus Regalia";
 const SITE_DESCRIPTION =
   "Notus Regalia engineers operational systems and builds ventures across defense, government, healthcare, enterprise, and energy. Beyond Fate.";
 
@@ -35,9 +33,9 @@ export const metadata: Metadata = {
   creator: SITE_NAME,
   publisher: SITE_NAME,
   category: "technology",
-  alternates: {
-    canonical: "/",
-  },
+  // Note: no global `alternates.canonical` — each route sets its own
+  // self-referencing canonical via generateMetadata. A global canonical here
+  // is inherited by every page and would collapse them all onto "/".
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
@@ -65,10 +63,18 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: [{ url: '/assets/Notus-Regalia-logo.svg', type: 'image/svg+xml' }],
-    shortcut: [{ url: '/assets/Notus-Regalia-logo.svg', type: 'image/svg+xml' }],
-    apple: [{ url: '/assets/Notus-Regalia-logo.svg' }],
-  }
+    // Raster PNG/ICO first (what Google's favicon pipeline prefers), then the
+    // crisp SVG for modern browsers. apple-touch-icon must be PNG (iOS ignores SVG).
+    icon: [
+      { url: '/favicon.ico', sizes: '48x48' },
+      { url: '/icon-32.png', type: 'image/png', sizes: '32x32' },
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
+      { url: '/assets/Notus-Regalia-logo.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: [{ url: '/favicon.ico' }],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
 };
 
 // Structured data (JSON-LD) — helps Google build a Knowledge Panel / sitelinks.
@@ -80,7 +86,7 @@ const structuredData = {
       "@id": `${SITE_URL}/#organization`,
       name: SITE_NAME,
       url: SITE_URL,
-      logo: `${SITE_URL}/assets/Notus-Regalia-logo.svg`,
+      logo: `${SITE_URL}/icon-512.png`,
       description: SITE_DESCRIPTION,
       slogan: "Beyond Fate.",
       email: "info@notusregalia.tech",

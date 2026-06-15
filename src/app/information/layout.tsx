@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Info Central',
+  title: {
+    default: 'Information Central | Notus Regalia',
+    template: '%s | Notus Regalia',
+  },
   description: 'Newsroom, investor relations, legal, and corporate documents for Notus Regalia.',
 };
 
