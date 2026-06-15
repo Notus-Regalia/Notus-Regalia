@@ -1,7 +1,7 @@
 # Notus Regalia
 
-> **⚠ Confidential — Operating in Stealth.**
-> Notus Regalia is currently operating in stealth mode. This repository and all associated materials are strictly confidential and proprietary. Do not disclose, distribute, reference, or share any part of this project — including its existence, contents, branding, or direction — outside the organization. Access is restricted to authorized personnel only.
+> **Open Source — Public-Facing Code Only.**
+> This repository contains the **public-facing website source code** of Notus Regalia, shared openly as part of our commitment to the open-source community. Detailed, confidential, and proprietary technical information — along with internal systems and business details — is **not** included here and remains internal. Notus Regalia operates in stealth; any non-public information should be treated as confidential.
 
 ---
 
@@ -37,15 +37,17 @@ Our focus areas span:
 
 ---
 
-## Confidentiality & Stealth Notice
+## Open Source & Confidentiality
 
-Notus Regalia is in an active stealth phase. All information contained in or related to this repository is confidential and proprietary.
+This repository is limited to the **public-facing website source code**, made available to support and contribute to open-source initiatives. Contributions are welcome within this scope.
 
-- Do not publish, post, or reference this project publicly.
-- Do not share access, source, screenshots, or details with unauthorized parties.
-- Treat the Company's identity, plans, and materials as non-public information.
+The following remain **internal and confidential** and are **not** published here:
 
-Suspected leaks or unauthorized access should be reported to the Company immediately through approved internal channels.
+- Detailed technical architecture, infrastructure, and operational documentation.
+- Proprietary systems, internal tooling, data, and non-public business information.
+- The Company's confidential plans, strategy, and direction.
+
+Notus Regalia operates in stealth. Any non-public business information should be treated as confidential, and suspected leaks reported to the Company through approved internal channels.
 
 ---
 
@@ -57,6 +59,6 @@ This README is a company overview only. Technical, developer, and operational do
 
 ## License & Ownership
 
-**Proprietary — © Notus Regalia. All rights reserved.**
+The **public-facing website source code** in this repository is released as open source under the **GNU General Public License v3.0 (or later)**. See the [`LICENSE`](LICENSE) file for the full terms.
 
-This repository and its contents are confidential and proprietary to Notus Regalia. Unauthorized copying, distribution, modification, or use of any part of this material, in whole or in part, is strictly prohibited.
+The Notus Regalia name, branding, logos, and any confidential or proprietary materials are **not** covered by that license and remain the exclusive property of Notus Regalia. © Notus Regalia. All rights reserved.
