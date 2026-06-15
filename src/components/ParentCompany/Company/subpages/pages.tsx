@@ -228,7 +228,7 @@ export const HumanRightsPage = memo(() => {
         title="Report an issue"
         subtitle="If you believe our work has caused or contributed to a human-rights concern, we want to hear from you. Reports can be made confidentially and without retaliation."
       >
-        <CtaLink href="mailto:humanrights@notusregalia.com" label="Contact the Human Rights Office" icon="bi-envelope" />
+        <CtaLink href="mailto:info@notusregalia.tech" label="Contact the Human Rights Office" icon="bi-envelope" />
       </ContentSection>
       <ContentSection
         id="hr-transparency"

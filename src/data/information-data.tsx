@@ -345,7 +345,7 @@ export const contentData: Record<string, ContentData> = {
       {
         heading: 'Contact Investor Relations',
         content: [
-          'For inquiries related to investment opportunities, existing positions, or shareholder matters, please contact our investor relations team at ir@notusregalia.com.',
+          'For inquiries related to investment opportunities, existing positions, or shareholder matters, please contact our investor relations team at info@notusregalia.tech.',
           'All investor communications are handled in strict confidence and in compliance with applicable financial regulations and non-disclosure obligations.'
         ]
       }

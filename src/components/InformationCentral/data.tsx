@@ -244,7 +244,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: 'Press & Coverage',
         paragraphs: [
           'Notus Regalia operates in a pre-seed, stealth phase. Selected coverage, feature stories, and interviews with our operating team are catalogued here as they are published.',
-          'For interview requests, briefings, or commentary on systems engineering, venture building, and critical-infrastructure technology, reach our communications desk at press@notusregalia.com.',
+          'For interview requests, briefings, or commentary on systems engineering, venture building, and critical-infrastructure technology, reach our communications desk at info@notusregalia.tech.',
         ],
       },
       {
@@ -265,7 +265,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         items: [
           { icon: 'bi-images', title: 'Press Kit', body: 'Logos, executive headshots, and approved boilerplate.', cta: 'Browse Media Assets', href: '/information/documents/media-assets' },
           { icon: 'bi-file-earmark-text', title: 'Fact Sheet', body: 'Company overview, structure, and operating principles.', cta: 'Download PDF', href: '/documents/fact-sheet.pdf' },
-          { icon: 'bi-envelope', title: 'Press Contact', body: 'Reach the communications desk directly.', cta: 'press@notusregalia.com', href: 'mailto:press@notusregalia.com' },
+          { icon: 'bi-envelope', title: 'Press Contact', body: 'Reach the communications desk directly.', cta: 'info@notusregalia.tech', href: 'mailto:info@notusregalia.tech' },
         ],
       },
     ],
@@ -309,7 +309,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
       },
       {
         type: 'note',
-        text: "Don't see your role? We are always interested in exceptional operators. Write to careers@notusregalia.com.",
+        text: "Don't see your role? We are always interested in exceptional operators. Write to info@notusregalia.tech.",
       },
     ],
   },
@@ -335,7 +335,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
       },
       {
         type: 'note',
-        text: 'Accredited investors can request full disclosure packages through investor relations at ir@notusregalia.com.',
+        text: 'Accredited investors can request full disclosure packages through investor relations at info@notusregalia.tech.',
       },
     ],
   },
@@ -480,7 +480,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         type: 'text',
         heading: 'Contact Investor Relations',
         paragraphs: [
-          'For inquiries related to investment opportunities, existing positions, or shareholder matters, contact our investor relations team at ir@notusregalia.com.',
+          'For inquiries related to investment opportunities, existing positions, or shareholder matters, contact our investor relations team at info@notusregalia.tech.',
           'All investor communications are handled in strict confidence and in compliance with applicable financial regulations and non-disclosure obligations.',
         ],
       },
@@ -648,7 +648,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: 'Content Licensing',
         paragraphs: [
           'Original content — including text, graphics, and multimedia elements — is protected by copyright and may not be reproduced without permission.',
-          'For licensing inquiries or permission requests, please contact our legal department at legal@notusregalia.com.',
+          'For licensing inquiries or permission requests, please contact our legal department at info@notusregalia.tech.',
         ],
       },
     ],
@@ -757,7 +757,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         type: 'text',
         heading: '11. Raising Concerns and Access to Remedy',
         paragraphs: [
-          'Anyone — employees, patients, civilians, customers, suppliers, or community members — may report a human-rights concern to our Human Rights Office at [humanrights@notusregalia.com](mailto:humanrights@notusregalia.com). Reports may be made confidentially and, where the channel permits, anonymously. We accept reports in any language and through intermediaries such as counsel or civil-society organizations.',
+          'Anyone — employees, patients, civilians, customers, suppliers, or community members — may report a human-rights concern to our Human Rights Office at [info@notusregalia.tech](mailto:info@notusregalia.tech). Reports may be made confidentially and, where the channel permits, anonymously. We accept reports in any language and through intermediaries such as counsel or civil-society organizations.',
           'Our grievance process is built to the effectiveness criteria of UNGP 31: it is legitimate, accessible, predictable, equitable, transparent, rights-compatible, and a source of continuous learning. We acknowledge reports promptly, investigate them with appropriate independence, communicate outcomes to the extent confidentiality allows, and provide for or cooperate in remedy where we have caused or contributed to harm.',
           'Use of our grievance mechanism never precludes access to judicial or state-based remedies, and we will not enforce contractual terms to obstruct lawful claims by affected people.',
         ],
@@ -911,7 +911,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         type: 'text',
         heading: '13. Children\'s Privacy',
         paragraphs: [
-          'Our websites and services are intended for general audiences and are not directed at children. We do not knowingly collect personal data from children below eighteen (18) years of age without verifiable parental or guardian consent. If you believe a child has provided us personal data, contact our [Data Protection Officer](mailto:dpo@notusregalia.com) and we will promptly delete it.',
+          'Our websites and services are intended for general audiences and are not directed at children. We do not knowingly collect personal data from children below eighteen (18) years of age without verifiable parental or guardian consent. If you believe a child has provided us personal data, contact our [Data Protection Officer](mailto:info@notusregalia.tech) and we will promptly delete it.',
         ],
       },
       {
@@ -925,7 +925,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         type: 'text',
         heading: '15. Data Protection Officer and Contact',
         paragraphs: [
-          'Our Data Protection Officer oversees compliance with this Policy, the Data Privacy Act, and other applicable data-protection laws. Reach the DPO at [dpo@notusregalia.com](mailto:dpo@notusregalia.com) for any privacy question, request, or concern. For general inquiries, you may also use [privacy@notusregalia.com](mailto:privacy@notusregalia.com).',
+          'Our Data Protection Officer oversees compliance with this Policy, the Data Privacy Act, and other applicable data-protection laws. Reach the DPO at [info@notusregalia.tech](mailto:info@notusregalia.tech) for any privacy question, request, or concern. For general inquiries, you may also use [info@notusregalia.tech](mailto:info@notusregalia.tech).',
           'You may likewise contact the National Privacy Commission of the Philippines through [privacy.gov.ph](https://privacy.gov.ph) for guidance or to file a complaint.',
         ],
       },
@@ -1019,7 +1019,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         type: 'text',
         heading: '9. Changes and Contact',
         paragraphs: [
-          'If we add, remove, or change any technology covered by this Policy, we will update this page — including the inventory in Section 3 — before the change takes effect, and we will re-request consent where the law requires it. Questions about this Policy go to our Data Protection Officer at [dpo@notusregalia.com](mailto:dpo@notusregalia.com).',
+          'If we add, remove, or change any technology covered by this Policy, we will update this page — including the inventory in Section 3 — before the change takes effect, and we will re-request consent where the law requires it. Questions about this Policy go to our Data Protection Officer at [info@notusregalia.tech](mailto:info@notusregalia.tech).',
         ],
       },
       {
@@ -1159,7 +1159,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: '16. Governing Law and Dispute Resolution',
         paragraphs: [
           'These Terms are governed by and construed in accordance with the laws of the Republic of the Philippines, without regard to conflict-of-law rules. Subject to the remainder of this Section, the competent courts of the Philippines shall have exclusive jurisdiction over disputes arising out of or relating to these Terms or the Services, and the parties consent to that venue.',
-          'Before filing any claim, you agree to first contact us at [legal@notusregalia.com](mailto:legal@notusregalia.com) and attempt in good faith to resolve the dispute informally within sixty (60) days. For disputes the parties agree to arbitrate, arbitration shall be conducted in accordance with Republic Act No. 9285 (the Alternative Dispute Resolution Act of 2004) and applicable arbitration rules, seated in the Philippines, in the English language.',
+          'Before filing any claim, you agree to first contact us at [info@notusregalia.tech](mailto:info@notusregalia.tech) and attempt in good faith to resolve the dispute informally within sixty (60) days. For disputes the parties agree to arbitrate, arbitration shall be conducted in accordance with Republic Act No. 9285 (the Alternative Dispute Resolution Act of 2004) and applicable arbitration rules, seated in the Philippines, in the English language.',
           'If you are a consumer habitually resident in a jurisdiction whose law grants you mandatory protections or a right to bring proceedings in your local courts, nothing in this Section deprives you of those protections or that right.',
         ],
       },
@@ -1168,7 +1168,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: '17. General Provisions',
         paragraphs: [
           'Entire Agreement. These Terms — together with the [Acceptable Use Policy](/information/legals/acceptable-use), the [Privacy Policy](/information/legals/privacy), the [Cookie Policy](/information/legals/cookie-policy), the [Vulnerability Disclosure Policy](/information/legals/vulnerability-disclosure), and any applicable Supplemental Terms, each incorporated by reference — constitute the entire agreement between you and us regarding the Services and supersede prior understandings on that subject. Severability. If any provision is held invalid or unenforceable, it will be enforced to the maximum extent permissible and the remainder will remain in full force. No Waiver. Failure to enforce a provision is not a waiver of the right to enforce it later. Assignment. You may not assign these Terms without our prior written consent; we may assign them in connection with a merger, acquisition, or reorganization. Force Majeure. Neither party is liable for delay or failure caused by events beyond its reasonable control. Language. These Terms are executed in English; translations are for convenience only and the English text prevails.',
-          'Questions about these Terms may be directed to [legal@notusregalia.com](mailto:legal@notusregalia.com).',
+          'Questions about these Terms may be directed to [info@notusregalia.tech](mailto:info@notusregalia.tech).',
         ],
       },
       {
@@ -1191,7 +1191,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: '1. Purpose, Application, and Interpretation',
         paragraphs: [
           'This Acceptable Use Policy (the "AUP") sets the rules of conduct for all use of the websites, applications, content, and services operated by Notus Regalia (the "Services"). It is incorporated by reference into our [Terms of Service](/information/legals/terms) and binds every person and entity that accesses the Services, with or without an account, directly or through any intermediary, tool, or automated agent (each, a "User").',
-          'This AUP is to be interpreted purposively: its object is the protection of the Services, our users, our personnel, and the public. Lists of prohibited conduct are illustrative, not exhaustive; conduct of the same character as a listed prohibition is equally prohibited. Where any doubt exists as to whether conduct is permitted, the User must seek our prior written confirmation at [legal@notusregalia.com](mailto:legal@notusregalia.com) — absence of an explicit prohibition is not authorization.',
+          'This AUP is to be interpreted purposively: its object is the protection of the Services, our users, our personnel, and the public. Lists of prohibited conduct are illustrative, not exhaustive; conduct of the same character as a listed prohibition is equally prohibited. Where any doubt exists as to whether conduct is permitted, the User must seek our prior written confirmation at [info@notusregalia.tech](mailto:info@notusregalia.tech) — absence of an explicit prohibition is not authorization.',
           'In this AUP, "use" includes accessing, browsing, querying, downloading, transmitting to, interacting with, and deriving data from the Services by any means, whether manual or automated, and whether or not the Service\'s ordinary user interface is employed.',
         ],
       },
@@ -1259,7 +1259,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         type: 'text',
         heading: '10. Reporting Violations',
         paragraphs: [
-          'Suspected violations of this AUP may be reported to [abuse@notusregalia.com](mailto:abuse@notusregalia.com). Reports of security vulnerabilities should instead follow the [Vulnerability Disclosure Policy](/information/legals/vulnerability-disclosure). We investigate credible reports, treat reporter identities as confidential to the extent the law allows, and prohibit retaliation against good-faith reporters.',
+          'Suspected violations of this AUP may be reported to [info@notusregalia.tech](mailto:info@notusregalia.tech). Reports of security vulnerabilities should instead follow the [Vulnerability Disclosure Policy](/information/legals/vulnerability-disclosure). We investigate credible reports, treat reporter identities as confidential to the extent the law allows, and prohibit retaliation against good-faith reporters.',
         ],
       },
       {
@@ -1279,7 +1279,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
       },
       {
         type: 'note',
-        text: 'Version 1.0 · Effective 12 June 2026 · This Acceptable Use Policy is incorporated by reference into the [Terms of Service](/information/legals/terms) and is governed by the laws of the Republic of the Philippines. Report abuse to abuse@notusregalia.com.',
+        text: 'Version 1.0 · Effective 12 June 2026 · This Acceptable Use Policy is incorporated by reference into the [Terms of Service](/information/legals/terms) and is governed by the laws of the Republic of the Philippines. Report abuse to info@notusregalia.tech.',
       },
     ],
   },
@@ -1306,7 +1306,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         paragraphs: [
           'In scope: the public websites and web applications operated by Notus Regalia, including this website and the Information Central, and any other system we explicitly designate as in scope in writing. Designation of a system as in scope authorizes testing of that system only — not of any system it connects to, depends on, or shares infrastructure with.',
           'Out of scope, without exception: production healthcare and defense systems and any system processing live patient, operational, or classified data (testing against these without a separate written agreement signed by an authorized officer is never authorized, and no employee may authorize it informally); systems operated by our portfolio ventures under their own disclosure policies; third-party services, vendors, and infrastructure we do not own — including hosting providers, analytics platforms, and content-delivery networks — whose findings must be reported to the relevant provider; physical security, office premises, devices, and personnel; and social engineering, phishing, pretexting, or impersonation directed at our employees, contractors, ventures, or partners in any form.',
-          'If you are uncertain whether a target is in scope, ask first at [security@notusregalia.com](mailto:security@notusregalia.com) — we would much rather answer a question than have you guess. Uncertainty is not authorization, and a target is out of scope unless this VDP or a written designation says otherwise.',
+          'If you are uncertain whether a target is in scope, ask first at [info@notusregalia.tech](mailto:info@notusregalia.tech) — we would much rather answer a question than have you guess. Uncertainty is not authorization, and a target is out of scope unless this VDP or a written designation says otherwise.',
         ],
       },
       {
@@ -1333,7 +1333,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         type: 'text',
         heading: '5. How to Report',
         paragraphs: [
-          'Email [security@notusregalia.com](mailto:security@notusregalia.com) with: a description of the vulnerability and its class (e.g., XSS, SSRF, broken access control); the affected URL, endpoint, or component; reproducible steps or a minimal proof of concept; your assessment of impact; and the environment used (IP address, user agent, timestamps) so we can correlate logs. If your report contains sensitive material, say so in your first message and we will arrange an encrypted channel before you send details.',
+          'Email [info@notusregalia.tech](mailto:info@notusregalia.tech) with: a description of the vulnerability and its class (e.g., XSS, SSRF, broken access control); the affected URL, endpoint, or component; reproducible steps or a minimal proof of concept; your assessment of impact; and the environment used (IP address, user agent, timestamps) so we can correlate logs. If your report contains sensitive material, say so in your first message and we will arrange an encrypted channel before you send details.',
           'Submit one report per distinct vulnerability. A chain of issues that together produce a single impact may be reported together and is assessed as one finding at the severity of the chain.',
         ],
       },
@@ -1374,12 +1374,12 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         type: 'text',
         heading: '10. Changes and Contact',
         paragraphs: [
-          'We may revise this VDP and the Bug Bounty Rules at any time; the version published on this page at the time you begin testing governs that testing, and continued testing after a revision constitutes acceptance of the revised VDP. Questions about this VDP, scope clarifications, and reports all go to [security@notusregalia.com](mailto:security@notusregalia.com).',
+          'We may revise this VDP and the Bug Bounty Rules at any time; the version published on this page at the time you begin testing governs that testing, and continued testing after a revision constitutes acceptance of the revised VDP. Questions about this VDP, scope clarifications, and reports all go to [info@notusregalia.tech](mailto:info@notusregalia.tech).',
         ],
       },
       {
         type: 'note',
-        text: 'Version 2.0 · Effective 12 June 2026 · This Vulnerability Disclosure Policy operates alongside our [Terms of Service](/information/legals/terms), [Acceptable Use Policy](/information/legals/acceptable-use), and [Privacy Policy](/information/legals/privacy). Report vulnerabilities to security@notusregalia.com.',
+        text: 'Version 2.0 · Effective 12 June 2026 · This Vulnerability Disclosure Policy operates alongside our [Terms of Service](/information/legals/terms), [Acceptable Use Policy](/information/legals/acceptable-use), and [Privacy Policy](/information/legals/privacy). Report vulnerabilities to info@notusregalia.tech.',
       },
     ],
   },
@@ -1453,7 +1453,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
       },
       {
         type: 'note',
-        text: 'Questions about brand usage or permissions? Contact legal@notusregalia.com.',
+        text: 'Questions about brand usage or permissions? Contact info@notusregalia.tech.',
       },
     ],
   },
@@ -1572,7 +1572,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
           { icon: 'bi-person-badge', title: 'Executive Headshots', body: 'Approved photography of the operating team.', cta: 'Download', href: '/documents/headshots.zip' },
           { icon: 'bi-card-image', title: 'Product Imagery', body: 'High-resolution screenshots and renders.', cta: 'Download', href: '/documents/product-imagery.zip' },
           { icon: 'bi-file-earmark-text', title: 'Boilerplate & Fact Sheet', body: 'Approved company description and key facts.', cta: 'Download', href: '/documents/fact-sheet.pdf' },
-          { icon: 'bi-envelope', title: 'Media Contact', body: 'Reach the communications desk.', cta: 'press@notusregalia.com', href: 'mailto:press@notusregalia.com' },
+          { icon: 'bi-envelope', title: 'Media Contact', body: 'Reach the communications desk.', cta: 'info@notusregalia.tech', href: 'mailto:info@notusregalia.tech' },
         ],
       },
       {

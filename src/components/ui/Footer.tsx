@@ -193,10 +193,7 @@ function DotPattern({
 }
 
 const contactEmails = [
-  { label: 'General',      address: 'info@notus-regalia.com' },
-  { label: 'Careers',      address: 'careers@notus-regalia.com' },
-  { label: 'Partnerships', address: 'partners@notus-regalia.com' },
-  { label: 'Support',      address: 'support@notus-regalia.com' },
+  { label: 'All Enquiries', address: 'info@notusregalia.tech' },
 ];
 
 function CopyIcon({ copied }: { copied: boolean }) {

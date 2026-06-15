@@ -62,6 +62,19 @@ input[type="checkbox"], input[type="radio"], select,
 }
 :root.light .glass-navbar::after { box-shadow: 0 0 4px rgba(0,255,166,0.16), 0 0 6px rgba(227,27,84,0.1); }
 
+/* ── Hover-preview backdrop ── */
+/* Sits below the navbar (z 60) and above page content; blurs/dims the page
+   while a tab's subtab strip is being peeked on hover. */
+.nav-preview-backdrop {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(6,6,12,0.34);
+  backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-preview-backdrop.active { opacity: 1; }
+:root.light .nav-preview-backdrop { background: rgba(245,247,250,0.4); }
+
 /* ── Logo ── */
 .logo-mark {
   display: flex; align-items: center; gap: 12px; user-select: none;
@@ -438,7 +451,24 @@ input[type="checkbox"], input[type="radio"], select,
 .strip-anchor:hover { background: rgba(255,255,255,0.08); }
 :root.light .strip-anchor:hover { background: rgba(0,0,0,0.06); }
 
-.strip-anchor-label { flex: 1; text-align: center; }
+.strip-anchor-label {
+  flex: 1;
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+}
+
+/* Circular countdown badge — seconds until the strip auto-switches to nav */
+.strip-anchor-timer {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 17px; height: 17px; border-radius: 50%;
+  background: #000;
+  color: #fff;
+  font-size: 0.6rem; font-weight: 600; line-height: 1;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+@media (max-width: 640px) {
+  .strip-anchor-timer { width: 15px; height: 15px; font-size: 0.56rem; }
+}
 
 /* Close icon (right side of the title) */
 .strip-anchor-close {

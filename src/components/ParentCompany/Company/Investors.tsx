@@ -429,7 +429,7 @@ function ComingSoonBlock({ phase }: { phase: CapitalPhase }) {
         </span>
       </div>
       <p className="sc-contact-line">
-        To learn more, contact us at{' '}<EmailCopyButton email="partners@notus-regalia.com" />
+        To learn more, contact us at{' '}<EmailCopyButton email="info@notusregalia.tech" />
       </p>
     </div>
   );

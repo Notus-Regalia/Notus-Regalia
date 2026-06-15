@@ -60,6 +60,10 @@ interface NavItem {
   subtabs?: SubtabItem[];
 }
 
+// Seconds the Company strip holds breadcrumbs before auto-switching back to the
+// subtab nav. Drives both the switch timeout and the on-screen countdown badge.
+const COMPANY_STRIP_AUTO_SWITCH_S = 10;
+
 const NAV_ITEMS: NavItem[] = [
   {
     id: 'company',
@@ -543,10 +547,11 @@ interface CompanyCrumbsLayerProps {
   onShowNav: () => void;
   onCollapse: () => void;
   isMobile?: boolean;
+  countdown?: number | null;
 }
 
 const CompanyCrumbsLayer = memo(({
-  visible, subtab, activeSectionId, onCrumbClick, onShowNav, onCollapse, isMobile,
+  visible, subtab, activeSectionId, onCrumbClick, onShowNav, onCollapse, isMobile, countdown,
 }: CompanyCrumbsLayerProps) => {
   const { trackRef, setBtnRef, indicatorStyle } = useSlidingIndicator(activeSectionId, visible);
   const { handleArrowClick, arrowIcon } = useStripArrow(trackRef, isMobile, onCollapse);
@@ -564,7 +569,12 @@ const CompanyCrumbsLayer = memo(({
           <span className="strip-anchor-burger" aria-hidden>
             <span /><span /><span />
           </span>
-          <span className="strip-anchor-label">{subtab.label}</span>
+          <span className="strip-anchor-label">
+            {subtab.label}
+            {countdown != null && (
+              <span className="strip-anchor-timer" aria-hidden>{countdown}</span>
+            )}
+          </span>
           <i className="bi bi-x-lg strip-anchor-close" aria-hidden />
         </button>
 
@@ -625,6 +635,10 @@ const Navbar = ({
   const isProgrammaticScrollRef  = useRef(false);
   const programmaticScrollTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [companyDetailOpen, setCompanyDetailOpen] = useState(false);
+
+  // ── Hover preview: peek a tab's subtab strip and blur the page behind ──
+  const [previewTab, setPreviewTab] = useState<string | null>(null);
+  const previewCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Company strip: dual mode (breadcrumbs ⟷ subtab nav) ──
   // Default to the main subtab nav so freshly entering the Company tab shows
@@ -688,6 +702,31 @@ const Navbar = ({
   const handleShowNav = useCallback(() => {
     setNavCollapsed(false);
     navCollapsedRef.current = false;
+  }, []);
+
+  // ── Hover preview ──
+  // Peek a tab's strip on hover (desktop only). A short close delay lets the
+  // cursor travel from the tab pill down onto the strip without it collapsing.
+  const openPreview = useCallback((tabId: string) => {
+    if (isMobile) return;
+    const item = NAV_ITEMS.find(i => i.id === tabId);
+    if (!item?.subtabs?.length) return;
+    if (previewCloseTimer.current) clearTimeout(previewCloseTimer.current);
+    setPreviewTab(tabId);
+  }, [isMobile]);
+
+  const cancelPreviewClose = useCallback(() => {
+    if (previewCloseTimer.current) { clearTimeout(previewCloseTimer.current); previewCloseTimer.current = null; }
+  }, []);
+
+  const closePreviewSoon = useCallback(() => {
+    if (previewCloseTimer.current) clearTimeout(previewCloseTimer.current);
+    previewCloseTimer.current = setTimeout(() => setPreviewTab(null), 140);
+  }, []);
+
+  const clearPreview = useCallback(() => {
+    if (previewCloseTimer.current) clearTimeout(previewCloseTimer.current);
+    setPreviewTab(null);
   }, []);
 
   // ── Responsive ──
@@ -897,8 +936,23 @@ const Navbar = ({
     if (activeTab !== 'company' || !stripOpen || companyDetailOpen || firstOpenActive) return;
     const t = setTimeout(() => {
       setStripMode(m => (m === 'crumbs' ? 'nav' : 'crumbs'));
-    }, 10000);
+    }, COMPANY_STRIP_AUTO_SWITCH_S * 1000);
     return () => clearTimeout(t);
+  }, [activeTab, stripOpen, companyDetailOpen, firstOpenActive, stripMode, modeEpoch]);
+
+  // Per-second countdown shown beside the breadcrumb title — mirrors the
+  // auto-switch timeout above. Resets on every restart (modeEpoch) and only
+  // ticks while breadcrumbs are actually visible.
+  const [crumbsCountdown, setCrumbsCountdown] = useState<number | null>(null);
+  useEffect(() => {
+    const ticking = activeTab === 'company' && stripOpen && !companyDetailOpen
+      && !firstOpenActive && stripMode === 'crumbs';
+    if (!ticking) { setCrumbsCountdown(null); return; }
+    setCrumbsCountdown(COMPANY_STRIP_AUTO_SWITCH_S);
+    const id = setInterval(() => {
+      setCrumbsCountdown(prev => (prev == null ? null : Math.max(0, prev - 1)));
+    }, 1000);
+    return () => clearInterval(id);
   }, [activeTab, stripOpen, companyDetailOpen, firstOpenActive, stripMode, modeEpoch]);
 
   const toggleStripMode = useCallback(() => {
@@ -972,6 +1026,7 @@ const Navbar = ({
 
   useEffect(() => () => {
     if (programmaticScrollTimer.current) clearTimeout(programmaticScrollTimer.current);
+    if (previewCloseTimer.current) clearTimeout(previewCloseTimer.current);
   }, []);
 
   // ── Tab label click ──
@@ -1015,6 +1070,7 @@ const Navbar = ({
 
   // ── Subtab click inside the strip ──
   const handleSubtabClick = useCallback((parentTabId: string, sub: SubtabItem) => {
+    clearPreview();
     // Only switch tabs when we're not already on this tab.
     // Calling setActiveTab when already active triggers the "tab-reset" path
     // which scrolls to top and runs transition animations, stomping the
@@ -1052,7 +1108,7 @@ const Navbar = ({
       gsapScrollToTop(false);
       syncNavProgressFor(450);
     }
-  }, [activeTab, setActiveTab, onSubtabClick, setNavProgress, syncNavProgressFor]);
+  }, [activeTab, setActiveTab, onSubtabClick, setNavProgress, syncNavProgressFor, clearPreview]);
 
   // ── Company strip: navigate to another standalone subtab page ──
   // The Company tab runs its own fade transition + scroll-to-top on swap,
@@ -1062,10 +1118,11 @@ const Navbar = ({
     // subtab-change effect reveals breadcrumbs 3s later.
     navSlideThenCrumbsRef.current = true;
     setFirstOpenActive(false);
+    clearPreview();
     onSubtabClick?.('company', sub.id);
     setNavProgress(0);
     syncNavProgressFor(1200);
-  }, [onSubtabClick, setNavProgress, syncNavProgressFor]);
+  }, [onSubtabClick, setNavProgress, syncNavProgressFor, clearPreview]);
 
   // ── Company strip: breadcrumb click → scroll to the section ──
   const handleCrumbClick = useCallback((sec: CompanySection) => {
@@ -1222,10 +1279,21 @@ const Navbar = ({
 
   const labelFontStyle = useMemo(() => ({ fontSize: isMobile ? '0.84rem' : '0.97rem' }), [isMobile]);
 
+  // While hovering a tab, that tab's strip is the only one shown (peek mode);
+  // otherwise the active tab's strip shows when opened.
+  const stripVisibleFor = (id: string) =>
+    previewTab ? previewTab === id : (activeTab === id && stripOpen);
+  // Peeking the Company strip from another tab → force the subtab nav layer
+  // (breadcrumbs only make sense on the active Company page).
+  const companyPreviewOnly = previewTab === 'company' && activeTab !== 'company';
+
   return (
     <>
       <style>{NAVBAR_CSS}</style>
       <SearchModal isOpen={searchOpen} onClose={closeSearch} onNavigate={handleSearchNavigate} />
+
+      {/* ══ HOVER-PREVIEW BACKDROP — blurs the page behind the peeked strip ══ */}
+      <div className={`nav-preview-backdrop${previewTab ? ' active' : ''}`} aria-hidden />
 
       {/* ══ STICKY REVEAL TAB ══ */}
       <button
@@ -1275,6 +1343,8 @@ const Navbar = ({
                   <div
                     key={item.id}
                     className={`tab-item-border${active ? ' is-active' : ''}`}
+                    onMouseEnter={() => openPreview(item.id)}
+                    onMouseLeave={closePreviewSoon}
                   >
                     <div className={`tab-item${active ? ' is-active' : ''}`}>
                       {/* ── Tab label — icon removed ── */}
@@ -1321,7 +1391,11 @@ const Navbar = ({
         {/* ══ SUBTAB STRIP — active tab only ══ */}
         {/* Company tab: single strip with crossfading inner layers
             (detail back-link / main subtab nav / active-page breadcrumbs) */}
-        <div className={`subtab-strip-outer${activeTab === 'company' && stripOpen ? ' strip-visible' : ''}`}>
+        <div
+          className={`subtab-strip-outer${stripVisibleFor('company') ? ' strip-visible' : ''}`}
+          onMouseEnter={cancelPreviewClose}
+          onMouseLeave={closePreviewSoon}
+        >
           <div className="subtab-strip-clip">
             <div
               className={`subtab-strip-inner company-strip${stripMode === 'crumbs' && !companyDetailOpen ? ' mode-crumbs' : ''}`}
@@ -1349,7 +1423,7 @@ const Navbar = ({
                 </div>
                 {/* Layer 2: main subtab navigation */}
                 <CompanyNavLayer
-                  visible={!companyDetailOpen && stripMode === 'nav'}
+                  visible={!companyDetailOpen && (companyPreviewOnly || stripMode === 'nav')}
                   activeSubtabId={companySubtab.id}
                   onNavigate={handleCompanyNavigate}
                   onExpandCrumbs={toggleStripMode}
@@ -1358,13 +1432,14 @@ const Navbar = ({
                 />
                 {/* Layer 3: breadcrumbs of the active standalone page */}
                 <CompanyCrumbsLayer
-                  visible={!companyDetailOpen && stripMode === 'crumbs'}
+                  visible={!companyDetailOpen && !companyPreviewOnly && stripMode === 'crumbs'}
                   subtab={companySubtab}
                   activeSectionId={scrollSpySection}
                   onCrumbClick={handleCrumbClick}
                   onShowNav={toggleStripMode}
                   onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
                   isMobile={isMobile}
+                  countdown={crumbsCountdown}
                 />
               </div>
             </div>
@@ -1372,19 +1447,26 @@ const Navbar = ({
         {/* Other tabs: normal StripRow strips */}
         {NAV_ITEMS.filter(item => item.subtabs?.length && item.id !== 'company').map((item) => {
           const isActiveItem   = item.id === activeTab;
-          const isVisible      = isActiveItem && stripOpen;
-          const activeSubtabId = isActiveItem ? (activeSubtab ?? item.subtabs![0].id) : undefined;
+          const isVisible      = stripVisibleFor(item.id);
+          // On the active tab, honour the current subtab; when only peeking,
+          // highlight the first subtab as a sensible default.
+          const activeSubtabId = (isActiveItem ? activeSubtab : undefined) ?? item.subtabs![0].id;
 
           return (
-            <StripRow
+            <div
               key={`strip-${item.id}`}
-              item={item}
-              isVisible={isVisible}
-              activeSubtabId={activeSubtabId ?? null}
-              onSubtabClick={(sub) => handleSubtabClick(item.id, sub)}
-              onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
-              isMobile={isMobile}
-            />
+              onMouseEnter={cancelPreviewClose}
+              onMouseLeave={closePreviewSoon}
+            >
+              <StripRow
+                item={item}
+                isVisible={isVisible}
+                activeSubtabId={activeSubtabId}
+                onSubtabClick={(sub) => handleSubtabClick(item.id, sub)}
+                onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
+                isMobile={isMobile}
+              />
+            </div>
           );
         })}
 
