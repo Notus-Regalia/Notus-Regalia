@@ -121,6 +121,8 @@ const structuredData = {
       },
       sameAs: [
         "https://www.linkedin.com/company/notusregalia",
+        "https://www.wikidata.org/wiki/Q140235264",
+        "https://github.com/Notus-Regalia",
       ],
     },
     {
