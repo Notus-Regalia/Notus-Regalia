@@ -84,7 +84,9 @@ const structuredData = {
       description: SITE_DESCRIPTION,
       slogan: "Beyond Fate.",
       email: "info@notusregalia.tech",
-      // Add verified profiles here, e.g. "https://www.linkedin.com/company/notus-regalia"
+      sameAs: [
+        "https://www.linkedin.com/company/notusregalia",
+      ],
     },
     {
       "@type": "WebSite",
