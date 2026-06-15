@@ -73,7 +73,7 @@ export const FOUNDERS: Founder[] = [
   {
     id: 'F-001',
     codename: 'Alpha',
-    name: 'Johncen Jekk Tesnado',
+    name: 'Jansen Jekk Tesnado',
     title: 'Founder & CEO',
     role: 'Governance, Systems Architecture & Engineering',
     src: '/assets/Founder-1test.jpg',

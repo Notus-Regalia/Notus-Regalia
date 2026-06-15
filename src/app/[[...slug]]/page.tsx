@@ -85,7 +85,7 @@ function resolveRouteMeta(slug?: string[]): {
 
   if (!tab) {
     return {
-      title: "Notus Regalia — Building Systems, Ventures, and Future Companies",
+      title: "Notus Regalia: At the Core of Critical Operations",
       description: DEFAULT_DESCRIPTION,
       canonical: "/",
       home: true,
@@ -138,6 +138,8 @@ export async function generateMetadata({
     description: desc,
     alternates: { canonical },
     openGraph: {
+      type: "website",
+      siteName: "Notus Regalia",
       title: home ? title : `${title} | Notus Regalia`,
       description: desc,
       url: canonical,

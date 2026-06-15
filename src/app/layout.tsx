@@ -12,7 +12,7 @@ const SITE_DESCRIPTION =
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Notus Regalia — Building Systems, Ventures, and Future Companies",
+    default: "Notus Regalia: At the Core of Critical Operations",
     template: "%s | Notus Regalia",
   },
   description: SITE_DESCRIPTION,
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: SITE_NAME,
-    title: "Notus Regalia — Building Systems, Ventures, and Future Companies",
+    title: "Notus Regalia: At the Core of Critical Operations",
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     locale: "en_US",
@@ -87,9 +87,38 @@ const structuredData = {
       name: SITE_NAME,
       url: SITE_URL,
       logo: `${SITE_URL}/icon-512.png`,
+      image: `${SITE_URL}/icon-512.png`,
       description: SITE_DESCRIPTION,
       slogan: "Beyond Fate.",
       email: "info@notusregalia.tech",
+      foundingDate: "2021",
+      address: {
+        "@type": "PostalAddress",
+        addressCountry: "PH",
+      },
+      // Source of truth: src/data/Company-data.ts (FOUNDERS).
+      founder: [
+        { "@type": "Person", name: "Jansen Jekk Tesnado", jobTitle: "Founder & CEO" },
+        { "@type": "Person", name: "Kenneth Tomaniog", jobTitle: "Founder & Lead Engineer" },
+        { "@type": "Person", name: "Alyanna Ricci Evangelista", jobTitle: "Founder & Engineer" },
+        { "@type": "Person", name: "Andrei Brent Bangajo", jobTitle: "Founder & Engineer" },
+      ],
+      knowsAbout: [
+        "Systems engineering",
+        "Venture building",
+        "Critical infrastructure",
+        "Defense technology",
+        "Government and civic operations",
+        "Healthcare systems",
+        "Enterprise technology",
+        "Energy systems",
+      ],
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "General enquiries",
+        email: "info@notusregalia.tech",
+        availableLanguage: ["en"],
+      },
       sameAs: [
         "https://www.linkedin.com/company/notusregalia",
       ],

@@ -84,6 +84,8 @@ export async function generateMetadata({
     description: desc,
     alternates: { canonical },
     openGraph: {
+      type: "website",
+      siteName: "Notus Regalia",
       title: `${title} | Notus Regalia`,
       description: desc,
       url: canonical,
