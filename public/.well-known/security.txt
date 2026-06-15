@@ -1,6 +1,6 @@
 Contact: mailto:info@notusregalia.tech
-Contact: https://notusregalia.com/contact
+Contact: https://www.notusregalia.tech/contact
 Expires: 2027-03-10T00:00:00.000Z
 Preferred-Languages: en
-Canonical: https://notusregalia.com/.well-known/security.txt
-Policy: https://notusregalia.com/?tab=information
+Canonical: https://www.notusregalia.tech/.well-known/security.txt
+Policy: https://www.notusregalia.tech/?tab=information

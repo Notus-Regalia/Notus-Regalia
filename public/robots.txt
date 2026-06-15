@@ -32,4 +32,4 @@ User-agent: cohere-ai
 Disallow: /
 
 # ── Sitemap ───────────────────────────────────────────────────────────────────
-Sitemap: https://notusregalia.com/sitemap.xml
+Sitemap: https://www.notusregalia.tech/sitemap.xml

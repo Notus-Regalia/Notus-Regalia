@@ -5,7 +5,7 @@ import type { MetadataRoute } from 'next';
 //   /teams, /about   — noindex in next.config.ts
 // Keep this list in sync with the human-facing sitemap in
 // src/components/ui/SitemapView.tsx when public routes change.
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://notusregalia.com').replace(/\/$/, '');
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.notusregalia.tech').replace(/\/$/, '');
 
 // [path, priority]
 const ROUTES: [string, number][] = [
