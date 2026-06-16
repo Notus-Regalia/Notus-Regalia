@@ -145,17 +145,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <head>
-        {/* Facebook App ID — must use property= (Next's metadata `other` emits
-            name=, which Facebook's crawler ignores). Clears the Sharing
-            Debugger warning and enables Facebook domain/share insights. */}
+      {/* NOTE: do NOT add a manual <head> here. A literal <head> in the App
+          Router root layout breaks Next's metadata injection for streamed /
+          dynamic routes (their <title>/OG/canonical silently vanish in
+          production), while static routes are unaffected. The tags below are
+          rendered in the tree and hoisted to <head> by React 19. */}
+      <body>
+        {/* Facebook App ID — property= (Next's `other` emits name=, which FB
+            ignores). React 19 hoists this <meta> into <head>. */}
         <meta property="fb:app_id" content="969078156003818" />
+        {/* JSON-LD structured data (valid anywhere in the document). */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
-      </head>
-      <body>
         <CursorClickPulse />
         <ThemeProvider>
           {children}
