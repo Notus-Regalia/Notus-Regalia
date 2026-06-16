@@ -124,6 +124,25 @@ function rootCrumbs(slug: string[] | undefined, resolvedTitle: string): Crumb[] 
   return crumbs;
 }
 
+// Statically generate the known routes at build time. This bakes each page's
+// metadata into the HTML <head> (like the static literal routes) and serves
+// them as static HTML — avoiding the per-request Server Component render that
+// fails on Vercel's runtime and strips metadata from dynamic routes.
+export function generateStaticParams(): { slug: string[] }[] {
+  const slugs: string[][] = [
+    [],
+    ["company"],
+    ["technologies"],
+    ["affiliations"],
+    ...COMPANY_SUBTABS.filter((s) => !s.external).map((s) => [
+      "company",
+      s.id.replace(/^company-/, ""),
+    ]),
+    ...Object.keys(TECH_SUBTABS).map((sub) => ["technologies", sub]),
+  ];
+  return slugs.map((slug) => ({ slug }));
+}
+
 export async function generateMetadata({
   params,
 }: {

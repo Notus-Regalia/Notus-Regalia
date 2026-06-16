@@ -70,6 +70,20 @@ function infoCrumbs(slug: string[] | undefined, resolvedTitle: string): Crumb[] 
   return crumbs;
 }
 
+// Statically generate the known Information Central routes at build time so
+// their metadata is baked into the HTML and they're served as static pages
+// (avoids the Vercel runtime render error that strips dynamic-route metadata).
+export function generateStaticParams(): { slug: string[] }[] {
+  const slugs: string[][] = [[]];
+  for (const tab of INFO_TABS) {
+    slugs.push([tab.id]);
+    for (const sub of (tab.subtabs ?? []).filter((s) => !s.external)) {
+      slugs.push([tab.id, sub.id]);
+    }
+  }
+  return slugs.map((slug) => ({ slug }));
+}
+
 export async function generateMetadata({
   params,
 }: {
