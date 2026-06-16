@@ -28,9 +28,28 @@ export default function NotFound() {
           50%     { opacity: 1;   filter: drop-shadow(0 0 30px rgba(235,17,67,.45)); }
         }
         .nf-logo { animation: nfGlow 3.4s ease-in-out infinite; }
-        .nf-home { transition: background .15s ease, transform .12s ease, border-color .15s ease; }
-        .nf-home:hover  { background: rgba(235,17,67,.12); border-color: rgba(235,17,67,.85); }
-        .nf-home:active { transform: scale(.97); }
+
+        /* Site brand button (replicated self-contained) */
+        .nr-cta {
+          position: relative; display: inline-flex; align-items: center; justify-content: center;
+          gap: 0.5rem; padding: 0.8rem 1.9rem; font-size: 0.9rem; font-weight: 500; line-height: 1;
+          background-color: #101010;
+          box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), inset 0 2px 2px rgba(255,255,255,0.15), inset 0 4px 4px rgba(255,255,255,0.1);
+          border: solid 1px rgba(255,255,255,0.133); border-radius: 8px; cursor: pointer;
+          color: #d4d4d4; text-decoration: none;
+          transition: color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+        }
+        .nr-cta:hover { transform: translateY(-1px); color: #ffffff; }
+        .nr-cta::before {
+          content: ''; position: absolute; inset: -2px; border-radius: 10px; padding: 1px;
+          background: radial-gradient(200px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+            rgba(0,255,166,0.9), rgba(255,215,0,0.7), rgba(236,72,153,0.7),
+            rgba(147,51,234,0.6), rgba(59,130,246,0.5), transparent 70%);
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor; mask-composite: exclude;
+          opacity: 0; transition: opacity 0.3s ease; pointer-events: none; z-index: 0;
+        }
+        .nr-cta:hover::before { opacity: 1; }
       `}</style>
 
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -91,20 +110,7 @@ export default function NotFound() {
         Let&apos;s get you back on track.
       </p>
 
-      <Link
-        href="/"
-        className="nf-home"
-        style={{
-          padding: "12px 28px",
-          borderRadius: 10,
-          border: "1px solid rgba(235,17,67,0.6)",
-          background: "transparent",
-          color: "#ffffff",
-          fontSize: 14,
-          fontWeight: 600,
-          textDecoration: "none",
-        }}
-      >
+      <Link href="/" className="nr-cta">
         Back to Homepage
       </Link>
 
