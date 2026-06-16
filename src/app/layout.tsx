@@ -63,14 +63,15 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    // Raster PNG/ICO first (what Google's favicon pipeline prefers), then the
-    // crisp SVG for modern browsers. apple-touch-icon must be PNG (iOS ignores SVG).
+    // Circle favicon (browser tabs + Google search both mask favicons into a
+    // circle, so the full-bleed circle renders crispest). The square SVG is
+    // intentionally NOT listed here — browsers would prefer it and show a square
+    // in the tab; it stays the in-app nav logo only. apple-touch-icon keeps the
+    // square mark since iOS applies its own squircle mask.
     icon: [
       { url: '/favicon.ico', sizes: '48x48' },
       { url: '/icon-32.png', type: 'image/png', sizes: '32x32' },
       { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
-      { url: '/icon-512.png', type: 'image/png', sizes: '512x512' },
-      { url: '/assets/Notus-Regalia-logo.svg', type: 'image/svg+xml' },
     ],
     shortcut: [{ url: '/favicon.ico' }],
     apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
