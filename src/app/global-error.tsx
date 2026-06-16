@@ -5,7 +5,7 @@
 // must render its own <html>/<body>. Last line of defense before React's bare
 // "An error occurred in the Server Components render" message.
 import { useEffect } from "react";
-import MaintenanceScreen from "@/components/ui/MaintenanceScreen";
+import StatusScreen from "@/components/ui/StatusScreen";
 
 export default function GlobalError({
   error,
@@ -21,7 +21,26 @@ export default function GlobalError({
   return (
     <html lang="en">
       <body style={{ margin: 0 }}>
-        <MaintenanceScreen reset={reset} digest={error.digest} />
+        <StatusScreen
+          code="503"
+          status="System Maintenance"
+          title="Website Under Maintenance"
+          description="We're carrying out scheduled upkeep to sharpen the experience. Notus Regalia will be back online shortly."
+          digest={error.digest}
+          action={
+            <button
+              className="nr-cta"
+              onClick={reset}
+              onMouseMove={(e) => {
+                const r = e.currentTarget.getBoundingClientRect();
+                e.currentTarget.style.setProperty("--mouse-x", `${e.clientX - r.left}px`);
+                e.currentTarget.style.setProperty("--mouse-y", `${e.clientY - r.top}px`);
+              }}
+            >
+              Try Again
+            </button>
+          }
+        />
       </body>
     </html>
   );

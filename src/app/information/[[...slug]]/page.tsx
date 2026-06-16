@@ -70,6 +70,9 @@ function infoCrumbs(slug: string[] | undefined, resolvedTitle: string): Crumb[] 
   return crumbs;
 }
 
+// Only generated routes are valid; other /information/* URLs 404 statically.
+export const dynamicParams = false;
+
 // Statically generate the known Information Central routes at build time so
 // their metadata is baked into the HTML and they're served as static pages
 // (avoids the Vercel runtime render error that strips dynamic-route metadata).

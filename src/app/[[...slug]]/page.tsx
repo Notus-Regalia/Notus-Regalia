@@ -124,6 +124,12 @@ function rootCrumbs(slug: string[] | undefined, resolvedTitle: string): Crumb[] 
   return crumbs;
 }
 
+// Only the routes from generateStaticParams are valid; any other URL 404s via
+// the static not-found page (where the 404 screen server-renders) instead of
+// dynamically rendering this catch-all (which produced a client-only error
+// shell and, on Vercel, a runtime render failure).
+export const dynamicParams = false;
+
 // Statically generate the known routes at build time. This bakes each page's
 // metadata into the HTML <head> (like the static literal routes) and serves
 // them as static HTML — avoiding the per-request Server Component render that
