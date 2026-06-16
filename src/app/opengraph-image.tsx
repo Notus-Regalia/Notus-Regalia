@@ -1,4 +1,6 @@
 import { ImageResponse } from "next/og";
+import { readFileSync } from "fs";
+import { join } from "path";
 
 // Branded social-share card (Open Graph). Next.js generates this at build time
 // and wires up the og:image meta tags automatically, using metadataBase for the
@@ -6,6 +8,12 @@ import { ImageResponse } from "next/og";
 export const alt = "Notus Regalia — At the Core of Critical Operations.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+// Inline the logo as a data URI so the image generator can render it without a
+// network fetch (the site isn't reachable during the build).
+const logoSrc = `data:image/png;base64,${readFileSync(
+  join(process.cwd(), "public/icon-512.png"),
+).toString("base64")}`;
 
 export default function OpengraphImage() {
   return new ImageResponse(
@@ -24,17 +32,9 @@ export default function OpengraphImage() {
           fontFamily: "sans-serif",
         }}
       >
-        {/* Accent bar */}
-        <div
-          style={{
-            display: "flex",
-            width: "84px",
-            height: "6px",
-            borderRadius: "999px",
-            background: "#EB1143",
-            marginBottom: "40px",
-          }}
-        />
+        {/* Logo */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={logoSrc} width={140} height={140} alt="" style={{ marginBottom: "44px" }} />
 
         {/* Wordmark */}
         <div style={{ display: "flex", fontSize: "108px", fontWeight: 800, letterSpacing: "-3px" }}>
@@ -53,23 +53,6 @@ export default function OpengraphImage() {
           }}
         >
           Building Systems, Ventures, and Future Companies
-        </div>
-
-        {/* Tagline pinned bottom-right */}
-        <div
-          style={{
-            display: "flex",
-            position: "absolute",
-            bottom: "96px",
-            right: "96px",
-            fontSize: "22px",
-            fontWeight: 600,
-            letterSpacing: "1px",
-            color: "#e2e8f0",
-            textTransform: "uppercase",
-          }}
-        >
-          At the Core of Critical Operations
         </div>
       </div>
     ),
