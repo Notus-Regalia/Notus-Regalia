@@ -10,7 +10,6 @@ const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? CANONICAL_SITE_URL).replac
 // [path, priority]
 const ROUTES: [string, number][] = [
   ['/', 1.0],
-  ['/defense', 0.9],
   ['/contact', 0.5],
   ['/status', 0.3],
 

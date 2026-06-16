@@ -31,7 +31,6 @@ type Service = {
 const SERVICES: Service[] = [
   { name: "Main Website",        status: "operational", uptime: "99.99%", href: "/",                                                   report: "All endpoints healthy",        since: "Stable · 23d" },
   { name: "Information Central",  status: "operational", uptime: "99.98%", href: "/information",                                        report: "All endpoints healthy",        since: "Stable · 17d" },
-  { name: "Defense Platform",    status: "operational", uptime: "99.95%", href: "/defense",                                           report: "Nominal performance",          since: "Stable · 41d" },
   { name: "API & Integrations",  status: "degraded",    uptime: "99.61%", href: "/information/research/documentations",     report: "Elevated response times",      since: "Investigating · 2h" },
   { name: "Authentication",      status: "operational", uptime: "100.0%", href: "/",                                                   report: "All endpoints healthy",        since: "Stable · 60d" },
   { name: "Documentation & CDN", status: "maintenance", uptime: "99.90%", href: "/information/research/documentations",     report: "Scheduled cache migration",    since: "ETA · 3h" },

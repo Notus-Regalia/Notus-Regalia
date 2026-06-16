@@ -38,7 +38,7 @@ const INDUSTRIES: Industry[] = [
     id: "defense",
     title: "Defense",
     description: "Command environments for decisive coordination, rapid response, and operational clarity.",
-    href: "/defense",
+    href: "/technologies/defense",
   },
   {
     id: "healthcare",

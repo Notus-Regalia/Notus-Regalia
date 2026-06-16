@@ -24,7 +24,6 @@ const SITES: Site[] = [
         title: "Main Site",
         links: [
           { label: "Home",          href: "/" },
-          { label: "Defense",       href: "/defense" },
           { label: "Contact",       href: "/contact" },
           { label: "System Status", href: "/status" },
         ],

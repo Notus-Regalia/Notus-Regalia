@@ -65,7 +65,6 @@ const ROOT_SEO_LINKS: SeoLink[] = [
     label: v.title,
   })),
   { href: "/affiliations", label: "Affiliations" },
-  { href: "/defense", label: "Defense Systems" },
   { href: "/information", label: "Information Central" },
   { href: "/status", label: "System Status" },
   { href: "/sitemap", label: "Sitemap" },
