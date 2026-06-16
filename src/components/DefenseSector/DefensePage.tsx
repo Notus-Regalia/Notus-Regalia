@@ -6,6 +6,7 @@ import { useTheme } from '@/context/ThemeContext';
 import SearchModal from '@/components/ui/SearchModal';
 import { DEFENSE_NAV_ITEMS, DEFAULT_SUBTABS, type SubtabItem } from './nav-data';
 import { DEFENSE_NAVBAR_CSS } from './styles';
+import { NAVBAR_CSS } from '@/components/ui/navbar-styles';
 import StripRow from './StripRow';
 import DefenseHero from './DefenseHero';
 import DefenseContent from './DefenseContent';
@@ -27,6 +28,10 @@ export default function DefenseSitePage() {
   const [displayedTab, setDisplayedTab] = useState('home');
   const [displayedSubtab, setDisplayedSubtab] = useState('overview');
   const [searchOpen, setSearchOpen] = useState(false);
+
+  // ── Hover preview: peek a tab's subtab strip and blur the page behind ──
+  const [previewTab, setPreviewTab] = useState<string | null>(null);
+  const previewCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const navContainerRef = useRef<HTMLDivElement>(null);
   const navProgressRafRef = useRef<number | null>(null);
@@ -143,8 +148,32 @@ export default function DefenseSitePage() {
     navCollapsedRef.current = false;
   }, []);
 
+  // ── Hover preview (desktop only) — mirrors the main Navbar ──
+  const openPreview = useCallback((tabId: string) => {
+    if (isMobile) return;
+    const item = DEFENSE_NAV_ITEMS.find(i => i.id === tabId);
+    if (!item?.subtabs?.length) return;
+    if (previewCloseTimer.current) clearTimeout(previewCloseTimer.current);
+    setPreviewTab(tabId);
+  }, [isMobile]);
+
+  const cancelPreviewClose = useCallback(() => {
+    if (previewCloseTimer.current) { clearTimeout(previewCloseTimer.current); previewCloseTimer.current = null; }
+  }, []);
+
+  const closePreviewSoon = useCallback(() => {
+    if (previewCloseTimer.current) clearTimeout(previewCloseTimer.current);
+    previewCloseTimer.current = setTimeout(() => setPreviewTab(null), 140);
+  }, []);
+
+  const clearPreview = useCallback(() => {
+    if (previewCloseTimer.current) clearTimeout(previewCloseTimer.current);
+    setPreviewTab(null);
+  }, []);
+
   // ── Tab click ──
   const handleTabClick = useCallback((tabId: string) => {
+    clearPreview();
     // If already on this tab and on home, use guarded scroll to avoid scroll-spy jitter
     if (tabId === activeTab && tabId === 'home' && window.scrollY > 10) {
       startProgrammaticScroll();
@@ -155,7 +184,7 @@ export default function DefenseSitePage() {
     setActiveTab(tabId);
     startProgrammaticScroll();
     smoothScrollTo(0, 600);
-  }, [activeTab, smoothScrollTo, startProgrammaticScroll]);
+  }, [activeTab, smoothScrollTo, startProgrammaticScroll, clearPreview]);
 
   // ── Arrow toggle ──
   const handleArrowToggle = useCallback((tabId: string) => {
@@ -174,6 +203,7 @@ export default function DefenseSitePage() {
 
   // ── Subtab click ──
   const handleSubtabClick = useCallback((sub: SubtabItem) => {
+    clearPreview();
     // Special subtabs (e.g. "Return to Main Site")
     if (sub.isSpecial && sub.id === 'return-main') {
       window.location.href = '/technologies';
@@ -201,7 +231,12 @@ export default function DefenseSitePage() {
     setActiveSubtab(sub.id);
     startProgrammaticScroll();
     smoothScrollTo(0, 600);
-  }, [activeTab, smoothScrollTo, stripOpen, startProgrammaticScroll]);
+  }, [activeTab, smoothScrollTo, stripOpen, startProgrammaticScroll, clearPreview]);
+
+  // While hovering a tab, that tab's strip is the only one shown (peek mode);
+  // otherwise the active tab's strip shows when opened.
+  const stripVisibleFor = (id: string) =>
+    previewTab ? previewTab === id : (id === activeTab && stripOpen);
 
   // ── Go home ──
   const goHome = useCallback(() => {
@@ -377,8 +412,16 @@ export default function DefenseSitePage() {
   return (
     <>
       <style>{DEFENSE_NAVBAR_CSS}</style>
+      {/* Shared navbar CSS rendered AFTER the Defense copy so its navbar rules
+          win — making the navbar pixel-identical to the main site and
+          Information Central (and bringing the hover-preview backdrop). Defense
+          content styles (.dv-*) and strip-tab-special remain from the copy. */}
+      <style>{NAVBAR_CSS}</style>
 
       {loading && <DefenseLoadingScreen onComplete={() => setLoading(false)} />}
+
+      {/* ══ HOVER-PREVIEW BACKDROP — blurs the page behind the peeked strip ══ */}
+      <div className={`nav-preview-backdrop${previewTab ? ' active' : ''}`} aria-hidden />
 
       <div className="min-h-screen theme-transition" style={{ background: 'var(--surface-primary)', color: 'var(--content-primary)' }}>
 
@@ -460,7 +503,12 @@ export default function DefenseSitePage() {
                   const isActiveTab = item.id === activeTab;
                   const arrowOpen = isActiveTab && stripOpen;
                   return (
-                    <div key={item.id} className={`tab-item-border${active ? ' is-active' : ''}`}>
+                    <div
+                      key={item.id}
+                      className={`tab-item-border${active ? ' is-active' : ''}`}
+                      onMouseEnter={() => openPreview(item.id)}
+                      onMouseLeave={closePreviewSoon}
+                    >
                       <div className={`tab-item${active ? ' is-active' : ''}`}>
                         <button
                           className={`tab-label-btn${active ? ' is-active' : ''}`}
@@ -531,21 +579,23 @@ export default function DefenseSitePage() {
             </div>
           </div>
 
-          {/* Subtab strip */}
-          {DEFENSE_NAV_ITEMS.map(item => {
-            const isVisible = item.id === activeTab && stripOpen;
-            return (
+          {/* Subtab strip — active tab, or hover-previewed tab */}
+          {DEFENSE_NAV_ITEMS.map(item => (
+            <div
+              key={`strip-${item.id}`}
+              onMouseEnter={cancelPreviewClose}
+              onMouseLeave={closePreviewSoon}
+            >
               <StripRow
-                key={`strip-${item.id}`}
                 item={item}
-                isVisible={isVisible}
-                activeSubtabId={activeSubtab ?? null}
+                isVisible={stripVisibleFor(item.id)}
+                activeSubtabId={item.id === activeTab ? (activeSubtab ?? null) : (item.subtabs[0]?.id ?? null)}
                 onSubtabClick={handleSubtabClick}
                 onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
                 isMobile={isMobile}
               />
-            );
-          })}
+            </div>
+          ))}
         </nav>
 
         {/* ══ MOBILE SIDEBAR ══ */}

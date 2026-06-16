@@ -282,6 +282,10 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
   const [mobileExpandedTab, setMobileExpandedTab] = useState<string | null>(null);
   const [navCollapsed, setNavCollapsed] = useState(false);
 
+  // ── Hover preview: peek a tab's subtab strip and blur the page behind ──
+  const [previewTab, setPreviewTab] = useState<string | null>(null);
+  const previewCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const navContainerRef = useRef<HTMLDivElement>(null);
   const navProgressRafRef = useRef<number | null>(null);
   const navCollapsedRef = useRef(false);
@@ -305,6 +309,29 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
     setNavCollapsed(false);
     navCollapsedRef.current = false;
     setStripOpen(true);
+  }, []);
+
+  // ── Hover preview (desktop only) — mirrors the main Navbar ──
+  const openPreview = useCallback((tabId: string) => {
+    if (isMobile) return;
+    const item = INFO_TABS.find(i => i.id === tabId);
+    if (!item?.subtabs?.length) return;
+    if (previewCloseTimer.current) clearTimeout(previewCloseTimer.current);
+    setPreviewTab(tabId);
+  }, [isMobile]);
+
+  const cancelPreviewClose = useCallback(() => {
+    if (previewCloseTimer.current) { clearTimeout(previewCloseTimer.current); previewCloseTimer.current = null; }
+  }, []);
+
+  const closePreviewSoon = useCallback(() => {
+    if (previewCloseTimer.current) clearTimeout(previewCloseTimer.current);
+    previewCloseTimer.current = setTimeout(() => setPreviewTab(null), 140);
+  }, []);
+
+  const clearPreview = useCallback(() => {
+    if (previewCloseTimer.current) clearTimeout(previewCloseTimer.current);
+    setPreviewTab(null);
   }, []);
 
   // ── Responsive ──
@@ -358,12 +385,13 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
 
   // ── Handlers ──
   const handleTabLabelClick = useCallback((tabId: string) => {
+    clearPreview();
     if (tabId === activeTab) {
       gsapScrollToTop();
       return;
     }
     onTabClick(tabId);
-  }, [activeTab, onTabClick]);
+  }, [activeTab, onTabClick, clearPreview]);
 
   const handleArrowToggle = useCallback((tabId: string) => {
     if (tabId !== activeTab) { onTabClick(tabId); return; }
@@ -371,9 +399,10 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
   }, [activeTab, onTabClick]);
 
   const handleStripSubtabClick = useCallback((tabId: string, sub: InfoSubtab) => {
+    clearPreview();
     if (sub.external) { window.open(sub.external, '_blank', 'noopener,noreferrer'); return; }
     onSubtabClick(tabId, sub.id);
-  }, [onSubtabClick]);
+  }, [onSubtabClick, clearPreview]);
 
   // ── Search (⌘K) ──
   useEffect(() => {
@@ -443,11 +472,19 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
 
   const labelFontStyle = useMemo(() => ({ fontSize: isMobile ? '0.84rem' : '0.97rem' }), [isMobile]);
 
+  // While hovering a tab, that tab's strip is the only one shown (peek mode);
+  // otherwise the active tab's strip shows when opened.
+  const stripVisibleFor = (id: string) =>
+    previewTab ? previewTab === id : (id === activeTab && stripOpen);
+
   return (
     <>
       <style>{NAVBAR_CSS}</style>
       <style>{INFO_LOGO_CSS}</style>
       <SearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} onNavigate={handleSearchNavigate} />
+
+      {/* ══ HOVER-PREVIEW BACKDROP — blurs the page behind the peeked strip ══ */}
+      <div className={`nav-preview-backdrop${previewTab ? ' active' : ''}`} aria-hidden />
 
       {/* ══ STICKY REVEAL TAB ══ */}
       <button
@@ -495,7 +532,12 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
                 const isActiveTab = item.id === activeTab;
                 const arrowOpen = isActiveTab && stripOpen;
                 return (
-                  <div key={item.id} className={`tab-item-border${active ? ' is-active' : ''}`}>
+                  <div
+                    key={item.id}
+                    className={`tab-item-border${active ? ' is-active' : ''}`}
+                    onMouseEnter={() => openPreview(item.id)}
+                    onMouseLeave={closePreviewSoon}
+                  >
                     <div className={`tab-item${active ? ' is-active' : ''}`}>
                       <button
                         className={`tab-label-btn${active ? ' is-active' : ''}`}
@@ -532,17 +574,22 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
           </div>
         </div>
 
-        {/* ══ SUBTAB STRIPS — active tab only ══ */}
+        {/* ══ SUBTAB STRIPS — active tab, or hover-previewed tab ══ */}
         {INFO_TABS.map((item) => (
-          <StripRow
+          <div
             key={`strip-${item.id}`}
-            item={item}
-            isVisible={item.id === activeTab && stripOpen}
-            activeSubtabId={item.id === activeTab ? activeSubtab : null}
-            onSubtabClick={(sub) => handleStripSubtabClick(item.id, sub)}
-            onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
-            isMobile={isMobile}
-          />
+            onMouseEnter={cancelPreviewClose}
+            onMouseLeave={closePreviewSoon}
+          >
+            <StripRow
+              item={item}
+              isVisible={stripVisibleFor(item.id)}
+              activeSubtabId={item.id === activeTab ? activeSubtab : (item.subtabs[0]?.id ?? null)}
+              onSubtabClick={(sub) => handleStripSubtabClick(item.id, sub)}
+              onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
+              isMobile={isMobile}
+            />
+          </div>
         ))}
       </nav>
 
