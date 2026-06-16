@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import governmentCardPng from "./government-card.png";
-import defenseCardPng from "./defense-card.png";
-import healthcareCardPng from "./healthcare-card.png";
-import enterpriseCardPng from "./enterprise-card.png";
-import energyCardPng from "./energy-card.png";
+import governmentCardPng from "./government-card.webp";
+import defenseCardPng from "./defense-card.webp";
+import healthcareCardPng from "./healthcare-card.webp";
+import enterpriseCardPng from "./enterprise-card.webp";
+import energyCardPng from "./energy-card.webp";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
