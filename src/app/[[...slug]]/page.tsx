@@ -143,6 +143,18 @@ export async function generateMetadata({
       title: home ? title : `${title} | Notus Regalia`,
       description: desc,
       url: canonical,
+      // Defining openGraph here overrides the opengraph-image.tsx file
+      // convention, which would otherwise drop og:image. Re-attach it
+      // explicitly so every social platform (Messenger, Instagram, Telegram,
+      // WhatsApp, Facebook, LinkedIn, Discord, Slack) renders the share card.
+      images: [
+        {
+          url: "/opengraph-image",
+          width: 1200,
+          height: 630,
+          alt: "Notus Regalia — Beyond Fate.",
+        },
+      ],
     },
   };
 }

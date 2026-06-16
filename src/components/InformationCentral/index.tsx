@@ -66,12 +66,23 @@ const INFO_FOOTER_SECTIONS: FooterSection[] = [
     ],
   },
   {
+    title: 'Settings',
+    links: [
+      { label: 'Preferences',       tabId: 'settings', subtabId: 'preferences' },
+      { label: 'Sitemap',           external: '/sitemap' },
+      { label: 'Status',            external: '/status' },
+      { label: 'Contact & Support', external: '/contact' },
+    ],
+  },
+  {
     title: 'Company',
     links: [
       { label: 'Mission',          href: '/company/mission' },
       { label: 'Industries',       href: '/company/sectors' },
       { label: 'Executives',       href: '/company/executives' },
       { label: 'Investors',        href: '/company/investors' },
+      { label: 'Ventures',         href: '/company/ventures' },
+      { label: 'Human Rights',     href: '/company/human-rights' },
     ],
   },
 ];

@@ -421,11 +421,11 @@ function ComingSoonBlock({ phase }: { phase: CapitalPhase }) {
   return (
     <div className="sc-coming-soon-block">
       <div className="sc-coming-soon-grid-overlay" />
-      <span className="sc-coming-soon-label">Not Yet Open</span>
+      <span className="sc-coming-soon-label">{phase.comingSoonLabel ?? 'Not Yet Open'}</span>
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
         <div className="sc-coming-soon-dot" />
         <span className="sc-coming-soon-text">
-          Coming Soon{phase.comingSoonDate ? ` — ${phase.comingSoonDate}` : ''}
+          {phase.comingSoonText ?? `Coming Soon${phase.comingSoonDate ? ` — ${phase.comingSoonDate}` : ''}`}
         </span>
       </div>
       <p className="sc-contact-line">
@@ -670,6 +670,10 @@ const Investors = () => {
           font-weight: 700; line-height: 1; letter-spacing: -.04em; color: var(--content-primary);
         }
         .sc-stat-value.accent { color: #E31B54; }
+        /* Word values (e.g. "Confidential") render smaller than numeric ones */
+        .sc-stat-value-text {
+          font-size: clamp(0.95rem, 1.5vw, 1.25rem); letter-spacing: 0.01em; text-transform: uppercase;
+        }
         .sc-stat-label {
           font-size: .65rem; text-transform: uppercase; letter-spacing: .18em;
           color: rgba(255,255,255,.3); font-family: ui-monospace, Menlo, monospace; text-align: center;
@@ -1059,7 +1063,7 @@ const Investors = () => {
             <div className="sc-stats-box">
               {CAPITAL_STATS.map((s, i) => (
                 <div key={i} className="sc-stat-cell">
-                  <span className={`sc-stat-value${s.accent ? ' accent' : ''}`}>{s.value}</span>
+                  <span className={`sc-stat-value${s.accent ? ' accent' : ''}${/[a-z]/.test(s.value) ? ' sc-stat-value-text' : ''}`}>{s.value}</span>
                   <span className="sc-stat-label">{s.label}</span>
                 </div>
               ))}

@@ -398,6 +398,8 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
         { label: 'Industries',       tabId: 'company', subtabId: 'company-sectors' },
         { label: 'Executives',       tabId: 'company', subtabId: 'company-executives' },
         { label: 'Investors',        tabId: 'company', subtabId: 'company-investors' },
+        { label: 'Ventures',         tabId: 'company', subtabId: 'company-ventures' },
+        { label: 'Human Rights',     tabId: 'company', subtabId: 'company-human-rights' },
       ]
     },
     {
