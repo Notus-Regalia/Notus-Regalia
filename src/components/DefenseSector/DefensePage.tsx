@@ -515,7 +515,6 @@ export default function DefenseSitePage() {
                           onClick={() => handleTabClick(item.id)}
                           style={{ fontSize: isMobile ? '0.84rem' : '0.97rem' }}
                         >
-                          <i className={`bi ${item.icon}`} style={{ fontSize: '0.8rem', marginRight: '0.4em', opacity: 0.75 }} />
                           {item.label}
                         </button>
                         <span className="tab-sep" />
