@@ -91,7 +91,7 @@ const structuredData = {
       description: SITE_DESCRIPTION,
       slogan: "Beyond Fate.",
       email: "info@notusregalia.tech",
-      foundingDate: "2021",
+      foundingDate: "2025",
       address: {
         "@type": "PostalAddress",
         addressCountry: "PH",
@@ -123,6 +123,7 @@ const structuredData = {
         "https://www.linkedin.com/company/notusregalia",
         "https://www.wikidata.org/wiki/Q140235264",
         "https://github.com/Notus-Regalia",
+        "https://www.crunchbase.com/organization/notus-regalia",
       ],
     },
     {
