@@ -7,7 +7,7 @@ import ConsentRuntime from "@/components/consent/ConsentRuntime";
 import { SITE_URL, SITE_NAME } from "@/utils/site";
 
 const SITE_DESCRIPTION =
-  "Notus Regalia engineers operational systems and builds ventures across defense, government, healthcare, enterprise, and energy. Beyond Fate.";
+  "Notus Regalia engineers operational systems and builds ventures across defense, government, healthcare, enterprise, and energy.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -89,7 +89,7 @@ const structuredData = {
       logo: `${SITE_URL}/icon-512.png`,
       image: `${SITE_URL}/icon-512.png`,
       description: SITE_DESCRIPTION,
-      slogan: "Beyond Fate.",
+      slogan: "At the Core of Critical Operations",
       email: "info@notusregalia.tech",
       foundingDate: "2025",
       address: {
@@ -146,6 +146,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        {/* Facebook App ID — must use property= (Next's metadata `other` emits
+            name=, which Facebook's crawler ignores). Clears the Sharing
+            Debugger warning and enables Facebook domain/share insights. */}
+        <meta property="fb:app_id" content="969078156003818" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}

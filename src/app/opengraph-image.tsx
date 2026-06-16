@@ -3,7 +3,7 @@ import { ImageResponse } from "next/og";
 // Branded social-share card (Open Graph). Next.js generates this at build time
 // and wires up the og:image meta tags automatically, using metadataBase for the
 // absolute URL. 1200×630 is the standard OG / large-summary Twitter size.
-export const alt = "Notus Regalia — Beyond Fate.";
+export const alt = "Notus Regalia — At the Core of Critical Operations.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -62,14 +62,14 @@ export default function OpengraphImage() {
             position: "absolute",
             bottom: "96px",
             right: "96px",
-            fontSize: "30px",
+            fontSize: "22px",
             fontWeight: 600,
-            letterSpacing: "2px",
+            letterSpacing: "1px",
             color: "#e2e8f0",
             textTransform: "uppercase",
           }}
         >
-          Beyond Fate.
+          At the Core of Critical Operations
         </div>
       </div>
     ),

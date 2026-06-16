@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     // which would otherwise drop og:image. Re-attach it so social platforms
     // (Messenger, Instagram, Telegram, WhatsApp, Facebook, LinkedIn, etc.)
     // render the share card.
-    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Notus Regalia — Beyond Fate.' }],
+    images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Notus Regalia — At the Core of Critical Operations.' }],
   },
 };
 
