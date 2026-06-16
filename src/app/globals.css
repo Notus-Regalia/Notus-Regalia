@@ -408,3 +408,21 @@ blockquote {
   border-radius: 7px;
 }
 .brand-btn-sm::before { border-radius: 9px; }
+
+/* ── Accessibility preferences (opt-in via Information Central → Preferences) ── */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+html.high-contrast {
+  --content-muted: var(--content-secondary);
+  --content-faint: var(--content-secondary);
+  --border-color: rgba(255, 255, 255, 0.34);
+}
+:root.light.high-contrast {
+  --border-color: rgba(0, 0, 0, 0.42);
+}

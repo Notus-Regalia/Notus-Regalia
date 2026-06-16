@@ -20,13 +20,12 @@ export const useTheme = () => {
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const [theme, setTheme] = useState<Theme>('dark');
 
-  // Initialize from localStorage / system preference
+  // Initialize from a saved choice; otherwise default to dark for everyone
+  // (system light-mode preference is intentionally ignored).
   useEffect(() => {
     const stored = localStorage.getItem('notus-regalia-theme') as Theme | null;
     if (stored === 'light' || stored === 'dark') {
       setTheme(stored);
-    } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
-      setTheme('light');
     }
   }, []);
 

@@ -1,16 +1,6 @@
 "use client";
 import { useState, useEffect, useCallback } from 'react';
-
-const COOKIE_KEY = 'nr-cookie-consent';
-
-type ConsentValue = 'all' | 'essential' | null;
-
-function getStoredConsent(): ConsentValue {
-  if (typeof window === 'undefined') return null;
-  const v = localStorage.getItem(COOKIE_KEY);
-  if (v === 'all' || v === 'essential') return v;
-  return null;
-}
+import { hasConsentDecision, acceptAllConsent, rejectNonEssentialConsent } from '@/utils/consent';
 
 interface CookieBannerProps {
   visible: boolean;
@@ -22,14 +12,14 @@ const CookieBanner = ({ visible }: CookieBannerProps) => {
 
   useEffect(() => {
     if (!visible) return;
-    const stored = getStoredConsent();
-    if (stored) return; // already consented
+    if (hasConsentDecision()) return; // already consented
     const t = setTimeout(() => setShow(true), 400); // slight delay after loading finishes
     return () => clearTimeout(t);
   }, [visible]);
 
   const handleAccept = useCallback((type: 'all' | 'essential') => {
-    localStorage.setItem(COOKIE_KEY, type);
+    if (type === 'all') acceptAllConsent();
+    else rejectNonEssentialConsent();
     setExiting(true);
     setTimeout(() => setShow(false), 500);
   }, []);

@@ -76,7 +76,7 @@ export const FOUNDERS: Founder[] = [
     name: 'Jansen Jekk Tesnado',
     title: 'Founder & CEO',
     role: 'Governance, Systems Architecture & Engineering',
-    src: '/assets/Founder-1test.jpg',
+    src: '/assets/Founder-1.jpg',
     bio: "Leading the Notus Dynasty with an unwavering focus on long-term vision and strategic direction. Responsible for shaping the organizational culture and ensuring every unit operates in alignment with the dynasty's core mission.",
     since: '2025',
     linkedin: '#',

@@ -3,7 +3,7 @@ import { ThemeProvider } from "@/context/ThemeContext";
 import CursorClickPulse from "@/components/ui/CursorClickPulse";
 import "./globals.css";
 import "@/styles/About.module.css";
-import { Analytics } from "@vercel/analytics/next"
+import ConsentRuntime from "@/components/consent/ConsentRuntime";
 import { SITE_URL, SITE_NAME } from "@/utils/site";
 
 const SITE_DESCRIPTION =
@@ -156,7 +156,7 @@ export default function RootLayout({
         <ThemeProvider>
           {children}
         </ThemeProvider>
-        <Analytics />
+        <ConsentRuntime />
       </body>
     </html>
   );

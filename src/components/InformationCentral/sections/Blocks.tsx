@@ -6,6 +6,10 @@ import styles from '@/styles/ui.module.css';
 import type {
   ContentBlock, CardItem, DocItem, StatItem, PersonItem, PublicationItem,
 } from '../data';
+import {
+  getConsent, setConsent, getPreferences, setPreferences,
+  clearConsent, clearPreferences, clearSiteCache,
+} from '@/utils/consent';
 
 // ─────────────────────────────────────────────────────────────
 //  Shared block heading
@@ -795,6 +799,32 @@ const PREF_GROUPS: PrefGroup[] = [
   },
 ];
 
+// Small secondary action button used by the Data & Cache controls.
+const ActionButton = ({
+  onClick, disabled, danger, children,
+}: {
+  onClick: () => void; disabled?: boolean; danger?: boolean; children: React.ReactNode;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    className="flex-shrink-0 rounded-xl font-semibold transition-colors"
+    style={{
+      padding: '0.6rem 1.15rem',
+      fontSize: '0.85rem',
+      whiteSpace: 'nowrap',
+      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? 0.55 : 1,
+      border: `1px solid ${danger ? 'rgba(227,27,84,0.5)' : 'var(--border-color)'}`,
+      background: 'var(--hover-bg)',
+      color: danger ? '#E31B54' : 'var(--content-secondary)',
+    }}
+  >
+    {children}
+  </button>
+);
+
 const PreferencesBlock = () => {
   const [state, setState] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
@@ -802,10 +832,64 @@ const PreferencesBlock = () => {
     return init;
   });
   const [saved, setSaved] = useState(false);
+  const [clearing, setClearing] = useState(false);
+  const [cacheMsg, setCacheMsg] = useState<string | null>(null);
+
+  // Hydrate from the shared stores so this page reflects the banner's choice.
+  useEffect(() => {
+    const c = getConsent();
+    const p = getPreferences();
+    setState((s) => ({
+      ...s,
+      essential: true,
+      analytics: c.analytics,
+      personalization: c.personalization,
+      marketing: c.marketing,
+      emails: p.emails,
+      reducedMotion: p.reducedMotion,
+      highContrast: p.highContrast,
+    }));
+  }, []);
 
   const toggle = (id: string) => {
     setState((s) => ({ ...s, [id]: !s[id] }));
     setSaved(false);
+  };
+
+  const handleSave = () => {
+    setConsent({
+      analytics: !!state.analytics,
+      personalization: !!state.personalization,
+      marketing: !!state.marketing,
+    });
+    setPreferences({
+      emails: !!state.emails,
+      reducedMotion: !!state.reducedMotion,
+      highContrast: !!state.highContrast,
+    });
+    setSaved(true);
+  };
+
+  const handleClearCache = async () => {
+    setClearing(true);
+    setCacheMsg(null);
+    await clearSiteCache();
+    setClearing(false);
+    setCacheMsg('Cached data cleared — reloading…');
+    setTimeout(() => window.location.reload(), 900);
+  };
+
+  const handleResetConsent = () => {
+    clearConsent();
+    clearPreferences();
+    setState((s) => {
+      const next = { ...s };
+      PREF_GROUPS.forEach((g) => g.rows.forEach((r) => { next[r.id] = r.default; }));
+      next.essential = true;
+      return next;
+    });
+    setSaved(false);
+    setCacheMsg('Cookie and site preferences reset. The cookie banner will reappear on the main site.');
   };
 
   return (
@@ -839,7 +923,7 @@ const PreferencesBlock = () => {
       <div className="flex flex-wrap items-center gap-3 pt-2">
         <button
           type="button"
-          onClick={() => setSaved(true)}
+          onClick={handleSave}
           className="brand-btn"
           onMouseMove={(e) => {
             const r = e.currentTarget.getBoundingClientRect();
@@ -852,6 +936,46 @@ const PreferencesBlock = () => {
         {saved && (
           <span className="text-sm inline-flex items-center gap-1.5" style={{ color: 'var(--content-muted)' }}>
             <i className="bi bi-check-circle-fill" style={{ color: '#22c55e' }} /> Preferences saved
+          </span>
+        )}
+      </div>
+
+      {/* ── Data & Cache ── */}
+      <div>
+        <BlockHeading>Data &amp; Cache</BlockHeading>
+        <div className="space-y-3">
+          <div
+            className="flex items-center justify-between gap-5 rounded-2xl p-4 sm:p-5"
+            style={{ background: 'var(--hover-bg)', border: '1px solid var(--border-color)' }}
+          >
+            <div className="min-w-0">
+              <span className="font-semibold text-sm sm:text-base" style={{ color: 'var(--content-secondary)' }}>Clear cached data</span>
+              <p className="text-xs sm:text-sm mt-1 leading-relaxed" style={{ color: 'var(--content-muted)' }}>
+                Remove locally cached files and temporary session data, then reload with a fresh copy of the site.
+              </p>
+            </div>
+            <ActionButton onClick={handleClearCache} disabled={clearing}>
+              {clearing ? 'Clearing…' : 'Clear cache'}
+            </ActionButton>
+          </div>
+
+          <div
+            className="flex items-center justify-between gap-5 rounded-2xl p-4 sm:p-5"
+            style={{ background: 'var(--hover-bg)', border: '1px solid var(--border-color)' }}
+          >
+            <div className="min-w-0">
+              <span className="font-semibold text-sm sm:text-base" style={{ color: 'var(--content-secondary)' }}>Reset cookie &amp; site preferences</span>
+              <p className="text-xs sm:text-sm mt-1 leading-relaxed" style={{ color: 'var(--content-muted)' }}>
+                Forget your consent and preference choices. The cookie banner will appear again on your next visit.
+              </p>
+            </div>
+            <ActionButton onClick={handleResetConsent} danger>Reset</ActionButton>
+          </div>
+        </div>
+
+        {cacheMsg && (
+          <span className="text-sm inline-flex items-center gap-1.5 mt-3" style={{ color: 'var(--content-muted)' }}>
+            <i className="bi bi-info-circle-fill" style={{ color: '#22c55e' }} /> {cacheMsg}
           </span>
         )}
       </div>
