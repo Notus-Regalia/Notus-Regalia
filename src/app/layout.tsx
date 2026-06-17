@@ -7,7 +7,7 @@ import ConsentRuntime from "@/components/consent/ConsentRuntime";
 import { SITE_URL, SITE_NAME } from "@/utils/site";
 
 const SITE_DESCRIPTION =
-  "Notus Regalia engineers operational systems and builds ventures across defense, government, healthcare, enterprise, and energy.";
+  "Notus Regalia is a private technology holding and venture-building company engineering critical operational systems across defense, government, healthcare, enterprise, and energy.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

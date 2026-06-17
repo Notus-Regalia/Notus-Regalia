@@ -8,7 +8,7 @@ import { isRootTab } from "@/utils/routes";
 import { COMPANY_SUBTABS } from "@/data/company-nav";
 
 const DEFAULT_DESCRIPTION =
-  "Notus Regalia engineers operational systems and builds ventures across defense, government, healthcare, enterprise, and energy.";
+  "Notus Regalia is a private technology holding and venture-building company engineering critical operational systems across defense, government, healthcare, enterprise, and energy.";
 
 // Tab-level metadata (when a tab is visited without a subtab).
 const TAB_META: Record<string, { title: string; description: string }> = {
