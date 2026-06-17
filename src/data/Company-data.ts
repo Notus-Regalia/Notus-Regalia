@@ -79,7 +79,7 @@ export const FOUNDERS: Founder[] = [
     src: '/assets/Founder-1.jpg',
     bio: "Leading Notus Regalia with an unwavering focus on long-term vision and strategic direction. Responsible for shaping the organizational culture and ensuring every unit operates in alignment with the company's core mission.",
     since: '2025',
-    linkedin: '#',
+    linkedin: 'https://www.linkedin.com/in/jansenjekk',
     instagram: '#',
     x: '#',
     github: '#',
