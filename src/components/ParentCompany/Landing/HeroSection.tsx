@@ -37,37 +37,65 @@ const HeroSection = () => {
         }
 
         .heroBtn {
+          min-width: 120px;
           position: relative;
           display: inline-flex;
           align-items: center;
+          justify-content: center;
           gap: 0.5rem;
-          padding: 0.625rem 1.5rem;
+          padding: 12px 17px;
           font-size: 0.875rem;
           font-weight: 500;
-          background-color: var(--button-bg);
-          box-shadow: var(--button-shadow);
-          border: solid 1px var(--button-border);
-          border-radius: 8px;
+          border: 0;
+          border-radius: 7px;
+          box-shadow: inset 0 0 0 1px var(--btn-inset);
+          background: var(--btn-surface);
           cursor: pointer;
-          color: var(--content-secondary);
-          transition: all 0.3s ease;
+          color: var(--btn-text);
+          transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+            box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+            color 0.35s ease;
         }
 
         @media (min-width: 1024px) {
           .heroBtn {
-            padding: 0.75rem 2rem;
+            padding: 14px 28px;
             font-size: 1rem;
           }
         }
 
+        .heroBtn > * { position: relative; z-index: 1; }
+
         .heroBtn::before {
           content: '';
+          width: 70%;
+          height: 1px;
           position: absolute;
-          inset: -2px;
-          border-radius: 10px;
+          bottom: 0;
+          left: 15%;
+          background: var(--btn-line);
+          opacity: 0.2;
+          transition: opacity 0.35s ease;
+        }
+
+        .heroBtn:hover {
+          color: var(--btn-text-hover);
+          transform: translateY(-2px);
+          box-shadow: inset 0 0 0 1px var(--btn-inset), 0 6px 18px -6px rgba(0, 0, 0, 0.45);
+        }
+
+        .heroBtn:hover::before {
+          opacity: 1;
+        }
+
+        .heroBtn::after {
+          content: '';
+          position: absolute;
+          inset: -1.5px;
+          border-radius: 8.5px;
           padding: 1px;
           background: radial-gradient(
-            200px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+            180px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
             rgba(0, 255, 166, 0.9),
             rgba(255, 215, 0, 0.7),
             rgba(236, 72, 153, 0.7),
@@ -84,8 +112,18 @@ const HeroSection = () => {
           z-index: 0;
         }
 
-        .heroBtn:hover::before {
+        .heroBtn:hover::after {
           opacity: 1;
+        }
+
+        /* Secondary hero button — always jet black (independent of theme),
+           so it reads as the non-CTA next to the white "Get Started" button. */
+        .heroBtn.heroBtn-secondary {
+          --btn-surface: #1f1f1f;
+          --btn-text: rgba(255, 255, 255, 0.66);
+          --btn-text-hover: rgba(255, 255, 255, 1);
+          --btn-inset: rgba(255, 255, 255, 0.28);
+          --btn-line: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0) 100%);
         }
 
         .hero-title {
@@ -148,81 +186,112 @@ const HeroSection = () => {
           animation: scrollBounce 1.8s ease-in-out infinite;
         }
 
-        /* --- Mission Pill (Uiverse-inspired, static) --- */
+        /* --- Mission Pill (Uiverse "MuhammadHasann" design — static/decorative,
+           locked to the lit state since it is not an interactive button) --- */
         .hud-pill {
-          --pill-bg: #030405;
+          --black-700: hsla(0 0% 12% / 1);
+          --pill-radius: 9999px;
+          --active: 1;
           position: relative;
           isolation: isolate;
           overflow: visible;
-          padding: 0;
-          border-radius: 999px;
-          border: 1px solid rgba(255, 255, 255, 0.14);
-          background: linear-gradient(180deg, rgba(10, 12, 16, 0.96) 0%, rgba(3, 4, 5, 0.98) 100%) !important;
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.18),
-            inset 0 -1px 0 rgba(255, 255, 255, 0.04),
-            inset 0 -8px 14px rgba(0, 0, 0, 0.55),
-            0 10px 20px rgba(0, 0, 0, 0.45),
-            0 0 0 1px rgba(255, 255, 255, 0.04);
+          display: inline-flex;
+          align-items: center;
+          gap: 0.55rem;
+          padding: 0.55rem 1.3rem;
+          background-color: transparent;
+          border: none;
+          border-radius: var(--pill-radius);
         }
 
-        .hud-pill-shell {
+        .hud-pill::before {
+          content: '';
           position: absolute;
-          inset: 0;
-          border-radius: inherit;
-          overflow: hidden;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 100%;
+          height: 100%;
+          background-color: var(--black-700);
+          border-radius: var(--pill-radius);
+          box-shadow:
+            inset 0 0.5px hsl(0, 0%, 100%),
+            inset 0 -1px 2px 0 hsl(0, 0%, 0%),
+            0px 4px 10px -4px hsla(0 0% 0% / calc(1 - var(--active))),
+            0 0 0 calc(var(--active) * 0.3rem) hsl(0 0% 100% / 0.1);
+          z-index: 0;
+        }
+
+        .hud-pill::after {
+          content: '';
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 100%;
+          height: 100%;
+          background-color: transparent;
+          background-image:
+            radial-gradient(at 50% 0%, hsla(0, 0%, 100%, 0.16) 0px, transparent 55%),
+            radial-gradient(at 50% 100%, hsla(0, 0%, 0%, 0.55) 0px, transparent 60%);
+          background-position: top;
+          opacity: var(--active);
+          border-radius: var(--pill-radius);
           z-index: 1;
+        }
+
+        /* Traveling light that forms the animated border — a conic-gradient
+           comet spun at uniform angular speed (smooth on any pill width),
+           clipped to the 1px ring that peeks past the solid body. */
+        .hud-dots {
+          --size-border: calc(100% + 2px);
+          overflow: hidden;
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: var(--size-border);
+          height: var(--size-border);
+          background-color: transparent;
+          border-radius: var(--pill-radius);
+          z-index: -10;
           pointer-events: none;
         }
 
-        .hud-pill-shell::before,
-        .hud-pill-shell::after {
+        .hud-dots::before {
           content: '';
           position: absolute;
-        }
-
-        .hud-pill-shell::before {
-          left: -16%;
-          right: -16%;
-          bottom: 28%;
-          top: -115%;
-          border-radius: 50%;
-          background-color: rgba(255, 255, 255, 0.08);
-        }
-
-        .hud-pill-shell::after {
-          left: 1px;
-          right: 1px;
-          top: 10%;
-          bottom: 44%;
-          border-radius: 999px 999px 16px 16px;
-          box-shadow: inset 0 10px 8px -10px rgba(255, 255, 255, 0.24);
-          background: linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.18) 0%,
-            rgba(0, 0, 0, 0) 50%,
-            rgba(0, 0, 0, 0) 100%
+          top: 50%;
+          left: 50%;
+          width: 220%;
+          aspect-ratio: 1 / 1;
+          background: conic-gradient(
+            from 0deg,
+            rgba(255, 255, 255, 0) 0deg,
+            rgba(255, 255, 255, 0) 305deg,
+            rgba(255, 255, 255, 0.95) 360deg
           );
+          transform: translate(-50%, -50%) rotate(0deg);
+          transform-origin: center;
+          will-change: transform;
+          backface-visibility: hidden;
+          animation: hudRotate 3s linear infinite;
         }
 
-        .hud-pill-line {
-          display: inline-flex;
-          align-items: center;
-          gap: 10px;
-          padding: 6px 18px 6px 12px;
-          border-radius: inherit;
-          position: relative;
-          z-index: 4;
-          transform: translateY(1%);
+        @keyframes hudRotate {
+          to { transform: translate(-50%, -50%) rotate(360deg); }
         }
 
+        /* Radar dot */
         .hud-dot-wrapper {
           position: relative;
+          z-index: 10;
           display: flex;
           align-items: center;
           justify-content: center;
           width: 12px;
           height: 12px;
+          flex-shrink: 0;
         }
 
         .hud-dot-core {
@@ -251,71 +320,40 @@ const HeroSection = () => {
 
         @keyframes hudPrefixGlow {
           0%, 100% {
-            opacity: 0.72;
-            text-shadow:
-              0 0 7px rgba(255, 45, 116, 0.48),
-              0 0 16px rgba(255, 45, 116, 0.32);
+            opacity: 0.78;
+            text-shadow: 0 0 7px rgba(255, 45, 116, 0.48), 0 0 16px rgba(255, 45, 116, 0.32);
           }
           50% {
             opacity: 1;
-            text-shadow:
-              0 0 12px rgba(255, 45, 116, 0.78),
-              0 0 26px rgba(255, 45, 116, 0.62),
-              0 0 40px rgba(255, 45, 116, 0.38);
+            text-shadow: 0 0 12px rgba(255, 45, 116, 0.78), 0 0 26px rgba(255, 45, 116, 0.62);
           }
         }
 
         .hud-text {
+          position: relative;
+          z-index: 10;
           font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-          color: rgba(239, 242, 248, 0.78);
-          text-shadow: none;
+          color: rgba(239, 242, 248, 0.82);
           letter-spacing: 0.09em;
           font-weight: 500;
         }
 
         .hud-prefix {
           color: #ff2d74;
-          opacity: 0.86;
-          margin-right: 0.45rem;
+          margin-right: 0.4rem;
           animation: hudPrefixGlow 2.4s ease-in-out infinite;
         }
 
         @media (max-width: 640px) {
-          .hud-pill-line { padding: 4px 12px 4px 9px; gap: 8px; }
-          .hud-text { font-size: 0.65rem; }
-          .hud-dot-wrapper { width: 8px; height: 8px; }
+          .hud-pill { padding: 0.4rem 1rem; gap: 0.45rem; }
+          .hud-dot-wrapper { width: 9px; height: 9px; }
         }
 
-        /* Light mode variant */
-        :global(.light) .hud-pill {
-          background: linear-gradient(180deg, rgba(10, 12, 16, 0.96) 0%, rgba(3, 4, 5, 0.98) 100%) !important;
-          border: 1px solid rgba(255, 255, 255, 0.14) !important;
-          box-shadow:
-            inset 0 1px 0 rgba(255, 255, 255, 0.18),
-            inset 0 -1px 0 rgba(255, 255, 255, 0.04),
-            inset 0 -8px 14px rgba(0, 0, 0, 0.55),
-            0 10px 20px rgba(0, 0, 0, 0.45),
-            0 0 0 1px rgba(255, 255, 255, 0.04) !important;
-        }
-
-        :global(.light) .hud-text {
-          color: rgba(239, 242, 248, 0.78) !important;
-          text-shadow: none !important;
-        }
-
-        :global(.light) .hud-prefix {
-          color: #ff2d74 !important;
-          opacity: 0.86 !important;
-          animation: hudPrefixGlow 2.4s ease-in-out infinite !important;
-        }
-
+        /* Decorative black pill renders identically in both themes */
+        :global(.light) .hud-text { color: rgba(239, 242, 248, 0.82); }
         :global(.light) .hud-dot-core {
-          background-color: #E31B54 !important;
-          box-shadow: 0 0 8px #EB1143, 0 0 12px #EB1143 !important;
-        }
-
-        :global(.light) .hud-dot-ring {
-          border-color: rgba(227, 27, 84, 0.6) !important;
+          background-color: #E31B54;
+          box-shadow: 0 0 6px rgba(235, 17, 67, 0.75);
         }
 
         /* Light mode glass panel — restore cool white */
@@ -345,23 +383,21 @@ const HeroSection = () => {
         <div className="absolute bottom-0 left-0 right-0 h-1/3 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(255,255,255,0.02), transparent)' }} />
         <div className="relative z-10 w-full px-8 lg:px-14 xl:px-20 flex flex-col gap-8" style={{ marginTop: '5vh' }}>
           <div className="pointer-events-auto hud-pill w-fit">
-            <div className="hud-pill-shell" />
-            <div className="hud-pill-line">
-              <div className="hud-dot-wrapper" style={{ width: '10px', height: '10px' }}>
-                <div className="hud-dot-core" style={{ width: '4px', height: '4px' }} />
-                <div className="hud-dot-ring" />
-              </div>
-              <span className="text-xs lg:text-sm font-mono tracking-widest uppercase hud-text"><span className="hud-prefix">[Redefining]</span> Information Superiority</span>
-            </div>
+            <span className="hud-dots" aria-hidden="true" />
+            <span className="hud-dot-wrapper" aria-hidden="true">
+              <span className="hud-dot-core" />
+              <span className="hud-dot-ring" />
+            </span>
+            <span className="text-xs lg:text-sm font-mono tracking-widest uppercase hud-text"><span className="hud-prefix">[Redefining]</span> Information Superiority</span>
           </div>
           <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight hero-title">At the Core of Critical Operations</h1>
           <p className="text-sm lg:text-base xl:text-lg leading-relaxed w-full max-w-none" style={{ color: 'var(--content-tertiary)' }}>We stand at the center of mission-critical operations for government and commercial enterprises. From industrial infrastructure to tactical front lines, we are built for high-stakes environments where failure is not an option.</p>
           <div className="flex items-center gap-4 mt-2 pointer-events-auto">
             <button className="heroBtn" onMouseMove={handleMouseMove}>
-              Start a Project
+              Get Started
               <i className="bi bi-arrow-up-right-square" aria-hidden="true" />
             </button>
-            <button className="heroBtn" onMouseMove={handleMouseMove}>View case studies</button>
+            <button className="heroBtn heroBtn-secondary" onMouseMove={handleMouseMove}>View case studies</button>
           </div>
         </div>
       </div>
@@ -370,23 +406,21 @@ const HeroSection = () => {
       <div className="relative z-10 flex md:hidden flex-col justify-between w-full h-full px-5 pb-8 pt-24 pointer-events-none hero-mobile-overlay" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 35%, transparent 55%)', transform: 'translateZ(0)', willChange: 'transform' }}>
         <div className="flex flex-col gap-5 w-full">
           <div className="pointer-events-auto hud-pill w-fit">
-            <div className="hud-pill-shell" />
-            <div className="hud-pill-line">
-              <div className="hud-dot-wrapper" style={{ width: '8px', height: '8px' }}>
-                <div className="hud-dot-core" style={{ width: '3px', height: '3px' }} />
-                <div className="hud-dot-ring" />
-              </div>
-              <span className="text-[0.65rem] hud-text"><span className="hud-prefix">[Redefining]</span> Information Superiority</span>
-            </div>
+            <span className="hud-dots" aria-hidden="true" />
+            <span className="hud-dot-wrapper" aria-hidden="true">
+              <span className="hud-dot-core" />
+              <span className="hud-dot-ring" />
+            </span>
+            <span className="text-[0.65rem] font-mono tracking-widest uppercase hud-text"><span className="hud-prefix">[Redefining]</span> Information Superiority</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold leading-tight hero-title">At the Core of Critical Operations</h1>
           <p className="text-sm sm:text-base leading-relaxed hero-mobile-subtitle" style={{ color: 'rgba(255,255,255,0.55)' }}>We stand at the center of mission-critical operations for government and commercial enterprises. From industrial infrastructure to tactical front lines, we are built for high-stakes environments where failure is not an option.</p>
           <div className="flex items-center gap-3 mt-1 pointer-events-auto">
             <button className="heroBtn" onMouseMove={handleMouseMove}>
-              Start a Project
+              Get Started
               <i className="bi bi-arrow-up-right-square" aria-hidden="true" />
             </button>
-            <button className="heroBtn" onMouseMove={handleMouseMove}>View case studies</button>
+            <button className="heroBtn heroBtn-secondary" onMouseMove={handleMouseMove}>View case studies</button>
           </div>
         </div>
         <div className="flex items-center gap-3 pointer-events-auto hero-scroll-hint self-start">

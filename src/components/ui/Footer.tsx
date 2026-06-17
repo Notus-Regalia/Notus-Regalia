@@ -233,6 +233,28 @@ interface FooterProps {
   brandSubtitle?: string;
 }
 
+// Real-time local date + time in the client's timezone. Renders only after
+// mount (server renders an empty shell) to avoid a hydration mismatch.
+const LocalClock = () => {
+  const [now, setNow] = useState<Date | null>(null);
+  useEffect(() => {
+    setNow(new Date());
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (!now) return <span className="nr-clock" suppressHydrationWarning />;
+  const date = now.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+  const time = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' });
+  return (
+    <span className="nr-clock" suppressHydrationWarning>
+      <span className="nr-clock-date">{date}</span>
+      <span className="nr-clock-dot">·</span>
+      <span className="nr-clock-time">{time}</span>
+    </span>
+  );
+};
+
 const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brandSubtitle }: FooterProps) => {
   const footerRef  = useRef<HTMLElement>(null);
   const splitRef   = useRef<HTMLDivElement>(null);
@@ -468,8 +490,8 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
         ───────────────────────────────────────────── */
         .nr-footer {
           /* Dark-mode tokens */
-          --f-bg:              linear-gradient(160deg, #0a0a0f 0%, #0d0d14 60%, #080810 100%);
-          --f-glass-bg:        rgba(10,10,20,0.96);
+          --f-bg:              linear-gradient(160deg, #0a0a0a 0%, #0d0d0d 60%, #070707 100%);
+          --f-glass-bg:        rgba(13,13,13,0.96);
           --f-border:          rgba(255,255,255,0.22);
           --f-border-subtle:   rgba(255,255,255,0.06);
           --f-text-primary:    #f1f5f9;
@@ -490,7 +512,7 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
           --f-tagline-border:  rgba(255,255,255,0.12);
           --f-tagline-em:      #e2e8f0;
           --f-tech-color:      rgba(255,255,255,0.45);
-          --f-band3-bg:        linear-gradient(160deg, #0a0a0f 0%, #0d0d14 60%, #080810 100%);
+          --f-band3-bg:        linear-gradient(160deg, #0a0a0a 0%, #0d0d0d 60%, #070707 100%);
 
           /* Layout */
           position: relative;
@@ -609,7 +631,7 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
           position: absolute;
           top: 0; bottom: 0; left: -72px; right: 0;
           clip-path: polygon(72px 0, 100% 0, calc(100% - 72px) 100%, 0 100%);
-          background: #07070e;
+          background: #070707;
           z-index: 0;
         }
 
@@ -937,6 +959,21 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
           text-transform: uppercase;
           color: var(--f-text-copyright);
         }
+        .nr-clock {
+          display: inline-flex; align-items: center; gap: 0.5rem;
+          font-size: clamp(0.62rem, 1.3vw, 0.74rem);
+          font-weight: 500; letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--f-text-copyright);
+          font-variant-numeric: tabular-nums;
+          white-space: nowrap;
+        }
+        .nr-clock-dot { opacity: 0.5; }
+        .nr-clock-time {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          letter-spacing: 0.04em;
+          color: var(--f-text-secondary);
+        }
 
         /* ── Mobile ── */
         @media (max-width: 640px) {
@@ -1192,20 +1229,23 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
           </div>
         </div>
 
+        {/* Social — left side, above the divider */}
+        <div className="flex items-center justify-center sm:justify-start gap-2.5 mb-8">
+          {['bi-twitter-x', 'bi-discord', 'bi-linkedin'].map((icon, idx) => (
+            <a key={idx} href="#" className="nr-glass-btn" aria-label={icon.replace('bi-', '')}>
+              <i className={`bi ${icon} text-2xl`} />
+            </a>
+          ))}
+        </div>
+
         {/* Bottom bar */}
-        <div className="flex flex-col-reverse sm:flex-row items-center sm:justify-between justify-center pt-10 gap-5 nr-bottom-bar">
+        <div className="flex flex-col items-center gap-3 text-center sm:flex-row sm:items-center sm:justify-between sm:text-left pt-10 nr-bottom-bar">
           <p className="nr-copyright">
             &copy; 2026 Notus Regalia — NR Group
             <br />
             All rights reserved.
           </p>
-          <div className="flex items-center gap-2.5">
-            {['bi-twitter-x', 'bi-discord', 'bi-linkedin'].map((icon, idx) => (
-              <a key={idx} href="#" className="nr-glass-btn" aria-label={icon.replace('bi-', '')}>
-                <i className={`bi ${icon} text-2xl`} />
-              </a>
-            ))}
-          </div>
+          <LocalClock />
         </div>
       </div>
     </footer>

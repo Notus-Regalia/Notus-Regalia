@@ -6,6 +6,7 @@ import InfoLoadingScreen from './InfoLoadingScreen';
 import CookieBanner from '@/components/ui/CookieBanner';
 import SmoothScroller from '@/components/ui/SmoothScroller';
 import Footer, { type FooterSection } from '@/components/ui/Footer';
+import SeraphAssistant from '@/components/ui/SeraphAssistant';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { INFO_TABS, DEFAULT_SUBTAB, SUBTAB_PARENT } from './data';
 import { infoHref, parseInfoPath } from '@/utils/routes';
@@ -161,6 +162,7 @@ const InformationCentral = () => {
         </div>
       </SmoothScroller>
       <CookieBanner visible={!loading} />
+      {!loading && <SeraphAssistant />}
     </>
   );
 };

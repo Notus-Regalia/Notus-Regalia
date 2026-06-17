@@ -48,7 +48,7 @@ export default function StatsSection() {
 
         .stats-root {
           position: relative;
-          background: var(--gradient-section, #0a0a12);
+          background: var(--gradient-section, #0a0a0a);
           overflow: hidden;
           contain: layout style paint;
         }

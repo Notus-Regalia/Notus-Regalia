@@ -5,6 +5,7 @@ import MainContent from './MainContent';
 import Footer from './Footer';
 import LoadingScreen from './LoadingScreen';
 import CookieBanner from './CookieBanner';
+import SeraphAssistant from './SeraphAssistant';
 import SmoothScroller from './SmoothScroller';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { DEFAULT_SUBTABS, isRootTab, parseRootPath, rootHref, type RootTab } from '@/utils/routes';
@@ -100,6 +101,7 @@ const ClientWrapper = () => {
         </div>
       </SmoothScroller>
       <CookieBanner visible={!loading} />
+      {!loading && <SeraphAssistant />}
     </>
   );
 };

@@ -233,7 +233,7 @@ function InvestorModal({ investor, onClose }: { investor: Investor; onClose: () 
           style={{
             position: 'relative', display: 'flex', flexDirection: 'column',
             width: '100%', flex: 1, minHeight: 0, borderRadius: '16px', overflow: 'hidden',
-            background: '#0d0d1a',
+            background: '#0d0d0d',
             border: '1px solid rgba(255,255,255,0.10)',
             boxShadow: '0 32px 80px rgba(0,0,0,0.9), 0 0 0 1px rgba(255,255,255,0.06)',
           }}
@@ -243,7 +243,7 @@ function InvestorModal({ investor, onClose }: { investor: Investor; onClose: () 
             className="sc-modal-logo-header"
             style={{
               position: 'relative', flexShrink: 0, height: '160px',
-              background: 'linear-gradient(170deg, #0e0e1c 0%, #160c14 100%)',
+              background: 'linear-gradient(170deg, #0e0e0e 0%, #160c14 100%)',
               borderBottom: '1px solid rgba(255,255,255,0.06)',
               overflow: 'hidden', display: 'flex', alignItems: 'center',
               justifyContent: 'flex-start', padding: '0 2rem',
@@ -620,7 +620,7 @@ const Investors = () => {
         /* Tooltip */
         .sc-disclosure-tooltip {
           position: fixed; width: 300px; max-width: calc(100vw - 24px); padding: 14px 16px;
-          background: linear-gradient(160deg, #050508 0%, #09090f 50%, #0d0509 100%);
+          background: linear-gradient(160deg, #050505 0%, #090909 50%, #0d0509 100%);
           border: 1px solid rgba(227,27,84,0.5); border-radius: 10px;
           font-size: 12px; line-height: 1.7;
           color: rgba(255,255,255,0.65); -webkit-text-fill-color: rgba(255,255,255,0.65);
@@ -634,7 +634,7 @@ const Investors = () => {
         .sc-disclosure-tooltip-visible { opacity: 1; pointer-events: auto; }
         .sc-disclosure-arrow {
           position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%) rotate(45deg);
-          width: 8px; height: 8px; background: #050508;
+          width: 8px; height: 8px; background: #050505;
           border-right: 1px solid rgba(227,27,84,0.5); border-bottom: 1px solid rgba(227,27,84,0.5);
         }
         .sc-disclosure-link {
@@ -740,12 +740,12 @@ const Investors = () => {
         .ic-inner {
           position: relative; z-index: 2; display: flex; flex-direction: column;
           border-radius: calc(.75rem - 1px); overflow: hidden;
-          background: var(--gradient-card, #0f0f1a);
+          background: var(--gradient-card, #0f0f0f);
           border: .75px solid var(--border-subtle, rgba(255,255,255,.05)); height: 100%;
         }
         .ic-logo-wrap {
           position: relative; width: 100%; padding-bottom: 100%;
-          background: linear-gradient(170deg, #0e0e1c 0%, #160c14 100%); overflow: hidden; flex-shrink: 0;
+          background: linear-gradient(170deg, #0e0e0e 0%, #160c14 100%); overflow: hidden; flex-shrink: 0;
         }
         .ic-logo-inner { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
         .ic-phase-badge {
@@ -1011,8 +1011,8 @@ const Investors = () => {
         :root.light .sc-disclosure-label { color: rgba(0,0,0,0.35) !important; -webkit-text-fill-color: rgba(0,0,0,0.35) !important; }
         :root.light .sc-disclosure-wrap:hover .sc-disclosure-label,
         :root.light .sc-disclosure-badge-active .sc-disclosure-label { color: #fff !important; -webkit-text-fill-color: #fff !important; }
-        :root.light .sc-disclosure-tooltip { background: linear-gradient(160deg,#050508 0%,#09090f 50%,#0d0509 100%) !important; border: 1px solid rgba(227,27,84,0.5) !important; color: rgba(255,255,255,0.65) !important; -webkit-text-fill-color: rgba(255,255,255,0.65) !important; }
-        :root.light .sc-disclosure-arrow { background: #050508 !important; border-color: rgba(227,27,84,0.5) !important; }
+        :root.light .sc-disclosure-tooltip { background: linear-gradient(160deg,#050505 0%,#090909 50%,#0d0509 100%) !important; border: 1px solid rgba(227,27,84,0.5) !important; color: rgba(255,255,255,0.65) !important; -webkit-text-fill-color: rgba(255,255,255,0.65) !important; }
+        :root.light .sc-disclosure-arrow { background: #050505 !important; border-color: rgba(227,27,84,0.5) !important; }
 
         /* light — modal */
         :root.light .sc-modal-panel   { background: #f8fafc !important; border: 1px solid rgba(0,0,0,.12) !important; box-shadow: 0 24px 60px rgba(0,0,0,.14), 0 0 0 1px rgba(0,0,0,.06) !important; }

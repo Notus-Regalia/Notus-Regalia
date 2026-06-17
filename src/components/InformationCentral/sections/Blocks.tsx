@@ -439,32 +439,59 @@ const PublicationsBlock = ({ featured, items }: { featured: PublicationItem; ite
 // gradient border revealed on hover, tracked to the cursor).
 const BRAND_BTN_CSS = `
 .nr-brand-btn {
+  /* Standard (non-CTA) button — flat dark-gray with a brighter white hairline. */
+  --btn-surface: #1f1f1f;
+  --btn-text: rgba(255, 255, 255, 0.66);
+  --btn-text-hover: rgba(255, 255, 255, 1);
+  --btn-inset: rgba(255, 255, 255, 0.28);
+  --btn-line: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 1) 50%, rgba(255, 255, 255, 0) 100%);
+  min-width: 120px;
   position: relative;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
-  padding: 0.625rem 1.5rem;
+  padding: 12px 17px;
   font-size: 0.875rem;
   font-weight: 500;
-  background-color: var(--button-bg);
-  box-shadow: var(--button-shadow);
-  border: solid 1px var(--button-border);
-  border-radius: 8px;
+  border: 0;
+  border-radius: 7px;
+  box-shadow: inset 0 0 0 1px var(--btn-inset);
+  background: var(--btn-surface);
   cursor: pointer;
-  color: var(--content-secondary);
-  transition: all 0.3s ease;
+  color: var(--btn-text);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    color 0.35s ease;
 }
 @media (min-width: 1024px) {
-  .nr-brand-btn { padding: 0.75rem 2rem; font-size: 1rem; }
+  .nr-brand-btn { padding: 14px 28px; font-size: 1rem; }
 }
 .nr-brand-btn::before {
   content: '';
+  width: 70%;
+  height: 1px;
   position: absolute;
-  inset: -2px;
-  border-radius: 10px;
+  bottom: 0;
+  left: 15%;
+  background: var(--btn-line);
+  opacity: 0.2;
+  transition: opacity 0.35s ease;
+}
+.nr-brand-btn:hover {
+  color: var(--btn-text-hover);
+  transform: translateY(-2px);
+  box-shadow: inset 0 0 0 1px var(--btn-inset), 0 6px 18px -6px rgba(0, 0, 0, 0.45);
+}
+.nr-brand-btn:hover::before { opacity: 1; }
+.nr-brand-btn::after {
+  content: '';
+  position: absolute;
+  inset: -1.5px;
+  border-radius: 8.5px;
   padding: 1px;
   background: radial-gradient(
-    200px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    180px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
     rgba(0, 255, 166, 0.9),
     rgba(255, 215, 0, 0.7),
     rgba(236, 72, 153, 0.7),
@@ -480,7 +507,7 @@ const BRAND_BTN_CSS = `
   pointer-events: none;
   z-index: 0;
 }
-.nr-brand-btn:hover::before { opacity: 1; }
+.nr-brand-btn:hover::after { opacity: 1; }
 .nr-brand-btn > * { position: relative; z-index: 1; }
 
 /* Releases hero is always dark — force the dark token set even in light mode. */
@@ -497,6 +524,12 @@ const BRAND_BTN_CSS = `
   --button-bg: #101010;
   --button-shadow: inset 0px 1px 1px rgba(255, 255, 255, 0.2), inset 0px 2px 2px rgba(255, 255, 255, 0.15), inset 0px 4px 4px rgba(255, 255, 255, 0.1);
   --button-border: rgba(255, 255, 255, 0.133);
+  /* Always-dark hero → keep the WHITE button token set even in light mode. */
+  --btn-surface: radial-gradient(ellipse at bottom, rgba(255, 255, 255, 1) 0%, rgba(226, 229, 233, 1) 48%);
+  --btn-text: rgba(0, 0, 0, 0.66);
+  --btn-text-hover: rgba(0, 0, 0, 1);
+  --btn-inset: rgba(0, 0, 0, 0.12);
+  --btn-line: linear-gradient(90deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.85) 50%, rgba(0, 0, 0, 0) 100%);
 }
 `;
 
@@ -599,7 +632,7 @@ const HeroFeature = ({ stories }: { stories: PublicationItem[] }) => {
             className="relative w-full overflow-hidden rounded-3xl aspect-[4/3] lg:aspect-auto lg:h-full"
             style={{
               border: '1px solid var(--border-color)',
-              background: 'linear-gradient(160deg, #0b0b12 0%, #0e0e17 55%, #08080f 100%)',
+              background: 'linear-gradient(160deg, #0b0b0b 0%, #0e0e0e 55%, #080808 100%)',
             }}
           >
             <div

@@ -15,7 +15,7 @@ const SubtabHeader = memo(({ eyebrow, title, description, icon }: SubtabHeaderPr
     <section
       className="relative w-full overflow-hidden flex flex-col justify-center min-h-[380px] sm:min-h-[440px] lg:min-h-[480px]"
       style={{
-        background: '#04050a',
+        background: '#050505',
         borderBottom: '1px dashed var(--border-dashed)',
       }}
     >
@@ -32,7 +32,7 @@ const SubtabHeader = memo(({ eyebrow, title, description, icon }: SubtabHeaderPr
       />
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
-        style={{ background: 'linear-gradient(to bottom, transparent, #04050a)' }}
+        style={{ background: 'linear-gradient(to bottom, transparent, #050505)' }}
       />
 
       <div className="relative z-10 w-full px-4 sm:px-8 lg:px-20 pt-24 sm:pt-28 lg:pt-28 pb-12 sm:pb-14">

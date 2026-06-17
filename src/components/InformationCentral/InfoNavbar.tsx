@@ -40,56 +40,6 @@ interface InfoNavbarProps {
   onLogoClick: () => void;
 }
 
-// ── Theme toggle button (copied verbatim) ──
-const ThemeToggleTabBtn = () => {
-  const { isDark, toggleTheme } = useTheme();
-  return (
-    <div className="tab-item-border nav-icon-btn-wrap" data-tooltip={isDark ? 'Light mode' : 'Dark mode'}>
-      <div className="tab-item">
-        <button
-          className="tab-label-btn"
-          onClick={toggleTheme}
-          aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-          style={{ padding: '11px 13px' }}
-        >
-          <i className={`bi ${isDark ? 'bi-sun' : 'bi-moon'}`} style={{ fontSize: '0.85rem' }} />
-        </button>
-      </div>
-    </div>
-  );
-};
-
-const HideNavTabBtn = ({ onClick }: { onClick: () => void }) => (
-  <div className="tab-item-border collapse-btn-desktop nav-icon-btn-wrap" data-tooltip="Hide nav">
-    <div className="tab-item">
-      <button
-        className="tab-label-btn collapse-btn-desktop"
-        onClick={onClick}
-        aria-label="Hide navigation bar"
-        style={{ padding: '11px 13px' }}
-      >
-        <i className="bi bi-eye-slash" style={{ fontSize: '0.85rem' }} />
-      </button>
-    </div>
-  </div>
-);
-
-const SearchTabBtn = ({ isMobile, onClick }: { isMobile: boolean; onClick: () => void }) => (
-  <div className="tab-item-border">
-    <div className="tab-item">
-      <button
-        className="tab-label-btn"
-        onClick={onClick}
-        aria-label="Open search"
-        style={{ padding: isMobile ? '11px 13px' : '11px 18px 11px 16px' }}
-      >
-        <i className="bi bi-search" style={{ fontSize: '0.85rem' }} />
-        {!isMobile && <span>Search</span>}
-        {!isMobile && <span className="search-shortcut">⌘K</span>}
-      </button>
-    </div>
-  </div>
-);
 
 const StickyThemeTab = ({ visible, isMobile }: { visible: boolean; isMobile: boolean }) => {
   const { isDark, toggleTheme } = useTheme();
@@ -423,6 +373,21 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
     window.location.href = url.toString();
   }, []);
 
+  // Seraph assistant (mounted on Information Central) → search + lock nav.
+  useEffect(() => {
+    const onNav = (e: Event) => {
+      const d = (e as CustomEvent).detail as { tabId: string; subtabId?: string };
+      if (d?.tabId) handleSearchNavigate(d.tabId, d.subtabId);
+    };
+    const onCollapse = () => handleCollapseNav();
+    window.addEventListener('seraph-navigate', onNav);
+    window.addEventListener('nav-collapse', onCollapse);
+    return () => {
+      window.removeEventListener('seraph-navigate', onNav);
+      window.removeEventListener('nav-collapse', onCollapse);
+    };
+  }, [handleSearchNavigate, handleCollapseNav]);
+
   // ── Mobile ──
   const closeMobile = useCallback(() => { setMobileOpen(false); setMobileExpandedTab(null); }, []);
   const toggleMobileTab = useCallback((id: string) => setMobileExpandedTab(p => p === id ? null : id), []);
@@ -565,9 +530,6 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
 
           {/* ── Right controls ── */}
           <div className="nav-right-controls">
-            <ThemeToggleTabBtn />
-            <HideNavTabBtn onClick={handleCollapseNav} />
-            <SearchTabBtn isMobile={isMobile} onClick={() => setSearchOpen(true)} />
             <button className="mobile-burger" onClick={() => setMobileOpen(true)} aria-label="Open menu">
               <i className="bi bi-list" />
             </button>

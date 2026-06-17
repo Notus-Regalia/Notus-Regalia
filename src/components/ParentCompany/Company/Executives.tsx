@@ -107,7 +107,7 @@ function FounderModal({ founder, onClose }: { founder: Founder; onClose: () => v
           <div className="fc-modal-portrait-mobile" style={{
             position: 'relative', flexShrink: 0, width: '320px',
             overflow: 'hidden',
-            background: 'linear-gradient(170deg, #0a0a0a 0%, #101014 100%)',
+            background: 'linear-gradient(170deg, #0a0a0a 0%, #101010 100%)',
           }}>
             {founder.src ? (
               <Image src={founder.src} alt={founder.name} fill style={{ objectFit: 'cover', objectPosition: 'center top' }} sizes="320px" />
@@ -492,7 +492,7 @@ const Executives = () => {
         .exec-ov-card{cursor:pointer;min-width:0;outline:none;}
         .exec-ov-portrait{
           position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;
-          background:linear-gradient(170deg,#0a0a0a 0%,#101014 100%);
+          background:linear-gradient(170deg,#0a0a0a 0%,#101010 100%);
         }
         .exec-ov-img{filter:grayscale(100%) brightness(.88);transition:filter .45s cubic-bezier(.4,0,.2,1),transform .6s cubic-bezier(.22,1,.36,1);}
         .exec-ov-card:hover .exec-ov-img,
@@ -556,7 +556,7 @@ const Executives = () => {
           .fc-modal-portrait-mobile{
             position:relative;width:30%;min-width:30%;max-width:30%;flex-shrink:0;
             overflow:hidden;
-            background:linear-gradient(170deg,#0a0a0a 0%,#101014 100%);
+            background:linear-gradient(170deg,#0a0a0a 0%,#101010 100%);
           }
           .fc-modal-title-mobile{
             position:relative;z-index:1;
@@ -583,7 +583,7 @@ const Executives = () => {
           .fc-modal-portrait-mobile{
             position:relative;width:320px;min-width:320px;flex-shrink:0;
             overflow:hidden;
-            background:linear-gradient(170deg,#0a0a0a 0%,#101014 100%);
+            background:linear-gradient(170deg,#0a0a0a 0%,#101010 100%);
           }
           .fc-modal-title-mobile{display:none !important;}
           .fc-modal-desktop-header{display:flex;}

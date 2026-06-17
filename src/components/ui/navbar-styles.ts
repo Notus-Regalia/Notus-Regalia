@@ -30,7 +30,10 @@ input[type="checkbox"], input[type="radio"], select,
 .glass-navbar {
   position: fixed; top: 0; left: 0; right: 0; z-index: 60;
   --nav-scroll-progress: 0;
-  background: linear-gradient(160deg, #0a0a0f 0%, #0d0d14 60%, #080810 100%);
+  /* Neutral onyx (equal R/G/B). Previously the stops had a higher blue
+     channel (#0a0a0f/#0d0d14/#080810), which reads as navy on wide-gamut,
+     color-managed displays (macOS/iOS) under the backdrop blur. */
+  background: linear-gradient(160deg, #0a0a0a 0%, #0d0d0d 60%, #070707 100%);
   backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
   border-bottom: 1px solid rgba(255,255,255,0.07);
   box-shadow:
@@ -593,17 +596,104 @@ input[type="checkbox"], input[type="radio"], select,
   opacity: 0.7; letter-spacing: 0.03em; margin-left: 2px;
 }
 
-/* ── Spring press keyframe ── */
+/* ── Seraph tab — single button: "(icon) Open Seraph ▾" ── */
+.seraph-bar { align-items: stretch; }
+.seraph-label { padding: 11px 16px; gap: 8px; }
+.seraph-chevron {
+  margin-left: 2px;
+  font-size: 0.62rem;
+  display: inline-block;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.seraph-label.is-open .seraph-chevron { transform: rotate(180deg); }
+
+/* ── Seraph dropdown strip — right-aligned grid cells (Search · Theme · Lock) ── */
+.seraph-strip-track {
+  flex: 1;
+  justify-content: flex-end;
+  align-items: stretch;
+  overflow: visible;
+}
+.seraph-cell { gap: 8px; min-width: auto; padding: 0 38px; }
+.seraph-cell:first-child { border-left: 1px solid var(--border-color); }
+.seraph-cell i { font-size: 0.85rem; }
+
+/* Border line follows the cursor with the same radial rainbow gradient as the
+   brand buttons (replaces the orbiting navbar border). */
+.seraph-bar-border::before {
+  background: radial-gradient(
+    160px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(0, 255, 166, 0.9),
+    rgba(255, 215, 0, 0.7),
+    rgba(236, 72, 153, 0.7),
+    rgba(147, 51, 234, 0.6),
+    rgba(59, 130, 246, 0.5),
+    transparent 70%
+  );
+  background-size: auto;
+  animation: none;
+}
+
+/* "View case studies" button style — flat #1f1f1f with a bright white
+   hairline. Always dark, even in light mode. */
+.seraph-bar.tab-item,
+:root.light .seraph-bar.tab-item {
+  background: #1f1f1f;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
+  outline: none;
+}
+.seraph-bar-border:hover .seraph-bar.tab-item,
+:root.light .seraph-bar-border:hover .seraph-bar.tab-item {
+  background: #262626;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28), 0 2px 8px rgba(0, 0, 0, 0.35);
+  outline: none;
+}
+.seraph-bar .tab-label-btn,
+.seraph-bar .tab-arrow-btn,
+:root.light .seraph-bar .tab-label-btn,
+:root.light .seraph-bar .tab-arrow-btn {
+  color: rgba(255, 255, 255, 0.66);
+}
+.seraph-bar .tab-label-btn:hover,
+.seraph-bar .tab-arrow-btn:hover,
+:root.light .seraph-bar .tab-label-btn:hover,
+:root.light .seraph-bar .tab-arrow-btn:hover {
+  color: rgba(255, 255, 255, 1);
+}
+.seraph-bar .tab-arrow-btn:hover,
+.seraph-bar .tab-arrow-btn.is-open {
+  background: rgba(255, 255, 255, 0.08);
+}
+.seraph-bar .tab-sep,
+:root.light .seraph-bar .tab-sep {
+  background: rgba(255, 255, 255, 0.22);
+  opacity: 1;
+}
+.seraph-bar .search-shortcut,
+:root.light .seraph-bar .search-shortcut {
+  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+/* Animated SVG "goo" loader (Uiverse by Nawsome) — scaled down to bar size */
+.seraph-loader {
+  width: 20px; height: 20px;
+  flex-shrink: 0; display: block;
+  opacity: 0.72;
+  transition: opacity 0.15s ease;
+  filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.35));
+}
+.seraph-label:hover .seraph-loader { opacity: 1; }
+
+/* ── Press keyframe — subtle, non-bouncy dip ── */
 @keyframes tabPress {
   0%   { transform: scale(1); }
-  15%  { transform: scale(0.96); }
-  50%  { transform: scale(1.02); }
-  72%  { transform: scale(0.992); }
-  88%  { transform: scale(1.004); }
+  50%  { transform: scale(0.97); }
   100% { transform: scale(1); }
 }
 .tab-pressed {
-  animation: tabPress 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  animation: tabPress 0.26s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
   transform-origin: center !important;
 }
 .tab-item-border,
@@ -622,19 +712,19 @@ input[type="checkbox"], input[type="radio"], select,
 .nav-theme-tab,
 .mobile-burger { transform-origin: center; }
 
-.tab-item-border:active { animation: tabPress 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.tab-label-btn:active   { animation: tabPress 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.tab-arrow-btn:active   { animation: tabPress 0.72s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.strip-tab:active       { animation: tabPress 0.72s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.strip-collapse:active  { animation: tabPress 0.68s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.logo-mark:active       { animation: tabPress 0.8s  cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.mobile-burger:active   { animation: tabPress 0.68s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.tab-item-border:active,
+.tab-label-btn:active,
+.tab-arrow-btn:active,
+.strip-tab:active,
+.strip-collapse:active,
+.logo-mark:active,
+.mobile-burger:active,
 .mob-tab-btn:active,
-.mob-subtab-btn:active  { animation: tabPress 0.7s  cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.mob-close:active       { animation: tabPress 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.mob-search:active      { animation: tabPress 0.7s  cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.mob-subtab-btn:active,
+.mob-close:active,
+.mob-search:active,
 .nav-reveal-tab:active,
-.nav-theme-tab:active   { animation: tabPress 0.72s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.nav-theme-tab:active   { animation: tabPress 0.26s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
 /* ── Mobile ── */
 @media (max-width: 640px) {

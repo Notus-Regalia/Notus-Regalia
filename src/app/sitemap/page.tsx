@@ -14,13 +14,13 @@ export default function SitemapPage() {
       style={{ background: 'var(--surface-primary)', color: 'var(--content-primary)' }}
     >
       {/* Header — shader background */}
-      <section className="relative w-full overflow-hidden" style={{ background: '#04050a', borderBottom: '1px dashed var(--border-dashed)' }}>
+      <section className="relative w-full overflow-hidden" style={{ background: '#050505', borderBottom: '1px dashed var(--border-dashed)' }}>
         <ShaderAnimation />
         <div
           className="pointer-events-none absolute inset-0"
           style={{ background: 'radial-gradient(ellipse at 50% 40%, rgba(4,5,10,0.35) 0%, rgba(4,5,10,0.72) 70%, rgba(4,5,10,0.92) 100%)' }}
         />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24" style={{ background: 'linear-gradient(to bottom, transparent, #04050a)' }} />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24" style={{ background: 'linear-gradient(to bottom, transparent, #050505)' }} />
 
         <div className="relative z-10 px-4 sm:px-8 lg:px-20 pt-7 pb-12 sm:pb-14">
           {/* Brand logo — top left */}
