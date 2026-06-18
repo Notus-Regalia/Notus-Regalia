@@ -18,6 +18,19 @@ const TICKER_ITEMS = [
   "Built Where Failure Is Not an Option",
 ];
 
+function Plus({ className }: { className: string }) {
+  return (
+    <svg
+      className={className}
+      width="24" height="24" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" strokeWidth="1"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden
+    >
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
 export default function StatsSection() {
   const tickerRef = useRef<HTMLDivElement>(null);
   const [revealed, setRevealed] = useState(false);
@@ -51,6 +64,25 @@ export default function StatsSection() {
           background: var(--gradient-section, #0a0a0a);
           overflow: hidden;
           contain: layout style paint;
+
+          /* Frame design tokens (dark defaults) */
+          --stats-frame-line:  rgba(255,255,255,0.16);
+          --stats-frame-glow:  rgba(255,255,255,0.07);
+          --stats-frame-mark:  rgba(255,255,255,0.55);
+          --stats-frame-dash:  rgba(255,255,255,0.10);
+        }
+        :root.light .stats-root {
+          --stats-frame-line:  rgba(0,0,0,0.14);
+          --stats-frame-glow:  rgba(0,0,0,0.05);
+          --stats-frame-mark:  rgba(0,0,0,0.55);
+          --stats-frame-dash:  rgba(0,0,0,0.12);
+        }
+
+        /* Padded wrapper that gives the corner marks + edge rails room to sit
+           outside the framed bar without being clipped by .stats-root */
+        .stats-frame {
+          position: relative;
+          padding: 2.75rem clamp(1.5rem, 4vw, 3.5rem);
         }
 
         /* ── Top ticker ── */
@@ -93,14 +125,33 @@ export default function StatsSection() {
           opacity: 0.6;
         }
 
-        /* ── Stats bar ── */
+        /* ── Stats bar (CTA-3 framed design) ── */
         .stats-bar {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          border-top: 2px solid #E31B54;
-          border-bottom: 2px solid #E31B54;
+          border-top: 1px solid var(--stats-frame-line);
+          border-bottom: 1px solid var(--stats-frame-line);
+          background: radial-gradient(35% 80% at 25% 0%, var(--stats-frame-glow), transparent);
           position: relative;
         }
+
+        /* Vertical edge rails — extend just beyond the bar, top & bottom */
+        .stats-rail {
+          position: absolute; top: -1.5rem; bottom: -1.5rem; width: 1px;
+          background: var(--stats-frame-line); pointer-events: none;
+        }
+        .stats-rail-l { left: 0; }
+        .stats-rail-r { right: 0; }
+
+        /* Corner plus-marks */
+        .stats-plus {
+          position: absolute; z-index: 1;
+          color: var(--stats-frame-mark); pointer-events: none;
+        }
+        .stats-plus-tl { top: -12.5px; left: -11.5px; }
+        .stats-plus-tr { top: -12.5px; right: -11.5px; }
+        .stats-plus-bl { bottom: -12.5px; left: -11.5px; }
+        .stats-plus-br { bottom: -12.5px; right: -11.5px; }
         @media (max-width: 767px) {
           .stats-bar {
             display: grid;
@@ -116,8 +167,9 @@ export default function StatsSection() {
           justify-content: center;
           padding: 2.75rem 1.5rem;
           gap: 0.6rem;
-          border-right: 1px dashed rgba(255,255,255,0.08);
+          border-right: 1px dashed var(--stats-frame-dash);
           position: relative;
+          z-index: 1;
           opacity: 0;
           transform: translateY(18px);
           transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1);
@@ -142,7 +194,6 @@ export default function StatsSection() {
             line-height: 1.45;
           }
         }
-        :root.light .stat-item { border-right: 1px dashed rgba(0,0,0,0.1); }
         :root.light .stat-item:last-child { border-right: none; }
 
         .stat-val {
@@ -210,8 +261,15 @@ export default function StatsSection() {
           </div>
         </div>
 
-        {/* Stats bar */}
+        {/* Stats bar — CTA-3 framed design */}
+        <div className="stats-frame">
         <div className="stats-bar">
+          <Plus className="stats-plus stats-plus-tl" />
+          <Plus className="stats-plus stats-plus-tr" />
+          <Plus className="stats-plus stats-plus-bl" />
+          <Plus className="stats-plus stats-plus-br" />
+          <span className="stats-rail stats-rail-l" />
+          <span className="stats-rail stats-rail-r" />
           {STATS.map((s, i) => (
             <div
               key={s.label}
@@ -226,6 +284,7 @@ export default function StatsSection() {
               <span className="stat-lbl">{s.label}</span>
             </div>
           ))}
+        </div>
         </div>
       </div>
     </>

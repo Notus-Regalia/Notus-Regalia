@@ -113,7 +113,7 @@ const CookieBanner = ({ visible }: CookieBannerProps) => {
 
         .nr-cookie-accent {
           height: 2px;
-          background: linear-gradient(90deg, transparent 0%, #EB1143 20%, #EB1143 80%, transparent 100%);
+          background: linear-gradient(90deg, transparent 0%, var(--accent-red) 20%, var(--accent-red) 80%, transparent 100%);
           opacity: 0.7;
         }
 
@@ -135,7 +135,7 @@ const CookieBanner = ({ visible }: CookieBannerProps) => {
         }
         .nr-cookie-header i {
           font-size: 1rem;
-          color: #EB1143;
+          color: var(--accent-red);
         }
         :root.light .nr-cookie-header {
           color: rgba(0, 0, 0, 0.85);
@@ -159,17 +159,21 @@ const CookieBanner = ({ visible }: CookieBannerProps) => {
         }
 
         .nr-cookie-btn {
+          position: relative;
           flex: 1;
           padding: 0.7rem 1rem;
           border-radius: 10px;
           font-size: 0.8rem;
-          font-weight: 600;
+          font-weight: 500;
           letter-spacing: 0.02em;
           cursor: pointer;
-          transition: all 0.2s ease;
+          transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+            box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+            color 0.35s ease, background 0.2s ease;
           border: none;
           font-family: inherit;
         }
+        .nr-cookie-btn > * { position: relative; z-index: 1; }
 
         .nr-cookie-btn-secondary {
           background: rgba(255, 255, 255, 0.05);
@@ -191,16 +195,54 @@ const CookieBanner = ({ visible }: CookieBannerProps) => {
           color: rgba(0, 0, 0, 0.8);
         }
 
+        /* Brand button — matches the hero CTA (white in dark, jet black in light) */
         .nr-cookie-btn-primary {
-          background: #EB1143;
-          color: #ffffff;
-          box-shadow: 0 2px 12px rgba(235, 17, 67, 0.3);
+          background: var(--btn-surface);
+          color: var(--btn-text);
+          box-shadow: inset 0 0 0 1px var(--btn-inset);
+          isolation: isolate;
+        }
+        .nr-cookie-btn-primary::before {
+          content: '';
+          position: absolute;
+          width: 70%;
+          height: 1px;
+          bottom: 0;
+          left: 15%;
+          background: var(--btn-line);
+          opacity: 0.2;
+          transition: opacity 0.35s ease;
+        }
+        .nr-cookie-btn-primary::after {
+          content: '';
+          position: absolute;
+          inset: -1.5px;
+          border-radius: 11px;
+          padding: 1px;
+          background: radial-gradient(
+            120px circle at 50% 50%,
+            rgba(0, 255, 166, 0.9),
+            rgba(255, 215, 0, 0.7),
+            rgba(236, 72, 153, 0.7),
+            rgba(147, 51, 234, 0.6),
+            rgba(59, 130, 246, 0.5),
+            transparent 70%
+          );
+          -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          -webkit-mask-composite: xor;
+          mask-composite: exclude;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          pointer-events: none;
+          z-index: -1;
         }
         .nr-cookie-btn-primary:hover {
-          background: #d40f3c;
-          box-shadow: 0 4px 20px rgba(235, 17, 67, 0.45);
-          transform: translateY(-1px);
+          color: var(--btn-text-hover);
+          transform: translateY(-2px);
+          box-shadow: inset 0 0 0 1px var(--btn-inset), 0 6px 18px -6px rgba(0, 0, 0, 0.45);
         }
+        .nr-cookie-btn-primary:hover::before { opacity: 1; }
+        .nr-cookie-btn-primary:hover::after { opacity: 1; }
 
         .nr-cookie-footnote {
           font-size: 0.68rem;

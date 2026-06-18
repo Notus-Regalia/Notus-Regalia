@@ -30,7 +30,7 @@ export default function StatusScreen({
         .ss-root {
           position: relative; min-height: 100vh; margin: 0; overflow: hidden;
           display: flex; align-items: center; justify-content: center; padding: 40px 28px;
-          background: linear-gradient(160deg, #0a0a0f 0%, #0d0d14 55%, #080810 100%);
+          background: linear-gradient(160deg, #0a0a0a 0%, #0d0d0d 55%, #070707 100%);
           color: #ffffff;
           font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
         }
@@ -95,27 +95,41 @@ export default function StatusScreen({
         @keyframes ssPulse { 0%,100% { opacity: .4; transform: scale(.82); } 50% { opacity: 1; transform: scale(1); } }
         @media (max-width: 520px) { .ss-brand { letter-spacing: 0.2em; } }
 
-        /* Site brand button — replicated self-contained */
+        /* Site brand button — replicated self-contained (flat #1f1f1f surface,
+           bright white hairline, shimmer underline, cursor-tracked gradient border). */
         .nr-cta {
+          min-width: 120px;
           position: relative; display: inline-flex; align-items: center; justify-content: center;
-          gap: 0.5rem; padding: 0.85rem 2rem; font-size: 0.9rem; font-weight: 500; line-height: 1;
-          background-color: #101010;
-          box-shadow: inset 0 1px 1px rgba(255,255,255,0.2), inset 0 2px 2px rgba(255,255,255,0.15), inset 0 4px 4px rgba(255,255,255,0.1);
-          border: solid 1px rgba(255,255,255,0.133); border-radius: 8px; cursor: pointer;
-          color: #d4d4d4; text-decoration: none;
-          transition: color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+          gap: 0.5rem; padding: 12px 22px; font-size: 0.9rem; font-weight: 500; line-height: 1;
+          background: #1f1f1f;
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.28);
+          border: 0; border-radius: 7px; cursor: pointer;
+          color: rgba(255,255,255,0.66); text-decoration: none;
+          transition: transform 0.35s cubic-bezier(0.22,1,0.36,1),
+            box-shadow 0.35s cubic-bezier(0.22,1,0.36,1), color 0.35s ease;
         }
-        .nr-cta:hover { transform: translateY(-1px); color: #ffffff; }
+        /* shimmer underline */
         .nr-cta::before {
-          content: ''; position: absolute; inset: -2px; border-radius: 10px; padding: 1px;
-          background: radial-gradient(200px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+          content: ''; width: 70%; height: 1px; position: absolute; bottom: 0; left: 15%;
+          background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 50%, rgba(255,255,255,0) 100%);
+          opacity: 0.2; transition: opacity 0.35s ease;
+        }
+        .nr-cta:hover {
+          color: rgba(255,255,255,1); transform: translateY(-2px);
+          box-shadow: inset 0 0 0 1px rgba(255,255,255,0.28), 0 6px 18px -6px rgba(0,0,0,0.45);
+        }
+        .nr-cta:hover::before { opacity: 1; }
+        /* cursor-tracked gradient border */
+        .nr-cta::after {
+          content: ''; position: absolute; inset: -1.5px; border-radius: 8.5px; padding: 1px;
+          background: radial-gradient(180px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
             rgba(0,255,166,0.9), rgba(255,215,0,0.7), rgba(236,72,153,0.7),
             rgba(147,51,234,0.6), rgba(59,130,246,0.5), transparent 70%);
           -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
           -webkit-mask-composite: xor; mask-composite: exclude;
           opacity: 0; transition: opacity 0.3s ease; pointer-events: none; z-index: 0;
         }
-        .nr-cta:hover::before { opacity: 1; }
+        .nr-cta:hover::after { opacity: 1; }
       `}</style>
 
       <div className="ss-grid" aria-hidden />

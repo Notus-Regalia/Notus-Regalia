@@ -422,7 +422,7 @@ const SERAPH_CSS = `
 }
 .seraph-bubble.show { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); pointer-events: auto; }
 .seraph-fab {
-  position: relative; flex-shrink: 0;
+  position: relative; flex-shrink: 0; isolation: isolate;
   width: 58px; height: 58px; border-radius: 50%;
   cursor: grab; touch-action: none;
   display: inline-flex; align-items: center; justify-content: center;
@@ -431,6 +431,43 @@ const SERAPH_CSS = `
   box-shadow: 0 10px 28px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.12);
   color: #fff;
   transition: transform 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.25s ease;
+}
+
+/* ── Rainbow light wave — a localized band of light that travels around the
+   border (the rest of the ring stays dark), not a uniformly lit spinning ring.
+   Both layers are ring-masked, so the black button face/icon stay black. */
+/* A crest of rainbow light that washes back and forth across the border like a
+   wave — easing slow at the edges, quick through the middle — instead of a
+   constant spin. Both layers are the SAME thin ring (concentric): ::after is the
+   crisp light line, ::before is a blurred copy that disperses the light outward.
+   Ring-masked, so the black face/icon stay black. */
+.seraph-fab::before,
+.seraph-fab::after {
+  content: ''; position: absolute; inset: -1.5px; border-radius: 50%;
+  pointer-events: none; z-index: -1;
+  background: conic-gradient(from 0deg,
+    transparent 110deg,
+    rgba(0, 255, 166, 0.5)  145deg,
+    rgba(255, 215, 0, 0.9)  165deg,
+    rgba(236, 72, 153, 1)   180deg,
+    rgba(147, 51, 234, 0.9) 195deg,
+    rgba(59, 130, 246, 0.5) 215deg,
+    transparent 250deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1.6px), #000 calc(100% - 1.6px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 1.6px), #000 calc(100% - 1.6px));
+  animation: seraphWave 3s ease-in-out infinite alternate;
+}
+/* blurred copy — the light dispersing outward from the crest */
+.seraph-fab::before {
+  inset: -2.5px; filter: blur(4px); opacity: 0.7;
+}
+.seraph-fab:hover::before { opacity: 0.95; }
+@keyframes seraphWave {
+  from { transform: rotate(-140deg); }
+  to   { transform: rotate(140deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .seraph-fab::before, .seraph-fab::after { animation: none; }
 }
 .seraph-fab:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 14px 34px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18); }
 .seraph-fab:active { transform: scale(0.97); }

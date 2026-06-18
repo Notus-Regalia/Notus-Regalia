@@ -48,20 +48,7 @@ const AboutTabButton = memo<AboutTabButtonProps>(({ label, isActive, onClick, on
 ));
 AboutTabButton.displayName = "AboutTabButton";
 
-interface AboutLearnMoreButtonProps {
-  onClick: () => void;
-  onMouseMove?: (e: React.MouseEvent<HTMLButtonElement>) => void;
-}
-
-const AboutLearnMoreButton = memo<AboutLearnMoreButtonProps>(({ onClick, onMouseMove }) => (
-  <button className="brand-btn" onClick={onClick} onMouseMove={onMouseMove}>
-    <span>Learn More</span>
-    <i className="bi bi-arrow-up-right-square"></i>
-  </button>
-));
-AboutLearnMoreButton.displayName = "AboutLearnMoreButton";
-
-const Mission = memo(({ onLearnMore }: { onLearnMore?: (page: string) => void }) => {
+const Mission = memo(({}: { onLearnMore?: (page: string) => void }) => {
   const sectionRef = useRef<HTMLElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -235,12 +222,6 @@ const Mission = memo(({ onLearnMore }: { onLearnMore?: (page: string) => void })
                       ))}
                     </div>
                   )}
-                </div>
-
-                <div className={styles.learnMoreSection}>
-                  <div className={styles.learnMoreInner}>
-                    <AboutLearnMoreButton onClick={() => onLearnMore?.(activeContent)} onMouseMove={handleMouseMove} />
-                  </div>
                 </div>
 
               </div>

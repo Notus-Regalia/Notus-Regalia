@@ -513,6 +513,8 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
           --f-tagline-em:      #e2e8f0;
           --f-tech-color:      rgba(255,255,255,0.45);
           --f-band3-bg:        linear-gradient(160deg, #0a0a0a 0%, #0d0d0d 60%, #070707 100%);
+          --f-toplight:        rgba(255,255,255,0.08);
+          --f-toplight-line:   rgba(255,255,255,0.22);
 
           /* Layout */
           position: relative;
@@ -555,6 +557,8 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
           --f-tagline-em:      #0f172a;
           --f-tech-color:      #475569;
           --f-band3-bg:        linear-gradient(to bottom, #f8fafc 0%, #eef2f6 60%);
+          --f-toplight:        rgba(15,23,42,0.06);
+          --f-toplight-line:   rgba(15,23,42,0.18);
 
           background: var(--f-glass-bg);
           box-shadow:
@@ -835,6 +839,20 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
         .nr-band3.border-top-active::before { opacity: 1; }
         .light .nr-band3::before { display: none; }
         .light .nr-band3 { border-top-color: var(--f-border); }
+
+        /* ── Outward radial light on top ── */
+        .nr-band3-toplight {
+          position: absolute; top: 0; left: 0; right: 0; height: 128px;
+          background: radial-gradient(35% 128px at 50% 0%, var(--f-toplight), transparent);
+          pointer-events: none; z-index: -1;
+        }
+        .nr-band3-toplight-line {
+          position: absolute; top: 0; left: 50%; width: 33%; height: 1px;
+          transform: translate(-50%, -50%);
+          background: var(--f-toplight-line);
+          border-radius: 9999px; filter: blur(3px);
+          pointer-events: none; z-index: -1;
+        }
 
         /* ── Brand title ── */
         .nr-brand-title {
@@ -1136,6 +1154,10 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
         ref={band3Ref}
         className="nr-band3 relative z-10 w-full pt-20 pb-10"
       >
+        {/* Outward radial light on top */}
+        <div className="nr-band3-toplight" />
+        <div className="nr-band3-toplight-line" />
+
         <div className="flex flex-col lg:flex-row items-center lg:items-start text-center lg:text-left gap-14 lg:gap-12 mb-16">
 
           {/* Brand */}
