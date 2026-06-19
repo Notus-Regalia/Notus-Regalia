@@ -63,15 +63,17 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    // Circle favicon (browser tabs + Google search both mask favicons into a
-    // circle, so the full-bleed circle renders crispest). The square SVG is
-    // intentionally NOT listed here — browsers would prefer it and show a square
-    // in the tab; it stays the in-app nav logo only. apple-touch-icon keeps the
-    // square mark since iOS applies its own squircle mask.
+    // Intentional split between the browser tab and the Google Search result.
+    // Square source = icon-512.png (rounded square); circle source = icon-circle.png.
+    //   • Browser tabs pick the SQUARE PNGs: icon-32 (1x) and icon-192 (the largest,
+    //     which hi-DPI browsers grab) — so the tab is the rounded-square mark.
+    //   • Google Search reads /favicon.ico at 48px — that frame is the CIRCLE.
+    // favicon.ico is multi-size: 16px+32px square, 48px circle.
+    // apple-touch-icon keeps the square mark since iOS applies its own mask.
     icon: [
-      { url: '/favicon.ico', sizes: '48x48' },
-      { url: '/icon-32.png', type: 'image/png', sizes: '32x32' },
-      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-32.png', type: 'image/png', sizes: '32x32' },     // square → browser tab
+      { url: '/icon-192.png', type: 'image/png', sizes: '192x192' },  // square → hi-DPI tab / PWA
+      { url: '/favicon.ico', sizes: '48x48' },                        // circle (48px) → Google Search
     ],
     shortcut: [{ url: '/favicon.ico' }],
     apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],

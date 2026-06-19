@@ -28,17 +28,18 @@ export default function ReleasesSection() {
           position: relative;
           background: var(--gradient-section, #0a0a0a);
           color: var(--content-primary, #f1f5f9);
+          /* horizontal gutters match HeroSection: px-8 lg:px-14 xl:px-20 */
           padding: 7rem 2rem;
           font-family: 'Inter', system-ui, sans-serif;
           overflow: hidden;
           border-top: 1px dashed rgba(255,255,255,0.09);
         }
         :root.light .releases-root { border-top: 1px dashed rgba(0,0,0,0.12); }
-        @media(min-width:768px){ .releases-root { padding: 8rem 6rem; } }
-        @media(min-width:1280px){ .releases-root { padding: 8rem 8rem; } }
-        @media(min-width:1536px){ .releases-root { padding: 8rem 12rem; } }
+        @media(min-width:768px){ .releases-root { padding: 8rem 2rem; } }
+        @media(min-width:1024px){ .releases-root { padding: 8rem 3.5rem; } }
+        @media(min-width:1280px){ .releases-root { padding: 8rem 5rem; } }
 
-        .releases-inner { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; }
+        .releases-inner { position: relative; z-index: 1; width: 100%; }
 
         /* ── Header ── */
         .releases-head {

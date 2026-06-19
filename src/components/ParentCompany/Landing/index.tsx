@@ -2,8 +2,8 @@
 
 import HeroSection from './HeroSection';
 import AboutSection from './IndustrySection';
-import StatsSection from './StatsSection';
 import ReleasesSection from './ReleasesSection';
+import FaqSection from './FaqSection';
 import WhatWeDoBentoSection from './BentoSection';
 import FrameworkSection from './FrameworkSection';
 import ManifestoSection from './ManifestoSection';
@@ -14,11 +14,11 @@ const Landing = () => {
       {/* Home - Hero Section */}
       <HeroSection />
 
-      {/* Stats / Pillars Strip */}
-      <StatsSection />
-
       {/* Latest Releases */}
       <ReleasesSection />
+
+      {/* Frequently Asked Questions */}
+      <FaqSection />
     </>
   );
 };

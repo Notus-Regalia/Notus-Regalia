@@ -459,26 +459,91 @@ input[type="checkbox"], input[type="radio"], select,
   display: inline-flex; align-items: center; justify-content: center; gap: 9px;
 }
 
-/* Circular countdown badge — seconds until the strip auto-switches to nav */
-.strip-anchor-timer {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 17px; height: 17px; border-radius: 50%;
-  background: #000;
-  color: #fff;
-  font-size: 0.6rem; font-weight: 600; line-height: 1;
-  font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
-}
-@media (max-width: 640px) {
-  .strip-anchor-timer { width: 15px; height: 15px; font-size: 0.56rem; }
-}
-
 /* Close icon (right side of the title) */
 .strip-anchor-close {
   font-size: 0.72rem; color: var(--content-faint); flex-shrink: 0;
   transition: transform 0.24s cubic-bezier(0.34, 1.18, 0.64, 1), color 0.2s ease;
 }
 .strip-anchor:hover .strip-anchor-close { color: var(--content-primary); transform: rotate(90deg) scale(1.12); }
+
+/* ── Morphing subtab button: plain tab ⟷ breadcrumb-title pill ──
+   The label is always present; the burger (left) and plus (right) collapse to
+   zero width when inactive and spring open when the page becomes active. Only a
+   class toggles (the element is reused), so width/padding/icons animate with a
+   springy, elastic easing — and sibling tabs glide along in the flex row. */
+.strip-tab-morph {
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  overflow: hidden;
+  transition:
+    min-width 0.55s var(--spring),
+    padding 0.55s var(--spring),
+    background 0.3s ease,
+    color 0.25s ease;
+}
+
+.strip-morph-label { display: inline-flex; align-items: center; white-space: nowrap; }
+
+/* Burger (left) — bars that collapse to zero width when inactive */
+.strip-morph-burger {
+  display: inline-flex; flex-direction: column; justify-content: center;
+  gap: 3px; height: 13px;
+  width: 0; margin-right: 0;
+  opacity: 0; transform: scale(0.4);
+  overflow: hidden; flex-shrink: 0;
+  transition:
+    width 0.55s var(--spring),
+    margin 0.55s var(--spring),
+    opacity 0.3s ease,
+    transform 0.5s var(--spring);
+}
+.strip-morph-burger span {
+  display: block; height: 2px; width: 100%;
+  border-radius: 999px; background: var(--content-faint);
+  transition: background 0.2s ease;
+}
+.strip-morph-burger span:nth-child(1) { width: 70%; }
+.strip-morph-burger span:nth-child(3) { width: 85%; }
+
+/* Plus (right) — collapses to zero width; spins in when active */
+.strip-morph-plus {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 0; margin-left: 0;
+  font-size: 0.9rem; color: var(--content-faint);
+  opacity: 0; transform: scale(0.3) rotate(-90deg);
+  overflow: hidden; flex-shrink: 0;
+  transition:
+    width 0.55s var(--spring),
+    margin 0.55s var(--spring),
+    opacity 0.3s ease,
+    transform 0.55s var(--spring),
+    color 0.2s ease;
+}
+
+/* Active page → expand into the breadcrumb-title pill */
+.strip-tab-pill {
+  min-width: 232px; padding: 0 18px;
+  background: rgba(255,255,255,0.04);
+  color: var(--content-primary);
+  font-weight: 600;
+}
+:root.light .strip-tab-pill { background: rgba(0,0,0,0.035); }
+.strip-tab-pill:hover { background: rgba(255,255,255,0.08); }
+:root.light .strip-tab-pill:hover { background: rgba(0,0,0,0.06); }
+
+.strip-tab-pill .strip-morph-burger {
+  width: 17px; margin-right: 18px; opacity: 1; transform: scale(1);
+}
+.strip-tab-pill:hover .strip-morph-burger span { background: var(--content-primary); }
+
+/* margin-left: auto pushes the plus to the far right edge of the pill */
+.strip-tab-pill .strip-morph-plus {
+  width: 1rem; margin-left: auto; opacity: 1; transform: scale(1) rotate(0deg);
+}
+.strip-tab-pill:hover .strip-morph-plus { color: var(--content-primary); transform: scale(1.12) rotate(90deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .strip-tab-morph, .strip-morph-burger, .strip-morph-plus { transition-duration: 0.01ms; }
+}
 
 /* Animated hamburger (built from bars so it can morph) */
 .strip-anchor-burger {
@@ -574,15 +639,15 @@ input[type="checkbox"], input[type="radio"], select,
 .strip-flip-nav.strip-layer-hidden    { transform: rotateX(90deg);  opacity: 0; }
 .strip-flip-crumbs.strip-layer-hidden { transform: rotateX(-90deg); opacity: 0; }
 
-/* ── Collapse chevron at the far right of strip ── */
+/* ── Collapse chevron at the far left of strip ── */
 .strip-collapse {
+  order: -1;
   display: inline-flex; align-items: center; justify-content: center;
   padding: 0 20px;
   border: none; background: transparent;
   color: var(--content-muted); cursor: pointer; flex-shrink: 0;
   transition: color 0.14s ease, background 0.14s ease;
-  border-left: 1px solid var(--border-color);
-  margin-left: auto;
+  border-right: 1px solid var(--border-color);
 }
 .strip-collapse:hover { color: var(--content-primary); background: rgba(255,255,255,0.03); }
 .strip-collapse i { font-size: 0.7rem; transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1); }

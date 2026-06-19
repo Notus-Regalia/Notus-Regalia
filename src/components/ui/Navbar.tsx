@@ -60,10 +60,6 @@ interface NavItem {
   subtabs?: SubtabItem[];
 }
 
-// Seconds the Company strip holds breadcrumbs before auto-switching back to the
-// subtab nav. Drives both the switch timeout and the on-screen countdown badge.
-const COMPANY_STRIP_AUTO_SWITCH_S = 10;
-
 const NAV_ITEMS: NavItem[] = [
   {
     id: 'company',
@@ -425,34 +421,59 @@ interface CompanyNavLayerProps {
   onExpandCrumbs: () => void;
   onCollapse: () => void;
   isMobile?: boolean;
+  previewOnly?: boolean;
 }
 
 const CompanyNavLayer = memo(({
-  visible, activeSubtabId, onNavigate, onExpandCrumbs, onCollapse, isMobile,
+  visible, activeSubtabId, onNavigate, onExpandCrumbs, onCollapse, isMobile, previewOnly,
 }: CompanyNavLayerProps) => {
-  const { trackRef, setBtnRef, indicatorStyle } = useSlidingIndicator(activeSubtabId, visible);
+  const { trackRef, setBtnRef } = useSlidingIndicator(activeSubtabId, visible);
   const { handleArrowClick, arrowIcon } = useStripArrow(trackRef, isMobile, onCollapse);
 
   return (
     <div className={`strip-crossfade-layer strip-flip-nav ${visible ? 'strip-layer-visible' : 'strip-layer-hidden'}`}>
       <div className="strip-tabs-track" ref={trackRef}>
-        <StripIndicator style={indicatorStyle} />
-        {COMPANY_SUBTABS.map((sub, idx) => (
-          <button
-            key={sub.id}
-            ref={setBtnRef(sub.id)}
-            className={`strip-tab${activeSubtabId === sub.id ? ' strip-tab-active' : ''}${sub.external ? ' strip-tab-external' : ''}`}
-            style={{ '--si': idx, ...(sub.external ? { display: 'inline-flex', alignItems: 'center', gap: '0.4rem' } : null) } as React.CSSProperties}
-            onClick={() => {
-              if (sub.external) window.open(sub.external, '_blank', 'noopener,noreferrer');
-              else if (sub.id === activeSubtabId) onExpandCrumbs(); // re-click active → expand breadcrumbs
-              else onNavigate(sub);
-            }}
-          >
-            {sub.label}
-            {sub.external && <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.7rem' }} />}
-          </button>
-        ))}
+        {COMPANY_SUBTABS.map((sub, idx) => {
+          const isActive = activeSubtabId === sub.id;
+          // External items just open a link, so they stay plain tabs.
+          if (sub.external) {
+            return (
+              <button
+                key={sub.id}
+                ref={setBtnRef(sub.id)}
+                className={`strip-tab strip-tab-external${isActive ? ' strip-tab-active' : ''}`}
+                style={{ '--si': idx, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' } as React.CSSProperties}
+                onClick={() => window.open(sub.external!, '_blank', 'noopener,noreferrer')}
+              >
+                {sub.label}
+                <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.7rem' }} />
+              </button>
+            );
+          }
+          // Every page is the SAME morphing button. The burger + plus are always
+          // in the DOM but collapse to zero width when inactive; the active page
+          // springs them open into the breadcrumb-title pill. Because only a
+          // class toggles (the element is keyed + reused), width/padding/icons
+          // animate smoothly as the active page changes — and its siblings glide
+          // along in the flex row. Clicking the active pill expands breadcrumbs.
+          return (
+            <button
+              key={sub.id}
+              ref={setBtnRef(sub.id)}
+              className={`strip-tab strip-tab-morph${isActive ? ' strip-tab-pill' : ''}`}
+              style={{ '--si': idx } as React.CSSProperties}
+              onClick={() => (isActive && !previewOnly ? onExpandCrumbs() : onNavigate(sub))}
+              aria-label={isActive && !previewOnly ? `${sub.label} — show section breadcrumbs` : sub.label}
+              title={isActive && !previewOnly ? 'Show sections' : undefined}
+            >
+              <span className="strip-morph-burger" aria-hidden>
+                <span /><span /><span />
+              </span>
+              <span className="strip-morph-label">{sub.label}</span>
+              <i className="bi bi-plus-lg strip-morph-plus" aria-hidden />
+            </button>
+          );
+        })}
       </div>
       <button
         className="strip-collapse"
@@ -476,11 +497,10 @@ interface CompanyCrumbsLayerProps {
   onShowNav: () => void;
   onCollapse: () => void;
   isMobile?: boolean;
-  countdown?: number | null;
 }
 
 const CompanyCrumbsLayer = memo(({
-  visible, subtab, activeSectionId, onCrumbClick, onShowNav, onCollapse, isMobile, countdown,
+  visible, subtab, activeSectionId, onCrumbClick, onShowNav, onCollapse, isMobile,
 }: CompanyCrumbsLayerProps) => {
   const { trackRef, setBtnRef, indicatorStyle } = useSlidingIndicator(activeSectionId, visible);
   const { handleArrowClick, arrowIcon } = useStripArrow(trackRef, isMobile, onCollapse);
@@ -500,9 +520,6 @@ const CompanyCrumbsLayer = memo(({
           </span>
           <span className="strip-anchor-label">
             {subtab.label}
-            {countdown != null && (
-              <span className="strip-anchor-timer" aria-hidden>{countdown}</span>
-            )}
           </span>
           <i className="bi bi-x-lg strip-anchor-close" aria-hidden />
         </button>
@@ -570,16 +587,11 @@ const Navbar = ({
   const previewCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Company strip: dual mode (breadcrumbs ⟷ subtab nav) ──
-  // Default to the main subtab nav so freshly entering the Company tab shows
-  // the subtab strip (not breadcrumbs) until the timer flips it.
+  // Default to the main subtab nav so entering the Company tab shows the subtab
+  // strip (with the active-page pill); breadcrumbs open manually via the plus.
   const [stripMode, setStripMode] = useState<'crumbs' | 'nav'>('nav');
-  const [modeEpoch, setModeEpoch] = useState(0); // bump to restart the auto-switch timer
+  const [modeEpoch, setModeEpoch] = useState(0); // bump to re-place the sliding indicator
   const [scrollSpySection, setScrollSpySection] = useState<string | null>(null);
-  // First-open choreography: on a fresh entry into the Company tab the strip
-  // stays in nav mode and waits for the user to scroll; 1.5s after scrolling it
-  // shows breadcrumbs for 3s, returns to nav, then the normal 10s auto-switch
-  // takes over. While this is active the 10s timer is suppressed.
-  const [firstOpenActive, setFirstOpenActive] = useState(false);
   // Set when the user picks a new page from the main subtab strip: keep nav
   // mode visible so its indicator slides to the new active subtab, then reveal
   // breadcrumbs after a short delay (instead of switching instantly).
@@ -755,144 +767,41 @@ const Navbar = ({
   }, [activeTab]);
 
   // When the Company page (subtab) changes: reset scroll-spy to the first
-  // section and restart the auto-switch timer.
-  //   • From the main subtab strip → stay in nav mode so the selection
-  //     indicator slides to the new active subtab, then reveal breadcrumbs
-  //     after 3s.
-  //   • From any other source (footer, search, deep link, initial load) →
-  //     show the page's breadcrumbs immediately.
+  // section. The strip stays on the subtab nav (showing the active-page pill);
+  // breadcrumbs are opened manually via the pill's plus. Deep links into a
+  // specific section still land on breadcrumbs so the section is highlighted.
   useEffect(() => {
     const wasCompany = prevActiveTabRef.current === 'company';
     prevActiveTabRef.current = activeTab;
 
-    // Leaving the Company tab → reset to the nav mode while the strip is hidden,
-    // so the next visit starts on the subtab strip without an animated flip.
-    // (The auto-switch timer below is already gated on activeTab, so nothing
-    // ticks in the background while on another tab.)
+    // Leaving the Company tab → reset to nav mode while the strip is hidden.
     if (activeTab !== 'company') {
       navSlideThenCrumbsRef.current = false;
-      setFirstOpenActive(false);
       setStripMode('nav');
       return;
     }
 
     setScrollSpySection(companySubtab.sections?.[0]?.id ?? null);
 
-    // Fresh entry into the Company tab → show the main subtab strip and hand off
-    // to the scroll-driven first-open choreography (below). The 10s timer stays
-    // suppressed until that finishes.
-    if (!wasCompany) {
+    // Fresh entry, or picking another page from the subtab strip → show the
+    // subtab nav with the active-page pill.
+    if (!wasCompany || navSlideThenCrumbsRef.current) {
       navSlideThenCrumbsRef.current = false;
       setStripMode('nav');
-      setFirstOpenActive(true);
+      setModeEpoch(n => n + 1);
       return;
     }
 
-    // Picking a subtab from the main strip → keep nav mode so the indicator
-    // slides to it, then reveal breadcrumbs after 3s; the 10s cadence follows.
-    if (navSlideThenCrumbsRef.current) {
-      navSlideThenCrumbsRef.current = false;
-      setFirstOpenActive(false);
-      setStripMode('nav');
-      setModeEpoch(n => n + 1);
-      const t = setTimeout(() => {
-        setStripMode('crumbs');
-        setModeEpoch(n => n + 1);
-      }, 3000);
-      return () => clearTimeout(t);
-    }
-
     // Subtab changed from elsewhere (footer, search, deep link) while already on
-    // the tab → show that page's breadcrumbs immediately.
-    setFirstOpenActive(false);
+    // the tab → show that page's breadcrumbs so the target section is in context.
     setStripMode('crumbs');
     setModeEpoch(n => n + 1);
   }, [activeTab, companySubtab]);
 
-  // First-open choreography: wait for the user to scroll, then 1.5s later show
-  // breadcrumbs for 3s, return to the subtab strip, and start the 10s cadence.
-  useEffect(() => {
-    if (!firstOpenActive || activeTab !== 'company') return;
-
-    let scrolled = false;
-    let afterScroll: ReturnType<typeof setTimeout> | undefined;
-    let crumbsHold: ReturnType<typeof setTimeout> | undefined;
-
-    const getScroll = () => {
-      const sm = ScrollSmoother.get?.();
-      return sm ? sm.scrollTop() : window.scrollY;
-    };
-
-    const smoother = ScrollSmoother.get() as {
-      scrollTrigger?: {
-        addEventListener?: (event: string, cb: () => void) => void;
-        removeEventListener?: (event: string, cb: () => void) => void;
-      };
-    } | null;
-
-    const detachScroll = () => {
-      window.removeEventListener('scroll', onScroll);
-      smoother?.scrollTrigger?.removeEventListener?.('update', onScroll);
-    };
-
-    const onScroll = () => {
-      if (scrolled || getScroll() <= 24) return;
-      scrolled = true;
-      detachScroll();
-      // 1.5s after the user has scrolled → show breadcrumbs
-      afterScroll = setTimeout(() => {
-        setStripMode('crumbs');
-        // hold breadcrumbs for 9s → back to the subtab strip + start 10s cadence
-        crumbsHold = setTimeout(() => {
-          setStripMode('nav');
-          setFirstOpenActive(false);
-          setModeEpoch(n => n + 1);
-        }, 9000);
-      }, 1500);
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    smoother?.scrollTrigger?.addEventListener?.('update', onScroll);
-
-    return () => {
-      detachScroll();
-      if (afterScroll) clearTimeout(afterScroll);
-      if (crumbsHold) clearTimeout(crumbsHold);
-    };
-  }, [firstOpenActive, activeTab]);
-
-  // Auto-switch the company strip between breadcrumbs and the main subtab
-  // navigation 10 seconds after the *last* switch. This is a self-rescheduling
-  // timeout (not a fixed interval) keyed on `stripMode` + `modeEpoch`, so every
-  // forced switch — whether by the timer firing or by any click trigger
-  // (anchor toggle, subtab navigate, breadcrumb click, re-clicking the Company
-  // tab) — restarts a fresh 10s countdown. That prevents a manual switch and
-  // the timer from double-triggering back-to-back.
-  useEffect(() => {
-    if (activeTab !== 'company' || !stripOpen || companyDetailOpen || firstOpenActive) return;
-    const t = setTimeout(() => {
-      setStripMode(m => (m === 'crumbs' ? 'nav' : 'crumbs'));
-    }, COMPANY_STRIP_AUTO_SWITCH_S * 1000);
-    return () => clearTimeout(t);
-  }, [activeTab, stripOpen, companyDetailOpen, firstOpenActive, stripMode, modeEpoch]);
-
-  // Per-second countdown shown beside the breadcrumb title — mirrors the
-  // auto-switch timeout above. Resets on every restart (modeEpoch) and only
-  // ticks while breadcrumbs are actually visible.
-  const [crumbsCountdown, setCrumbsCountdown] = useState<number | null>(null);
-  useEffect(() => {
-    const ticking = activeTab === 'company' && stripOpen && !companyDetailOpen
-      && !firstOpenActive && stripMode === 'crumbs';
-    if (!ticking) { setCrumbsCountdown(null); return; }
-    setCrumbsCountdown(COMPANY_STRIP_AUTO_SWITCH_S);
-    const id = setInterval(() => {
-      setCrumbsCountdown(prev => (prev == null ? null : Math.max(0, prev - 1)));
-    }, 1000);
-    return () => clearInterval(id);
-  }, [activeTab, stripOpen, companyDetailOpen, firstOpenActive, stripMode, modeEpoch]);
-
+  // The strip switches between the subtab nav (with the active-page pill) and the
+  // section breadcrumbs only on explicit user action — the active pill's plus
+  // expands to breadcrumbs, the breadcrumb anchor collapses back. No timer.
   const toggleStripMode = useCallback(() => {
-    setFirstOpenActive(false); // any manual switch cancels the first-open wait
     setStripMode(m => (m === 'crumbs' ? 'nav' : 'crumbs'));
     setModeEpoch(n => n + 1);
   }, []);
@@ -969,10 +878,9 @@ const Navbar = ({
   // Main-tab switches just fade; instant scroll-to-top happens while content is invisible
   const handleTabClick = useCallback((tabId: string) => {
     // Re-clicking the already-active Company tab forces the main subtab strip
-    // (closes any open breadcrumbs) and restarts the 10s auto-switch timer.
+    // (closes any open breadcrumbs) back to the active-page pill.
     if (tabId === 'company' && activeTab === 'company') {
       navSlideThenCrumbsRef.current = false;
-      setFirstOpenActive(false);
       setStripOpen(true);
       manualOpenRef.current = true;
       setStripMode('nav');
@@ -1050,21 +958,21 @@ const Navbar = ({
   // The Company tab runs its own fade transition + scroll-to-top on swap,
   // so we only update state/URL here and keep the progress border in sync.
   const handleCompanyNavigate = useCallback((sub: CompanySubtab) => {
-    // Keep the nav-mode indicator visible so it slides to the new subtab; the
-    // subtab-change effect reveals breadcrumbs 3s later.
+    // Stay in nav mode so the new page's pill takes over the strip.
     navSlideThenCrumbsRef.current = true;
-    setFirstOpenActive(false);
     clearPreview();
+    // When clicked from a hover preview (we're on another tab), switch to the
+    // Company tab too — otherwise only the URL changes and nothing opens.
+    if (activeTab !== 'company') setActiveTab('company');
     onSubtabClick?.('company', sub.id);
     setNavProgress(0);
     syncNavProgressFor(1200);
-  }, [onSubtabClick, setNavProgress, syncNavProgressFor, clearPreview]);
+  }, [activeTab, setActiveTab, onSubtabClick, setNavProgress, syncNavProgressFor, clearPreview]);
 
   // ── Company strip: breadcrumb click → scroll to the section ──
   const handleCrumbClick = useCallback((sec: CompanySection) => {
-    setFirstOpenActive(false);
     setScrollSpySection(sec.id);
-    setModeEpoch(n => n + 1); // interacting restarts the auto-switch timer
+    setModeEpoch(n => n + 1); // interacting re-places the indicator
     isProgrammaticScrollRef.current = true;
     if (programmaticScrollTimer.current) clearTimeout(programmaticScrollTimer.current);
     programmaticScrollTimer.current = setTimeout(() => {
@@ -1371,6 +1279,7 @@ const Navbar = ({
                   onExpandCrumbs={toggleStripMode}
                   onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
                   isMobile={isMobile}
+                  previewOnly={companyPreviewOnly}
                 />
                 {/* Layer 3: breadcrumbs of the active standalone page */}
                 <CompanyCrumbsLayer
@@ -1381,7 +1290,6 @@ const Navbar = ({
                   onShowNav={toggleStripMode}
                   onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
                   isMobile={isMobile}
-                  countdown={crumbsCountdown}
                 />
               </div>
             </div>

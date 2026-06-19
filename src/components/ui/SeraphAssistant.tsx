@@ -88,6 +88,8 @@ export default function SeraphAssistant() {
   const [snap, setSnap] = useState<'' | 'left' | 'right'>(''); // jelly squash on release
   const drag = useRef({ active: false, moved: false, ox: 0, oy: 0, sx: 0, sy: 0 });
   const suppressClick = useRef(false);
+  // Once the user drags the FAB, stop auto-docking it to the nav border line.
+  const manuallyPlaced = useRef(false);
   const { isDark, toggleTheme } = useTheme();
   const { textareaRef, adjustHeight } = useAutoResizeTextarea({ minHeight: 60, maxHeight: 200 });
 
@@ -207,6 +209,7 @@ export default function SeraphAssistant() {
     if (!d.active) return;
     d.active = false;
     if (!d.moved || !el) { setDragging(false); return; }
+    manuallyPlaced.current = true;    // user took over — stop auto-docking to nav
     suppressClick.current = true;     // the drag shouldn't also fire a click
     // Safety: clear the flag if no click follows (e.g. touch drags emit none).
     setTimeout(() => { suppressClick.current = false; }, 0);
@@ -225,6 +228,35 @@ export default function SeraphAssistant() {
     if (suppressClick.current) { suppressClick.current = false; return; }
     setBubblesOff(true);
     setOpen(o => !o);
+  }, []);
+
+  // Default position (desktop): dock the FAB top-right, centred on the nav's
+  // bottom border line, and keep tracking it. The subtab strip lives inside
+  // .glass-navbar, so the nav grows/shrinks as the strip opens/closes — a
+  // ResizeObserver makes the FAB follow it down when a strip opens and glide
+  // back up to the main nav line when it closes. Once the user drags the FAB it
+  // stays put. Mobile keeps the CSS bottom-right default.
+  useEffect(() => {
+    const el = wrapRef.current;
+    const nav = document.querySelector('.glass-navbar') as HTMLElement | null;
+    if (!el || !nav) return;
+
+    const dock = () => {
+      if (manuallyPlaced.current || drag.current.active) return;
+      if (window.innerWidth < 640) return; // mobile → CSS default (bottom-right)
+      const w = el.offsetWidth, h = el.offsetHeight;
+      const bottom = nav.getBoundingClientRect().bottom;
+      setFabPos({
+        x: window.innerWidth - w - FAB_MARGIN,
+        y: Math.round(bottom - h / 2), // centre the icon on the border line
+      });
+    };
+
+    dock(); // initial placement
+    const ro = new ResizeObserver(dock);
+    ro.observe(nav);
+    window.addEventListener('resize', dock);
+    return () => { ro.disconnect(); window.removeEventListener('resize', dock); };
   }, []);
 
   // Keep the FAB on-screen when the viewport resizes.
@@ -250,7 +282,9 @@ export default function SeraphAssistant() {
         className="seraph-fab-wrap"
         style={fabPos ? {
           left: fabPos.x, top: fabPos.y, right: 'auto', bottom: 'auto',
-          transition: dragging ? 'none' : 'left 0.5s cubic-bezier(0.22, 1, 0.36, 1), top 0.5s cubic-bezier(0.22, 1, 0.36, 1)',
+          // Exact follow while auto-docking to the nav line (the strip's own
+          // open/close animation drives it); glide only for the post-drag snap.
+          transition: (!dragging && snap) ? 'left 0.5s cubic-bezier(0.22, 1, 0.36, 1), top 0.5s cubic-bezier(0.22, 1, 0.36, 1)' : 'none',
         } : undefined}
       >
         <button
