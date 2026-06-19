@@ -48,7 +48,7 @@ const AboutTabButton = memo<AboutTabButtonProps>(({ label, isActive, onClick, on
 ));
 AboutTabButton.displayName = "AboutTabButton";
 
-const Mission = memo(({}: { onLearnMore?: (page: string) => void }) => {
+const AboutCompany = memo(({}: { onLearnMore?: (page: string) => void }) => {
   const sectionRef = useRef<HTMLElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -235,6 +235,6 @@ const Mission = memo(({}: { onLearnMore?: (page: string) => void }) => {
   );
 });
 
-Mission.displayName = "Mission";
+AboutCompany.displayName = "AboutCompany";
 
-export default Mission;
+export default AboutCompany;

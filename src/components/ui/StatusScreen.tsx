@@ -11,14 +11,14 @@ import type { ReactNode } from "react";
 
 export default function StatusScreen({
   code,
-  status,
   title,
   description,
   action,
   digest,
 }: {
   code: string;
-  status: string;
+  /** No longer rendered (status line removed); kept optional for back-compat. */
+  status?: string;
   title: string;
   description: string;
   action?: ReactNode;
@@ -43,10 +43,6 @@ export default function StatusScreen({
           -webkit-mask-image: radial-gradient(ellipse 78% 58% at 50% 42%, #000 24%, transparent 72%);
           mask-image: radial-gradient(ellipse 78% 58% at 50% 42%, #000 24%, transparent 72%);
         }
-        .ss-glow {
-          position: absolute; inset: 0; pointer-events: none;
-          background: radial-gradient(700px 380px at 50% -8%, rgba(235,17,67,0.14), transparent 62%);
-        }
         .ss-code {
           position: absolute; top: 50%; left: 50%; transform: translate(-50%, -55%);
           font-size: clamp(190px, 40vw, 440px); font-weight: 800; letter-spacing: -0.045em; line-height: 1;
@@ -59,7 +55,7 @@ export default function StatusScreen({
           display: flex; flex-direction: column; align-items: flex-start; text-align: left;
         }
         .ss-head { display: flex; align-items: center; gap: 12px; width: 100%; margin-bottom: 32px; }
-        .ss-logo { border-radius: 9px; filter: drop-shadow(0 0 14px rgba(235,17,67,0.3)); flex-shrink: 0; }
+        .ss-logo { border-radius: 9px; flex-shrink: 0; }
         .ss-brand {
           font-size: 12px; font-weight: 700; letter-spacing: 0.3em; color: #cbd5e1;
           font-family: ui-monospace, Menlo, monospace; white-space: nowrap;
@@ -67,15 +63,6 @@ export default function StatusScreen({
         .ss-rainbow {
           flex: 1; height: 1px; margin-left: 4px; min-width: 30px;
           background: linear-gradient(90deg, rgba(0,255,166,0.65), rgba(255,215,0,0.5), rgba(236,72,153,0.55), rgba(147,51,234,0.45), transparent);
-        }
-        .ss-status {
-          display: inline-flex; align-items: center; gap: 9px; margin-bottom: 24px;
-          font-family: ui-monospace, Menlo, monospace; font-size: 12.5px;
-          letter-spacing: 0.2em; text-transform: uppercase; color: #f1a9b8;
-        }
-        .ss-dot {
-          width: 8px; height: 8px; border-radius: 50%; background: #EB1143;
-          box-shadow: 0 0 10px rgba(235,17,67,0.9); animation: ssPulse 1.7s ease-in-out infinite;
         }
         .ss-title {
           font-size: clamp(34px, 7vw, 58px); font-weight: 700; letter-spacing: -0.035em;
@@ -92,7 +79,6 @@ export default function StatusScreen({
           letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.34);
         }
         .ss-ref { color: rgba(255,255,255,0.2); }
-        @keyframes ssPulse { 0%,100% { opacity: .4; transform: scale(.82); } 50% { opacity: 1; transform: scale(1); } }
         @media (max-width: 520px) { .ss-brand { letter-spacing: 0.2em; } }
 
         /* Site brand button — replicated self-contained (flat #1f1f1f surface,
@@ -133,7 +119,6 @@ export default function StatusScreen({
       `}</style>
 
       <div className="ss-grid" aria-hidden />
-      <div className="ss-glow" aria-hidden />
       <div className="ss-code" aria-hidden>{code}</div>
 
       <div className="ss-panel">
@@ -142,11 +127,6 @@ export default function StatusScreen({
           <img className="ss-logo" src="/icon-512.png" alt="" width={34} height={34} />
           <span className="ss-brand">NOTUS&nbsp;REGALIA</span>
           <span className="ss-rainbow" aria-hidden />
-        </div>
-
-        <div className="ss-status">
-          <span className="ss-dot" aria-hidden />
-          <span>{status}</span>
         </div>
 
         <h1 className="ss-title">{title}</h1>

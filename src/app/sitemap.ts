@@ -14,7 +14,7 @@ const ROUTES: [string, number][] = [
   ['/status', 0.3],
 
   // Company
-  ['/company/mission', 0.8],
+  ['/company/about', 0.8],
   ['/company/sectors', 0.8],
   ['/company/executives', 0.7],
   ['/company/investors', 0.7],

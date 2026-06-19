@@ -95,6 +95,46 @@ export default function FaqSection() {
     return () => obs.disconnect();
   }, []);
 
+  // Reserve the height of the tallest answer so the section's overall height stays
+  // constant — opening/closing a question no longer grows/shrinks the section and
+  // shifts the rest of the page. (Desktop only; mobile keeps its natural flow.)
+  const listRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+
+    let lastWidth = list.getBoundingClientRect().width;
+    const measure = () => {
+      list.style.minHeight = "";
+      if (!window.matchMedia("(min-width: 1024px)").matches) return;
+      const answers = Array.from(list.querySelectorAll<HTMLElement>(".faq-a"));
+      if (!answers.length) return;
+      const maxAns = Math.max(...answers.map((el) => el.scrollHeight));
+      const openEl = list.querySelector<HTMLElement>(".faq-item.open .faq-a");
+      const openAns = openEl ? openEl.scrollHeight : 0;
+      // current list height already accounts for the open item's margins; swapping
+      // the open answer for the tallest one gives the constant reserved height.
+      const min = Math.ceil(list.offsetHeight + (maxAns - openAns));
+      if (min > 0) list.style.minHeight = `${min}px`;
+    };
+
+    const raf = requestAnimationFrame(measure);
+    const settle = setTimeout(measure, 350); // re-measure once fonts settle
+    const ro = new ResizeObserver((entries) => {
+      const w = entries[0].contentRect.width;
+      if (Math.abs(w - lastWidth) < 1) return; // ignore our own height changes
+      lastWidth = w;
+      measure();
+    });
+    ro.observe(list);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(settle);
+      ro.disconnect();
+    };
+  }, []);
+
   return (
     <>
       <style>{`
@@ -199,16 +239,32 @@ export default function FaqSection() {
         /* ── Category group ── */
         .faq-group { margin-bottom: 3.5rem; }
         .faq-group:last-child { margin-bottom: 0; }
+        /* Category label — muted uppercase monospace with a trailing hairline.
+           Clean/editorial; clearly distinct from the white question rows. */
         .faq-group-label {
-          font-size: 0.95rem; font-weight: 600;
-          letter-spacing: -0.01em;
-          color: var(--content-primary, #f1f5f9);
-          margin-bottom: 0.5rem;
+          display: flex; align-items: center; gap: 1rem;
+          font-family: ui-monospace, Menlo, monospace;
+          font-size: 0.64rem; font-weight: 600;
+          letter-spacing: 0.26em; text-transform: uppercase;
+          color: rgba(255,255,255,0.42);
+          margin-bottom: 1.35rem;
           padding: 0 0.25rem;
+        }
+        .faq-group-label::after {
+          content: ''; flex: 1; height: 1px;
+          background: linear-gradient(to right, rgba(255,255,255,0.14), transparent);
+        }
+        :root.light .faq-group-label { color: rgba(0,0,0,0.5); }
+        :root.light .faq-group-label::after {
+          background: linear-gradient(to right, rgba(0,0,0,0.14), transparent);
         }
 
         /* ── Accordion item ── */
-        .faq-item { transition: border-color 0.25s ease; }
+        .faq-item {
+          position: relative;
+          transition: margin 0.46s cubic-bezier(0.33, 1, 0.68, 1),
+                      border-color 0.3s ease;
+        }
 
         .faq-q {
           width: 100%;
@@ -229,7 +285,7 @@ export default function FaqSection() {
         .faq-icon::before, .faq-icon::after {
           content: ''; position: absolute; top: 50%; left: 50%;
           background: var(--content-secondary, rgba(255,255,255,0.65));
-          transition: transform 0.28s cubic-bezier(0.34,1.3,0.64,1), background 0.2s ease;
+          transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1), background 0.25s ease;
         }
         .faq-icon::before { width: 16px; height: 1.5px; transform: translate(-50%, -50%); }
         .faq-icon::after  { width: 1.5px; height: 16px; transform: translate(-50%, -50%); }
@@ -240,19 +296,30 @@ export default function FaqSection() {
         .faq-item.open .faq-q { color: var(--content-primary, #f1f5f9); }
 
         /* answer reveal */
+        /* grid-rows reveal: animates to the REAL content height (no fixed max-height),
+           so open/close timing always matches the content — smooth both ways */
         .faq-a-wrap {
-          overflow: hidden;
-          max-height: 0; opacity: 0;
-          transition: max-height 0.35s ease, opacity 0.3s ease;
+          display: grid;
+          grid-template-rows: 0fr;
+          opacity: 0;
+          transition: grid-template-rows 0.46s cubic-bezier(0.33, 1, 0.68, 1),
+                      opacity 0.3s ease;
         }
-        .faq-item.open .faq-a-wrap { max-height: 320px; opacity: 1; }
+        .faq-item.open .faq-a-wrap { grid-template-rows: 1fr; opacity: 1; }
         .faq-a {
-          padding: 0 1.25rem 1.6rem;
+          min-height: 0; overflow: hidden;
+          padding: 0 1.5rem 1.6rem;
           font-size: clamp(0.9rem, 1.9vw, 0.98rem); line-height: 1.7;
           color: var(--content-secondary, rgba(255,255,255,0.55));
-          max-width: 60ch;
+          width: 100%;
+          transform: translateY(-6px);
+          transition: transform 0.46s cubic-bezier(0.33, 1, 0.68, 1);
         }
+        .faq-item.open .faq-a { transform: translateY(0); }
         :root.light .faq-a { color: rgba(0,0,0,0.6); }
+        @media (prefers-reduced-motion: reduce) {
+          .faq-a-wrap, .faq-a { transition: none; }
+        }
 
         /* ── Active panel = CTA-3 frame (border-y + radial glow), grid ONLY here ── */
         .faq-list { position: relative; }
@@ -271,7 +338,9 @@ export default function FaqSection() {
         .faq-rail {
           position: absolute; top: -1.5rem; bottom: -1.5rem; width: 0;
           border-left: 1px dashed var(--faq-frame-line); pointer-events: none;
+          opacity: 0; transition: opacity 0.4s ease 0.06s;
         }
+        .faq-item.open .faq-rail { opacity: 1; }
         .faq-rail-l { left: 0; }
         .faq-rail-r { right: 0; }
 
@@ -279,7 +348,10 @@ export default function FaqSection() {
         .faq-plus {
           position: absolute; z-index: 2; color: var(--faq-frame-mark);
           pointer-events: none;
+          opacity: 0; transform: scale(0.6);
+          transition: opacity 0.35s ease 0.08s, transform 0.35s cubic-bezier(0.34, 1.3, 0.64, 1) 0.08s;
         }
+        .faq-item.open .faq-plus { opacity: 1; transform: scale(1); }
         .faq-plus-tl { top: -12.5px; left: -11.5px; }
         .faq-plus-tr { top: -12.5px; right: -11.5px; }
         .faq-plus-bl { bottom: -12.5px; left: -11.5px; }
@@ -296,7 +368,7 @@ export default function FaqSection() {
           <div className="faq-head">
             {revealed && pixelColors.length > 0 && (
               <div className="faq-canvas" aria-hidden>
-                <PixelCanvas colors={pixelColors} gap={6} speed={30} />
+                <PixelCanvas colors={pixelColors} gap={10} speed={30} fps={30} />
               </div>
             )}
             <div className="faq-head-inner">
@@ -310,7 +382,7 @@ export default function FaqSection() {
             </div>
           </div>
 
-          <div className="faq-list">
+          <div className="faq-list" ref={listRef}>
             {FAQ_GROUPS.map((group, gi) => (
               <div
                 key={group.label}
@@ -323,16 +395,14 @@ export default function FaqSection() {
                   const isOpen = open === id;
                   return (
                     <div key={id} className={`faq-item${isOpen ? " open" : ""}`}>
-                      {isOpen && (
-                        <>
-                          <Plus className="faq-plus faq-plus-tl" />
-                          <Plus className="faq-plus faq-plus-tr" />
-                          <Plus className="faq-plus faq-plus-bl" />
-                          <Plus className="faq-plus faq-plus-br" />
-                          <span className="faq-rail faq-rail-l" />
-                          <span className="faq-rail faq-rail-r" />
-                        </>
-                      )}
+                      {/* always rendered so they fade in/out smoothly (CSS handles
+                          visibility via .open) instead of popping on mount */}
+                      <Plus className="faq-plus faq-plus-tl" />
+                      <Plus className="faq-plus faq-plus-tr" />
+                      <Plus className="faq-plus faq-plus-bl" />
+                      <Plus className="faq-plus faq-plus-br" />
+                      <span className="faq-rail faq-rail-l" />
+                      <span className="faq-rail faq-rail-r" />
                       <button
                         className="faq-q"
                         aria-expanded={isOpen}

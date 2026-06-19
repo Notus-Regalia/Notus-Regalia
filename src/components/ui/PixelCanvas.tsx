@@ -97,9 +97,11 @@ type PixelCanvasProps = {
   colors: string[];
   gap?: number;
   speed?: number;
+  /** Target frame rate for the shimmer loop. Lower = cheaper (background use). */
+  fps?: number;
 };
 
-export default function PixelCanvas({ colors, gap = 5, speed = 30 }: PixelCanvasProps) {
+export default function PixelCanvas({ colors, gap = 5, speed = 30, fps = 60 }: PixelCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
   const pixelsRef = useRef<Pixel[]>([]);
@@ -107,6 +109,9 @@ export default function PixelCanvas({ colors, gap = 5, speed = 30 }: PixelCanvas
   const lastFrameRef = useRef(performance.now());
   const reducedMotionRef = useRef(false);
   const lastWidthRef = useRef(0);
+  const runningRef = useRef(false);
+  const inViewRef = useRef(false);
+  const docVisibleRef = useRef(true);
 
   const init = useCallback(() => {
     const canvas = canvasRef.current;
@@ -143,7 +148,8 @@ export default function PixelCanvas({ colors, gap = 5, speed = 30 }: PixelCanvas
 
   const animate = useCallback((mode: "appear" | "disappear") => {
     cancelAnimationFrame(animationRef.current);
-    const frameInterval = 1000 / 60;
+    runningRef.current = true;
+    const frameInterval = 1000 / Math.max(1, fps);
 
     const loop = () => {
       animationRef.current = requestAnimationFrame(loop);
@@ -164,11 +170,12 @@ export default function PixelCanvas({ colors, gap = 5, speed = 30 }: PixelCanvas
 
       if (pixels.every((p) => p.isIdle)) {
         cancelAnimationFrame(animationRef.current);
+        runningRef.current = false;
       }
     };
 
     animationRef.current = requestAnimationFrame(loop);
-  }, []);
+  }, [fps]);
 
   useEffect(() => {
     reducedMotionRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -186,22 +193,38 @@ export default function PixelCanvas({ colors, gap = 5, speed = 30 }: PixelCanvas
     });
     if (wrapRef.current) resizeObserver.observe(wrapRef.current);
 
-    animate("appear");
-
-    // Pause the rAF when the tab is hidden; resume on return.
-    const onVisibility = () => {
-      if (document.visibilityState === "hidden") {
-        cancelAnimationFrame(animationRef.current);
+    const stop = () => {
+      cancelAnimationFrame(animationRef.current);
+      runningRef.current = false;
+    };
+    // Only run the loop while the canvas is on-screen AND the tab is visible.
+    const sync = () => {
+      if (inViewRef.current && docVisibleRef.current) {
+        if (!runningRef.current) animate("appear");
       } else {
-        animate("appear");
+        stop();
       }
+    };
+
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => { inViewRef.current = entry.isIntersecting; sync(); },
+      { threshold: 0 }
+    );
+    if (wrapRef.current) intersectionObserver.observe(wrapRef.current);
+
+    const onVisibility = () => {
+      docVisibleRef.current = document.visibilityState === "visible";
+      sync();
     };
     document.addEventListener("visibilitychange", onVisibility);
 
+    sync();
+
     return () => {
       resizeObserver.disconnect();
+      intersectionObserver.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
-      cancelAnimationFrame(animationRef.current);
+      stop();
     };
   }, [init, animate]);
 

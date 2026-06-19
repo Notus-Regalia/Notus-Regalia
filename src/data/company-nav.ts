@@ -25,18 +25,18 @@ export interface CompanySubtab {
 
 export const COMPANY_SUBTABS: CompanySubtab[] = [
   {
-    id: 'company-mission',
-    label: 'Mission',
+    id: 'company-about',
+    label: 'About the Company',
     hero: {
       eyebrow: 'Company Profile',
-      title: 'Mission',
+      title: 'About the Company',
       subtitle: 'Why we build — our philosophy, direction, and the governance that keeps us accountable.',
     },
     sections: [
-      { id: 'mission-our-company', label: 'Our Company' },
-      { id: 'mission-what-we-do',  label: 'What we Engineer' },
-      { id: 'mission-roadmap',     label: 'Roadmap' },
-      { id: 'mission-explore',     label: 'Explore' },
+      { id: 'about-our-company', label: 'Our Company' },
+      { id: 'about-what-we-do',  label: 'What we Engineer' },
+      { id: 'about-roadmap',     label: 'Roadmap' },
+      { id: 'about-explore',     label: 'Explore' },
     ],
   },
   {
@@ -115,7 +115,7 @@ export const COMPANY_SUBTABS: CompanySubtab[] = [
   },
 ];
 
-export const DEFAULT_COMPANY_SUBTAB = 'company-mission';
+export const DEFAULT_COMPANY_SUBTAB = 'company-about';
 
 export const getCompanySubtab = (id?: string | null): CompanySubtab =>
   COMPANY_SUBTABS.find(s => s.id === id && !s.external)

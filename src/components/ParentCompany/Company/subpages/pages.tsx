@@ -6,7 +6,7 @@ import ExploreNext from "./ExploreNext";
 import IndustrySection from "../../Landing/IndustrySection";
 import WhatWeDoBentoSection from "../../Landing/BentoSection";
 import CompanyHeader from "../CompanyHeader";
-import Mission from "../Mission";
+import AboutCompany from "../AboutCompany";
 import Executives from "../Executives";
 import Investors from "../Investors";
 import {
@@ -58,23 +58,23 @@ export const SectorsPage = memo(() => {
 });
 SectorsPage.displayName = "SectorsPage";
 
-export const MissionPage = memo(({ onLearnMore }: { onLearnMore?: (page: string) => void }) => {
+export const AboutCompanyPage = memo(({ onLearnMore }: { onLearnMore?: (page: string) => void }) => {
   return (
     <>
       {/* "Our Company" — the original brand header (NOTUS REGALIA + the Manila /
           coordinates typing animation) followed by the company profile panel. */}
-      <div id="mission-our-company">
+      <div id="about-our-company">
         <CompanyHeader />
-        <Mission onLearnMore={onLearnMore} />
+        <AboutCompany onLearnMore={onLearnMore} />
       </div>
       {/* "What we do" — capabilities */}
-      <RevealSection id="mission-what-we-do">
+      <RevealSection id="about-what-we-do">
         <WhatWeDoBentoSection />
       </RevealSection>
       {/* "Roadmap" — where we're headed */}
       <BlocksStyles />
       <ContentSection
-        id="mission-roadmap"
+        id="about-roadmap"
         eyebrow="Where we're headed"
         title="Roadmap"
         subtitle="The phased path of how Notus Regalia scales its systems, sectors, and impact."
@@ -88,13 +88,13 @@ export const MissionPage = memo(({ onLearnMore }: { onLearnMore?: (page: string)
           ]}
         />
       </ContentSection>
-      <RevealSection id="mission-explore">
-        <ExploreNext current="company-mission" />
+      <RevealSection id="about-explore">
+        <ExploreNext current="company-about" />
       </RevealSection>
     </>
   );
 });
-MissionPage.displayName = "MissionPage";
+AboutCompanyPage.displayName = "AboutCompanyPage";
 
 export const ExecutivesPage = memo(() => {
   return (

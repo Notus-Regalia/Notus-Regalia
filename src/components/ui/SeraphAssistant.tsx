@@ -16,7 +16,7 @@ const SUGGESTIONS: SectionItem[] = [
   { label: 'Home',                tabId: 'home',                                                        icon: 'bi-house',            aka: 'Main website & page',          keywords: [] },
   { label: 'Releases',            tabId: 'information', external: '/information/newsroom/releases',      icon: 'bi-journal-richtext', aka: 'Publications & research',      keywords: [] },
   { label: 'Founders',            tabId: 'company',     subtabId: 'company-executives',                  icon: 'bi-people',           aka: 'Leadership & team',            keywords: [] },
-  { label: 'Mission',             tabId: 'company',     subtabId: 'company-thecompany',                  icon: 'bi-flag',             aka: 'Who we are',                   keywords: [] },
+  { label: 'About the Company',   tabId: 'company',     subtabId: 'company-about',                       icon: 'bi-flag',             aka: 'Who we are',                   keywords: [] },
   { label: 'Corporate Policies',  tabId: 'information', external: '/information/legals/policies',        icon: 'bi-journal-check',    aka: 'Conduct & compliance',         keywords: [] },
   { label: 'Technologies',        tabId: 'technologies',                                                 icon: 'bi-crosshair',        aka: 'Our ventures & sectors',       keywords: [] },
   { label: 'Information Central', tabId: 'information', external: '/information',                        icon: 'bi-box-arrow-up-right', aka: 'Newsroom, investors, legals', keywords: [] },

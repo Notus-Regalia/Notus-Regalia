@@ -19,7 +19,7 @@ export const ROOT_TABS = ['home', 'company', 'affiliations', 'technologies'] as 
 export type RootTab = (typeof ROOT_TABS)[number];
 
 export const DEFAULT_SUBTABS: Partial<Record<RootTab, string>> = {
-  company: 'company-mission',
+  company: 'company-about',
   technologies: 'technologies-civic-operations',
 };
 

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import DetailView from './details';
 import {
   SectorsPage,
-  MissionPage,
+  AboutCompanyPage,
   ExecutivesPage,
   InvestorsPage,
   VenturesPage,
@@ -72,7 +72,7 @@ const Company = ({ activeSubtab }: CompanyProps) => {
     });
   }, [targetSubtab, displayedSubtab, detailPage, phase, runTransition]);
 
-  /* ── Detail page actions (Mission "Learn More") ── */
+  /* ── Detail page actions (About the Company "Learn More") ── */
   const openDetail = useCallback((page: string) => {
     runTransition(() => setDetailPage(page));
   }, [runTransition]);
@@ -129,8 +129,8 @@ const Company = ({ activeSubtab }: CompanyProps) => {
       case 'company-investors':    return <InvestorsPage />;
       case 'company-ventures':     return <VenturesPage />;
       case 'company-human-rights': return <HumanRightsPage />;
-      case 'company-mission':
-      default:                     return <MissionPage onLearnMore={openDetail} />;
+      case 'company-about':
+      default:                     return <AboutCompanyPage onLearnMore={openDetail} />;
     }
   };
 

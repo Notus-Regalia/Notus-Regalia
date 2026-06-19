@@ -78,7 +78,7 @@ const INFO_FOOTER_SECTIONS: FooterSection[] = [
   {
     title: 'Company',
     links: [
-      { label: 'Mission',          href: '/company/mission' },
+      { label: 'About the Company', href: '/company/about' },
       { label: 'Industries',       href: '/company/sectors' },
       { label: 'Executives',       href: '/company/executives' },
       { label: 'Investors',        href: '/company/investors' },

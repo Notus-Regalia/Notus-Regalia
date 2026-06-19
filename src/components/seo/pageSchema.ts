@@ -2,7 +2,7 @@ import { SITE_URL } from "@/utils/site";
 
 export interface Crumb {
   name: string;
-  /** Absolute path, e.g. "/company/mission". Use "/" for Home. */
+  /** Absolute path, e.g. "/company/about". Use "/" for Home. */
   path: string;
 }
 
