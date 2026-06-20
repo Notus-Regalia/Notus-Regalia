@@ -58,10 +58,11 @@ const ThemeToggle = memo(() => {
       `}</style>
       <button
         onClick={toggleTheme}
-        className="nav-button relative font-medium tracking-wide transition-all duration-300 hover:scale-105 flex items-center gap-2"
+        className="nav-button relative transition-all duration-300 hover:scale-105 flex items-center justify-center"
         style={{
-          padding: '6px 14px',
-          fontSize: '0.8rem',
+          width: '36px',
+          height: '36px',
+          padding: 0,
           color: 'var(--content-faint)',
           borderRadius: '9999px',
           border: '1px solid var(--border-color)',
@@ -78,18 +79,6 @@ const ThemeToggle = memo(() => {
             color: isDark ? '#ffffff' : '#000000',
           }}
         ></i>
-        <span
-          style={{
-            fontSize: '0.75rem',
-            fontWeight: 500,
-            letterSpacing: '0.04em',
-            textTransform: 'uppercase',
-            color: 'var(--content-secondary)',
-            transition: 'color 0.3s',
-          }}
-        >
-          {isDark ? 'Light' : 'Dark'}
-        </span>
       </button>
     </>
   );

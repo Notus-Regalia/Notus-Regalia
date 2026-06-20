@@ -832,7 +832,10 @@ input[type="checkbox"], input[type="radio"], select,
 }
 .mob-sidebar.open { transform: translateX(0); }
 .mob-header { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; }
-.mob-header-title { font-size: 1rem; font-weight: 700; color: var(--content-primary); letter-spacing: -0.01em; }
+.mob-brand { display: inline-flex; align-items: center; gap: 10px; border: none; background: transparent; padding: 0; cursor: pointer; color: var(--content-primary); }
+.mob-brand-icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mob-brand-icon :is(img, svg) { display: block; width: 34px; height: 34px; }
+.mob-brand-text { font-size: 1rem; font-weight: 700; color: var(--content-primary); letter-spacing: -0.01em; white-space: nowrap; }
 .mob-close { margin-left: auto; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; border: none; background: transparent; color: var(--content-faint); font-size: 0.9rem; cursor: pointer; transition: color 0.12s ease, background 0.12s ease; }
 .mob-close:hover { color: var(--content-primary); background: var(--hover-bg-strong); }
 .mob-search { display: flex; align-items: center; gap: 10px; margin: 12px 16px; padding: 11px 14px; border-radius: 10px; background: var(--hover-bg); border: 1px solid var(--border-color); cursor: pointer; transition: background 0.12s ease; flex-shrink: 0; }
@@ -844,7 +847,6 @@ input[type="checkbox"], input[type="radio"], select,
 .mob-tab-btn:hover { color: var(--content-primary); background: var(--hover-bg); }
 .mob-tab-btn.is-active { color: var(--content-primary); font-weight: 600; background: var(--hover-bg-strong); }
 .mob-tab-left { display: flex; align-items: center; gap: 10px; }
-.mob-tab-left i { font-size: 0.92rem; width: 20px; text-align: center; }
 .mob-tab-chevron { font-size: 0.65rem; transition: transform 0.2s ease; color: var(--content-faint); }
 .mob-tab-chevron.open { transform: rotate(90deg); }
 .mob-subtabs { overflow: hidden; transition: max-height 0.25s ease, opacity 0.2s ease; }

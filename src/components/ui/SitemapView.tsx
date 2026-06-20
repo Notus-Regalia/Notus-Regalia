@@ -32,7 +32,7 @@ const SITES: Site[] = [
         title: "Company",
         cols: 2,
         links: [
-          { label: "About the Company", href: "/company/about", children: [
+          { label: "About Us", href: "/company/about", children: [
             { label: "Our Company",      href: "/company/about" },
             { label: "What We Engineer", href: "/company/about" },
             { label: "Roadmap",          href: "/company/about" },

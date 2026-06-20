@@ -26,7 +26,7 @@ export interface CompanySubtab {
 export const COMPANY_SUBTABS: CompanySubtab[] = [
   {
     id: 'company-about',
-    label: 'About the Company',
+    label: 'About Us',
     hero: {
       eyebrow: 'Company Profile',
       title: 'About the Company',

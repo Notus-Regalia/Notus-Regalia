@@ -270,6 +270,8 @@ const HR_CSS = `
   .hr-fw { grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr); gap: 1.75rem; align-items: stretch; }
 }
 .hr-fw-list { display: flex; flex-direction: column; gap: .55rem; }
+/* Boxes grow to fill the column so their bottom row aligns with the detail panel's bottom */
+@media (min-width: 860px) { .hr-fw-list .hr-tab { flex: 1; } }
 
 /* 2 · Focus spotlight tiles */
 .hr-focus { display: grid; gap: 1.1rem; align-items: stretch; }

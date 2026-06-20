@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import ComingSoon from "./ComingSoon";
-import { VENTURES_SUBTABS, getVenturesSubtab } from "@/data/ventures-nav";
+import { getVenturesSubtab } from "@/data/ventures-nav";
 
 interface VenturesProps {
   activeSubtab?: string;
@@ -54,12 +54,10 @@ const Ventures = ({ activeSubtab }: VenturesProps) => {
   };
 
   const sub = getVenturesSubtab(displayed);
-  const seq = VENTURES_SUBTABS.findIndex((s) => s.id === sub.id);
-  const index = `${String(seq + 1).padStart(2, "0")} / ${String(VENTURES_SUBTABS.length).padStart(2, "0")}`;
 
   return (
     <div style={{ paddingTop: "env(safe-area-inset-top)", ...transitionStyle }}>
-      <ComingSoon title={sub.title} blurb={sub.blurb} index={index} />
+      <ComingSoon title={sub.title} blurb={sub.blurb} />
     </div>
   );
 };

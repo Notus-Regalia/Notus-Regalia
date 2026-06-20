@@ -24,7 +24,7 @@ const BLOCKS_CSS = `
 @media(min-width:1280px){ .cb-section { --site-gutter-inline: 8rem; } }
 @media(min-width:1536px){ .cb-section { --site-gutter-inline: 12rem; } }
 :root.light .cb-section { border-top-color: rgba(0,0,0,0.10); }
-.cb-head { max-width: 1080px; margin: 0 0 clamp(2rem, 4vw, 3rem); }
+.cb-head { max-width: none; margin: 0 0 clamp(2rem, 4vw, 3rem); }
 .cb-eyebrow {
   display: inline-flex; align-items: center; gap: .5rem;
   font-size: .65rem; font-family: ui-monospace, Menlo, monospace;

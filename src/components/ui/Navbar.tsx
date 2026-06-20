@@ -1106,7 +1106,7 @@ const Navbar = ({
     const SELECTORS = [
       '.tab-item-border', '.tab-label-btn', '.tab-arrow-btn',
       '.strip-tab', '.strip-anchor', '.strip-crumb', '.strip-collapse',
-      '.logo-mark', '.mob-tab-btn', '.mob-subtab-btn',
+      '.logo-mark', '.mob-brand', '.mob-tab-btn', '.mob-subtab-btn',
       '.mob-close', '.mob-search', '.nav-reveal-tab', '.nav-theme-tab', '.mobile-burger',
     ].join(', ');
 
@@ -1340,7 +1340,18 @@ const Navbar = ({
         onTouchEnd={onSidebarTouchEnd}
       >
         <div className="mob-header">
-          <span className="mob-header-title">Menu</span>
+          <button
+            className="mob-brand"
+            onClick={() => { closeMobile(); handleMobileTabClick('home'); }}
+            aria-label="Go to home page"
+          >
+            <span className="mob-brand-icon">
+              <Image src="/assets/Notus-Regalia-logo.svg" alt="Notus Regalia" width={34} height={34} priority />
+            </span>
+            <span className="mob-brand-text">
+              Notus <span style={{ color: '#EB1143', fontWeight: 300 }}>Regalia</span>
+            </span>
+          </button>
           <ThemeToggle />
           <button className="mob-close" onClick={closeMobile} aria-label="Close menu">
             <i className="bi bi-x-lg" />
@@ -1362,7 +1373,6 @@ const Navbar = ({
                   onClick={() => hasSubtabs ? toggleMobileTab(item.id) : handleMobileTabClick(item.id)}
                 >
                   <span className="mob-tab-left">
-                    <i className={`bi ${item.icon}`} />
                     {item.label}
                   </span>
                   {hasSubtabs && (
