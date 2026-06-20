@@ -6,6 +6,7 @@ import JsonLd from "@/components/seo/JsonLd";
 import { buildPageGraph, type Crumb } from "@/components/seo/pageSchema";
 import { isRootTab } from "@/utils/routes";
 import { COMPANY_SUBTABS } from "@/data/company-nav";
+import { VENTURES_SUBTABS } from "@/data/ventures-nav";
 
 const DEFAULT_DESCRIPTION =
   "Notus Regalia is a private technology holding and venture-building company engineering critical operational systems across defense, government, healthcare, enterprise, and energy.";
@@ -19,6 +20,10 @@ const TAB_META: Record<string, { title: string; description: string }> = {
   technologies: {
     title: "Technologies",
     description: "The systems we engineer across government, defense, healthcare, enterprise, and energy.",
+  },
+  ventures: {
+    title: "Ventures",
+    description: "The companies we build, back, and incubate — from wholly-owned subsidiaries to early-stage startups.",
   },
   affiliations: {
     title: "Affiliations",
@@ -64,6 +69,10 @@ const ROOT_SEO_LINKS: SeoLink[] = [
     href: `/technologies/${slug}`,
     label: v.title,
   })),
+  ...VENTURES_SUBTABS.map((s) => ({
+    href: `/ventures/${s.slug}`,
+    label: s.label,
+  })),
   { href: "/affiliations", label: "Affiliations" },
   { href: "/information", label: "Information Central" },
   { href: "/status", label: "System Status" },
@@ -107,6 +116,13 @@ function resolveRouteMeta(slug?: string[]): {
   } else if (tab === "technologies" && sub && TECH_SUBTABS[sub]) {
     ({ title, description } = TECH_SUBTABS[sub]);
     canonical = `/technologies/${sub}`;
+  } else if (tab === "ventures" && sub) {
+    const vt = VENTURES_SUBTABS.find((s) => s.slug === sub);
+    if (vt) {
+      title = vt.title;
+      description = vt.blurb;
+    }
+    canonical = `/ventures/${sub}`;
   }
 
   return { title, description, canonical, home: false };
@@ -138,12 +154,14 @@ export function generateStaticParams(): { slug: string[] }[] {
     [],
     ["company"],
     ["technologies"],
+    ["ventures"],
     ["affiliations"],
     ...COMPANY_SUBTABS.filter((s) => !s.external).map((s) => [
       "company",
       s.id.replace(/^company-/, ""),
     ]),
     ...Object.keys(TECH_SUBTABS).map((sub) => ["technologies", sub]),
+    ...VENTURES_SUBTABS.map((s) => ["ventures", s.slug]),
   ];
   return slugs.map((slug) => ({ slug }));
 }

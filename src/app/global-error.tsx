@@ -23,7 +23,6 @@ export default function GlobalError({
       <body style={{ margin: 0 }}>
         <StatusScreen
           code="503"
-          status="System Maintenance"
           title="Website Under Maintenance"
           description="We're carrying out scheduled upkeep to sharpen the experience. Notus Regalia will be back online shortly."
           digest={error.digest}

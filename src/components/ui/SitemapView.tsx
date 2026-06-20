@@ -49,11 +49,6 @@ const SITES: Site[] = [
             { label: "Overview", href: "/company/investors" },
             { label: "Capital",  href: "/company/investors" },
           ] },
-          { label: "Ventures", href: "/company/ventures", children: [
-            { label: "Subsidiaries",        href: "/company/ventures" },
-            { label: "Portfolio Companies", href: "/company/ventures" },
-            { label: "Startups",            href: "/company/ventures" },
-          ] },
           { label: "Human Rights", href: "/company/human-rights", children: [
             { label: "Principles",      href: "/company/human-rights" },
             { label: "Safeguards",      href: "/company/human-rights" },
@@ -71,6 +66,14 @@ const SITES: Site[] = [
           { label: "Healthcare",  href: "/technologies/healthcare" },
           { label: "Enterprise",  href: "/technologies/enterprise" },
           { label: "Energy",      href: "/technologies/energy" },
+        ],
+      },
+      {
+        title: "Ventures",
+        links: [
+          { label: "Startups",            href: "/ventures/startups" },
+          { label: "Subsidiaries",        href: "/ventures/subsidiaries" },
+          { label: "Portfolio Companies", href: "/ventures/portfolio" },
         ],
       },
     ],

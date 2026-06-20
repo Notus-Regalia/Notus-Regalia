@@ -12,10 +12,16 @@ import Investors from "../Investors";
 import {
   BlocksStyles,
   ContentSection,
-  FeatureGrid,
   Timeline,
   CtaLink,
 } from "./blocks";
+import {
+  HumanRightsStyles,
+  FrameworkSwitcher,
+  FocusDuo,
+  RedLinesList,
+  AccountabilityStepper,
+} from "./HumanRightsSections";
 import { getCompanySubtab } from "@/data/company-nav";
 import { useReveal } from "@/hooks/useScrollReveal";
 
@@ -128,64 +134,6 @@ export const InvestorsPage = memo(() => {
 });
 InvestorsPage.displayName = "InvestorsPage";
 
-export const VenturesPage = memo(() => {
-  const tab = getCompanySubtab('company-ventures');
-  return (
-    <>
-      <div id="ventures-overview">
-        <PageHero {...tab.hero!} />
-      </div>
-      <BlocksStyles />
-      <ContentSection
-        id="ventures-subsidiaries"
-        eyebrow="Wholly owned"
-        title="Subsidiaries"
-        subtitle="Operating companies built and owned by Notus Regalia, delivering mission-critical systems within their domains."
-      >
-        <FeatureGrid
-          items={[
-            { title: 'NR Defense Systems', desc: 'Command environments and operational platforms for allied defense.', icon: 'bi-shield-shaded', tag: 'Defense' },
-            { title: 'NR Civic Operations', desc: 'Unified public-sector systems for coordinated service delivery.', icon: 'bi-building', tag: 'Government' },
-            { title: 'NR Health Platforms', desc: 'Clinical coordination and data-trust infrastructure for healthcare.', icon: 'bi-heart-pulse', tag: 'Healthcare' },
-          ]}
-        />
-      </ContentSection>
-      <ContentSection
-        id="ventures-portfolio"
-        eyebrow="Strategic stakes"
-        title="Portfolio Companies"
-        subtitle="Established companies we back and partner with to extend our reach across sectors."
-      >
-        <FeatureGrid
-          items={[
-            { title: 'Gridline Energy', desc: 'Infrastructure intelligence for grid uptime and resilience.', icon: 'bi-lightning-charge', tag: 'Energy' },
-            { title: 'Meridian Logistics', desc: 'Execution systems aligning cross-functional operations.', icon: 'bi-diagram-3', tag: 'Enterprise' },
-            { title: 'Vantage Analytics', desc: 'Intelligence processing and data analytics at scale.', icon: 'bi-graph-up', tag: 'Data' },
-          ]}
-        />
-      </ContentSection>
-      <ContentSection
-        id="ventures-startups"
-        eyebrow="Early stage"
-        title="Startups"
-        subtitle="Emerging ventures we incubate from the ground up, exploring the next frontier of operational technology."
-      >
-        <FeatureGrid
-          items={[
-            { title: 'Sentry Robotics', desc: 'Robotics and embedded systems for autonomous operations.', icon: 'bi-robot', tag: 'Incubating' },
-            { title: 'Aperture AI', desc: 'Human-centered AI that elevates operators, not replaces them.', icon: 'bi-cpu', tag: 'Seed' },
-            { title: 'Beacon Secure', desc: 'Zero-trust security fabric for mission-critical networks.', icon: 'bi-lock', tag: 'Seed' },
-          ]}
-        />
-      </ContentSection>
-      <RevealSection id="ventures-explore">
-        <ExploreNext current="company-ventures" />
-      </RevealSection>
-    </>
-  );
-});
-VenturesPage.displayName = "VenturesPage";
-
 export const HumanRightsPage = memo(() => {
   const tab = getCompanySubtab('company-human-rights');
   return (
@@ -194,63 +142,46 @@ export const HumanRightsPage = memo(() => {
         <PageHero {...tab.hero!} />
       </div>
       <BlocksStyles />
+      <HumanRightsStyles />
+
       <ContentSection
-        id="hr-principles"
-        eyebrow="Our commitment"
-        title="Principles"
-        subtitle="The foundational commitments that guide every decision across our operations, products, and partnerships."
+        id="hr-commitment"
+        title="Rights treated as an engineering requirement"
+        subtitle="We build systems for mission-critical operations — healthcare delivery and national defense — where failure or misuse falls on human lives. So we treat respect for human rights as a requirement of equal rank to safety and security, grounded in the world's recognized standards."
       >
-        <FeatureGrid
-          items={[
-            { title: 'Dignity & Respect', desc: 'We uphold the inherent dignity of every individual affected by our work.', icon: 'bi-person-check' },
-            { title: 'Non-Discrimination', desc: 'We oppose discrimination in all forms across hiring, deployment, and partnership.', icon: 'bi-people' },
-            { title: 'Responsible Technology', desc: 'We design systems that respect rights and resist misuse by intent and by safeguard.', icon: 'bi-shield-check' },
-          ]}
-        />
+        <FrameworkSwitcher />
       </ContentSection>
+
       <ContentSection
-        id="hr-safeguards"
-        eyebrow="How we protect"
-        title="Safeguards"
-        subtitle="Concrete mechanisms that embed human-rights protection into how we build and operate."
+        id="hr-focus"
+        title="A heightened standard in critical systems"
+        subtitle="Our work concentrates in two domains where potential impacts are most severe: systems that touch patients, and systems that touch the use of force. Both carry earlier review, stricter controls, and more conservative defaults."
       >
-        <FeatureGrid
-          items={[
-            { title: 'Impact Assessments', desc: 'Human-rights due diligence on engagements before and during deployment.', icon: 'bi-clipboard-check' },
-            { title: 'Use Restrictions', desc: 'Contractual and technical limits on how our systems may be used.', icon: 'bi-slash-circle' },
-            { title: 'Oversight Review', desc: 'Independent review of high-sensitivity programs and partnerships.', icon: 'bi-eye' },
-          ]}
-        />
+        <FocusDuo />
       </ContentSection>
+
       <ContentSection
-        id="hr-report"
-        eyebrow="Speak up"
-        title="Report an issue"
-        subtitle="If you believe our work has caused or contributed to a human-rights concern, we want to hear from you. Reports can be made confidentially and without retaliation."
+        id="hr-red-lines"
+        title="What we will not do"
+        subtitle="Some engagements we decline outright, regardless of commercial value. These limits admit no exceptions."
       >
-        <CtaLink href="mailto:info@notusregalia.tech" label="Contact the Human Rights Office" icon="bi-envelope" />
+        <RedLinesList />
       </ContentSection>
+
       <ContentSection
-        id="hr-transparency"
-        eyebrow="Accountability"
-        title="Transparency"
-        subtitle="We publish how we govern human-rights commitments and report on our progress over time."
+        id="hr-accountability"
+        title="Diligence, design, and remedy"
+        subtitle="Our commitments are enforced through a continuing due-diligence cycle, safeguards engineered into the systems themselves, board-level oversight, and an open channel for anyone affected by our work."
       >
-        <FeatureGrid
-          items={[
-            { title: 'Annual Disclosure', desc: 'Yearly reporting on human-rights performance and remediation.', icon: 'bi-file-earmark-text', tag: 'Published' },
-            { title: 'Grievance Records', desc: 'Aggregated, anonymized records of concerns raised and resolved.', icon: 'bi-journal-text', tag: 'Annual' },
-            { title: 'Policy Governance', desc: 'Board-level oversight of the human-rights policy and its enforcement.', icon: 'bi-diagram-2', tag: 'Governed' },
-          ]}
-        />
+        <AccountabilityStepper />
       </ContentSection>
+
       <ContentSection
         id="hr-learn-more"
-        eyebrow="Go deeper"
-        title="Learn more"
-        subtitle="Read the full NR Human Rights Policy and related corporate policies in our Information Central."
+        title="Read the full policy"
+        subtitle="This is an overview. The complete NR Human Rights Policy — every commitment, red line, and grievance mechanism — lives in our Information Central."
       >
-        <CtaLink href="/information/legals/human-rights" label="Open the Information Central" icon="bi-box-arrow-up-right" />
+        <CtaLink href="/information/legals/human-rights" label="Learn more" icon="bi-arrow-right" />
       </ContentSection>
     </>
   );

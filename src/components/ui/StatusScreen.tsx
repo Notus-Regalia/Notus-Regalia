@@ -17,8 +17,6 @@ export default function StatusScreen({
   digest,
 }: {
   code: string;
-  /** No longer rendered (status line removed); kept optional for back-compat. */
-  status?: string;
   title: string;
   description: string;
   action?: ReactNode;

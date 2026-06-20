@@ -6,7 +6,6 @@ import {
   AboutCompanyPage,
   ExecutivesPage,
   InvestorsPage,
-  VenturesPage,
   HumanRightsPage,
 } from './subpages/pages';
 import { getCompanySubtab } from '@/data/company-nav';
@@ -127,7 +126,6 @@ const Company = ({ activeSubtab }: CompanyProps) => {
       case 'company-sectors':      return <SectorsPage />;
       case 'company-executives':   return <ExecutivesPage />;
       case 'company-investors':    return <InvestorsPage />;
-      case 'company-ventures':     return <VenturesPage />;
       case 'company-human-rights': return <HumanRightsPage />;
       case 'company-about':
       default:                     return <AboutCompanyPage onLearnMore={openDetail} />;

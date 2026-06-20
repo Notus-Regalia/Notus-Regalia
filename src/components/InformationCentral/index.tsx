@@ -82,7 +82,7 @@ const INFO_FOOTER_SECTIONS: FooterSection[] = [
       { label: 'Industries',       href: '/company/sectors' },
       { label: 'Executives',       href: '/company/executives' },
       { label: 'Investors',        href: '/company/investors' },
-      { label: 'Ventures',         href: '/company/ventures' },
+      { label: 'Ventures',         href: '/ventures/startups' },
       { label: 'Human Rights',     href: '/company/human-rights' },
     ],
   },

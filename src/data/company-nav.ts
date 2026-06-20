@@ -80,20 +80,6 @@ export const COMPANY_SUBTABS: CompanySubtab[] = [
     ],
   },
   {
-    id: 'company-ventures',
-    label: 'Ventures',
-    hero: {
-      title: 'Ventures',
-      subtitle: 'The companies we build, back, and incubate — from wholly-owned subsidiaries to early-stage startups.',
-    },
-    sections: [
-      { id: 'ventures-subsidiaries', label: 'Subsidiaries' },
-      { id: 'ventures-portfolio',    label: 'Portfolio Companies' },
-      { id: 'ventures-startups',     label: 'Startups' },
-      { id: 'ventures-explore',      label: 'Explore' },
-    ],
-  },
-  {
     id: 'company-human-rights',
     label: 'Human Rights',
     hero: {
@@ -101,11 +87,11 @@ export const COMPANY_SUBTABS: CompanySubtab[] = [
       subtitle: 'Our commitment to upholding human rights across our operations, products, and partnerships.',
     },
     sections: [
-      { id: 'hr-principles',   label: 'Principles' },
-      { id: 'hr-safeguards',   label: 'Safeguards' },
-      { id: 'hr-report',       label: 'Report an issue' },
-      { id: 'hr-transparency', label: 'Transparency' },
-      { id: 'hr-learn-more',   label: 'Learn more' },
+      { id: 'hr-commitment',     label: 'Commitment' },
+      { id: 'hr-focus',          label: 'Focus' },
+      { id: 'hr-red-lines',      label: 'Red lines' },
+      { id: 'hr-accountability', label: 'Accountability' },
+      { id: 'hr-learn-more',     label: 'Learn more' },
     ],
   },
   {

@@ -6,7 +6,6 @@ export default function NotFound() {
   return (
     <StatusScreen
       code="404"
-      status="Resource Not Found"
       title="Page Not Found"
       description="The page you're looking for doesn't exist or may have moved. Let's get you back to operational ground."
       action={

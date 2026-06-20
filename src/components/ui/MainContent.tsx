@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, Suspense, lazy } from 'react';
 const LandingTab     = lazy(() => import('@/components/ParentCompany/Landing'));
 const CompanyTab     = lazy(() => import('@/components/ParentCompany/Company'));
 const TechnologiesTab = lazy(() => import('@/components/ParentCompany/Technologies'));
+const VenturesTab    = lazy(() => import('@/components/ParentCompany/Ventures'));
 
 interface MainContentProps {
   activeTab: string;
@@ -40,6 +41,8 @@ const MainContent = ({ activeTab, activeSubtab }: MainContentProps) => {
         return <CompanyTab activeSubtab={activeSubtab} />;
       case 'technologies':
         return <TechnologiesTab activeSubtab={activeSubtab} />;
+      case 'ventures':
+        return <VenturesTab activeSubtab={activeSubtab} />;
       default:
         return null;
     }

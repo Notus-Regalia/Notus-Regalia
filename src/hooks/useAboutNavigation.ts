@@ -15,9 +15,9 @@ interface UseAboutNavigationReturn {
 }
 
 const INITIAL_SUBSECTIONS: Record<WorldContentType, string> = {
-  company: 'about-us',
+  company: 'our-story',
   philosophy: 'core-beliefs',
-  ecosystem: 'subsidiaries',
+  ecosystem: 'venture-model',
   direction: 'mission',
   governance: 'org-structure',
   ethics: 'ethical-framework'

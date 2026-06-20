@@ -18,7 +18,6 @@ const ROUTES: [string, number][] = [
   ['/company/sectors', 0.8],
   ['/company/executives', 0.7],
   ['/company/investors', 0.7],
-  ['/company/ventures', 0.7],
   ['/company/human-rights', 0.6],
 
   // Technologies
@@ -27,6 +26,12 @@ const ROUTES: [string, number][] = [
   ['/technologies/healthcare', 0.7],
   ['/technologies/enterprise', 0.7],
   ['/technologies/energy', 0.7],
+
+  // Ventures
+  ['/ventures', 0.7],
+  ['/ventures/subsidiaries', 0.6],
+  ['/ventures/portfolio', 0.6],
+  ['/ventures/startups', 0.6],
 
   // Information Central — Newsroom
   ['/information/newsroom/releases', 0.6],

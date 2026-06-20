@@ -535,6 +535,19 @@ const SERAPH_CSS = `
 
 /* ── Right sidebar panel ── */
 .seraph-panel {
+  /* Pin dark-theme tokens locally so the sidebar stays dark on every theme,
+     light mode, and mobile. Children inherit these custom properties. */
+  --surface-secondary: rgb(10, 10, 10);
+  --surface-card: #0f0f0f;
+  --content-primary: #ffffff;
+  --content-muted: rgb(163, 163, 163);
+  --content-faint: rgba(255, 255, 255, 0.6);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --glass-inset-top: rgba(255, 255, 255, 0.1);
+  --hover-bg: rgba(255, 255, 255, 0.05);
+  --hover-bg-strong: rgba(255, 255, 255, 0.08);
+
   position: fixed; top: 0; right: 0; bottom: 0; z-index: 80;
   width: min(440px, 92vw);
   display: flex; flex-direction: column;

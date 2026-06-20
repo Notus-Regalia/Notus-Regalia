@@ -35,6 +35,11 @@ export const ALL_SECTIONS: SectionItem[] = [
   { label: 'Documents',         tabId: 'information', external: '/information/documents/docs-governance', icon: 'bi-folder',       aka: 'Legal Documents, Filings',                    keywords: ['documents', 'filings', 'legal', 'paperwork', 'files', 'official', 'governance', 'environmental', 'social'] },
   { label: 'Investor Relations',tabId: 'information', external: '/information/investors/resources',   icon: 'bi-graph-up-arrow',  aka: 'Financial, Reports, Shareholders',            keywords: ['investor', 'investors', 'relations', 'financial', 'shareholders', 'equity', 'stock', 'dividends', 'ir', 'quarterly', 'annual report', 'events', 'governance'] },
 
+  // Ventures
+  { label: 'Startups',            tabId: 'ventures',     subtabId: 'ventures-startups',                            icon: 'bi-rocket-takeoff',  aka: 'Ventures, Incubator, Early Stage',            keywords: ['ventures', 'startups', 'incubator', 'seed', 'early stage', 'emerging'] },
+  { label: 'Subsidiaries',        tabId: 'ventures',     subtabId: 'ventures-subsidiaries',                        icon: 'bi-diagram-3',       aka: 'Ventures, Wholly Owned',                      keywords: ['ventures', 'subsidiaries', 'subsidiary', 'owned', 'operating companies'] },
+  { label: 'Portfolio Companies', tabId: 'ventures',     subtabId: 'ventures-portfolio',                           icon: 'bi-briefcase',       aka: 'Ventures, Strategic Stakes',                  keywords: ['ventures', 'portfolio', 'portfolio company', 'portfolio companies', 'stakes', 'partners'] },
+
   // Technologies
   { label: 'Defense',           tabId: 'technologies', subtabId: 'defense',                                      icon: 'bi-shield',          aka: 'Military, Security, Intelligence',            keywords: ['defense', 'defence', 'military', 'security', 'intelligence', 'warfare', 'weapons', 'tactical', 'army', 'navy'] },
   { label: 'Healthcare',        tabId: 'technologies', subtabId: 'healthcare',                                   icon: 'bi-heart-pulse',     aka: 'Medical, Biotech, Health',                    keywords: ['healthcare', 'health', 'medical', 'biotech', 'pharma', 'hospital', 'clinical', 'patient', 'wellness'] },

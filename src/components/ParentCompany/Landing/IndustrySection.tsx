@@ -16,6 +16,7 @@ if (typeof window !== "undefined") {
 type Industry = {
   id: string;
   title: string;
+  tag: string;
   description: string;
   href: string;
 };
@@ -31,30 +32,35 @@ const INDUSTRIES: Industry[] = [
   {
     id: "government",
     title: "Government",
+    tag: "Public Sector",
     description: "Unified public-sector systems for faster, accountable, and coordinated service delivery.",
     href: "/technologies/civic-operations",
   },
   {
     id: "defense",
     title: "Defense",
+    tag: "National Security",
     description: "Command environments for decisive coordination, rapid response, and operational clarity.",
     href: "/technologies/defense",
   },
   {
     id: "healthcare",
     title: "Healthcare",
+    tag: "Clinical Systems",
     description: "Clinical platforms that improve coordination, data trust, and care delivery speed.",
     href: "/technologies/healthcare",
   },
   {
     id: "enterprise",
     title: "Enterprise",
+    tag: "Business Operations",
     description: "Execution systems that align workflows, visibility, and cross-functional decisions.",
     href: "/technologies/enterprise",
   },
   {
     id: "energy",
     title: "Energy",
+    tag: "Critical Infrastructure",
     description: "Infrastructure intelligence for uptime, early risk signals, and resilient grid continuity.",
     href: "/technologies/energy",
   },
@@ -263,14 +269,15 @@ export default function IndustrySection() {
       <style>{`
         .industry-section {
           --site-gutter-inline: 2rem;
-          --industry-gap: clamp(0.5rem, 0.85vw, 0.8rem);
+          --industry-gap: clamp(0.85rem, 1.2vw, 1.25rem);
           --rail-pad-start: var(--site-gutter-inline);
-          --rail-pad-end: clamp(0.35rem, 0.9vw, 0.75rem);
+          --rail-pad-end: clamp(0.85rem, 1.2vw, 1.25rem);
           --industry-visible: 3;
+          --industry-radius: clamp(14px, 1.4vw, 20px);
           position: relative;
           background-color: #040507;
-          border-top: 1px dashed rgba(255, 255, 255, 0.08);
-          border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+          border-top: 1px solid rgba(255, 255, 255, 0.08);
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           color: var(--content-primary, #fff);
           overflow: clip;
         }
@@ -282,22 +289,25 @@ export default function IndustrySection() {
 
         :root.light .industry-section {
           background-color: #f4f6fa;
-          border-top: 1px dashed rgba(0, 0, 0, 0.08);
-          border-bottom: 1px dashed rgba(0, 0, 0, 0.08);
+          border-top: 1px solid rgba(0, 0, 0, 0.07);
+          border-bottom: 1px solid rgba(0, 0, 0, 0.07);
         }
 
         .industry-sticky {
-          min-height: 122vh;
-          height: 122vh;
+          min-height: 100vh;
+          height: 100vh;
+          height: 100svh;
           position: relative;
           isolation: isolate;
           display: grid;
           grid-template-rows: auto minmax(0, 1fr);
-          gap: clamp(1.9rem, 3.2vw, 3.2rem);
-          padding-block: clamp(5.4rem, 7.2vw, 8.2rem) clamp(1.4rem, 2.2vw, 2.2rem);
+          gap: clamp(1.6rem, 2.8vw, 2.8rem);
+          padding-block: clamp(4.2rem, 6vw, 6.4rem) clamp(3rem, 3.8vw, 4rem);
           overflow: hidden;
         }
 
+        /* Refined engineered-grid backdrop — softer than before, with a brand-red
+           wash bleeding in from the right so the rail feels lit, not noisy. */
         .industry-sticky::before {
           content: "";
           position: absolute;
@@ -305,36 +315,13 @@ export default function IndustrySection() {
           z-index: 0;
           pointer-events: none;
           background-image:
-            repeating-linear-gradient(
-              90deg,
-              rgba(255, 255, 255, 0.12) 0 1px,
-              transparent 1px 112px
-            ),
-            repeating-linear-gradient(
-              0deg,
-              rgba(255, 255, 255, 0.12) 0 1px,
-              transparent 1px 112px
-            ),
-            repeating-linear-gradient(
-              45deg,
-              transparent 0 38px,
-              rgba(255, 255, 255, 0.04) 38px 40px,
-              transparent 40px 78px
-            ),
-            repeating-linear-gradient(
-              -45deg,
-              transparent 0 38px,
-              rgba(255, 255, 255, 0.04) 38px 40px,
-              transparent 40px 78px
-            ),
-            radial-gradient(
-              circle,
-              rgba(255, 255, 255, 0.84) 0 1.4px,
-              transparent 1.5px
-            );
-          background-size: 112px 112px, 112px 112px, 112px 112px, 112px 112px, 112px 112px;
+            repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 132px),
+            repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 132px);
+          background-size: 132px 132px;
           background-position: center;
-          opacity: 0.52;
+          mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 100%);
+          -webkit-mask-image: radial-gradient(120% 90% at 50% 0%, #000 35%, transparent 100%);
+          opacity: 0.6;
         }
 
         .industry-sticky::after {
@@ -344,46 +331,19 @@ export default function IndustrySection() {
           z-index: 1;
           pointer-events: none;
           background:
-            radial-gradient(circle at center, transparent 22%, rgba(0, 0, 0, 0.34) 100%),
-            linear-gradient(180deg, rgba(0, 0, 0, 0.16) 0%, rgba(0, 0, 0, 0.48) 100%);
+            linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.42) 100%);
         }
 
         :root.light .industry-sticky::before {
           background-image:
-            repeating-linear-gradient(
-              90deg,
-              rgba(15, 23, 42, 0.13) 0 1px,
-              transparent 1px 112px
-            ),
-            repeating-linear-gradient(
-              0deg,
-              rgba(15, 23, 42, 0.13) 0 1px,
-              transparent 1px 112px
-            ),
-            repeating-linear-gradient(
-              45deg,
-              transparent 0 38px,
-              rgba(15, 23, 42, 0.045) 38px 40px,
-              transparent 40px 78px
-            ),
-            repeating-linear-gradient(
-              -45deg,
-              transparent 0 38px,
-              rgba(15, 23, 42, 0.045) 38px 40px,
-              transparent 40px 78px
-            ),
-            radial-gradient(
-              circle,
-              rgba(15, 23, 42, 0.58) 0 1.35px,
-              transparent 1.5px
-            );
-          opacity: 0.42;
+            repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.06) 0 1px, transparent 1px 132px),
+            repeating-linear-gradient(0deg, rgba(15, 23, 42, 0.06) 0 1px, transparent 1px 132px);
+          opacity: 0.5;
         }
 
         :root.light .industry-sticky::after {
           background:
-            radial-gradient(circle at center, transparent 18%, rgba(148, 163, 184, 0.2) 100%),
-            linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(203, 213, 225, 0.24) 100%);
+            linear-gradient(180deg, rgba(255, 255, 255, 0) 55%, rgba(226, 232, 240, 0.5) 100%);
         }
 
         .industry-header-shell {
@@ -393,10 +353,38 @@ export default function IndustrySection() {
         }
 
         .industry-header {
-          display: grid;
-          grid-template-columns: minmax(0, 1fr);
-          column-gap: clamp(1rem, 1.8vw, 2rem);
-          align-items: end;
+          display: flex;
+          flex-wrap: wrap;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: clamp(1rem, 2vw, 2.5rem);
+        }
+
+        .industry-header-main {
+          max-width: 74rem;
+        }
+
+        .industry-eyebrow {
+          margin: 0 0 0.95rem;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.6rem;
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-size: 0.7rem;
+          letter-spacing: 0.28em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.46);
+        }
+
+        .industry-eyebrow::before {
+          content: "";
+          width: 1.9rem;
+          height: 1px;
+          background: linear-gradient(90deg, #E31B54, rgba(227, 27, 84, 0.1));
+        }
+
+        :root.light .industry-eyebrow {
+          color: rgba(15, 23, 42, 0.5);
         }
 
         .industry-heading {
@@ -404,42 +392,45 @@ export default function IndustrySection() {
           max-width: none;
           font-size: clamp(2.2rem, 4.8vw, 3.45rem);
           font-weight: 700;
-          letter-spacing: -0.02em;
-          line-height: 1.14;
+          letter-spacing: -0.025em;
+          line-height: 1.12;
           text-wrap: pretty;
         }
 
         .industry-copy {
-          max-width: 58rem;
-          margin: 0.8rem 0 0;
-          color: rgba(226, 232, 240, 0.62);
-          font-size: clamp(1.02rem, 1.45vw, 1.2rem);
-          line-height: 1.68;
+          max-width: 70rem;
+          margin: 0.95rem 0 0;
+          color: rgba(226, 232, 240, 0.6);
+          font-size: clamp(1rem, 1.35vw, 1.14rem);
+          line-height: 1.66;
         }
 
         :root.light .industry-copy {
-          color: rgba(15, 23, 42, 0.66);
+          color: rgba(15, 23, 42, 0.62);
         }
 
         .industry-progress-shell {
           position: absolute;
-          left: 50%;
-          bottom: clamp(0.75rem, 1.8vw, 1.45rem);
-          transform: translateX(-50%);
+          left: var(--site-gutter-inline);
+          right: var(--site-gutter-inline);
+          bottom: clamp(1rem, 2vw, 1.7rem);
           z-index: 4;
           pointer-events: none;
+          display: flex;
+          align-items: center;
+          gap: 0.9rem;
         }
 
         .industry-progress-track {
-          width: clamp(11rem, 26vw, 18rem);
+          flex: 1;
           height: 2px;
           border-radius: 999px;
-          background: rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.1);
           overflow: hidden;
         }
 
         :root.light .industry-progress-track {
-          background: rgba(15, 23, 42, 0.12);
+          background: rgba(15, 23, 42, 0.1);
         }
 
         .industry-progress-fill {
@@ -448,7 +439,20 @@ export default function IndustrySection() {
           height: 100%;
           transform-origin: left center;
           transform: scaleX(0);
-          background: #E31B54;
+          background: linear-gradient(90deg, #E31B54, #ff5c84);
+        }
+
+        .industry-progress-hint {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-size: 0.62rem;
+          letter-spacing: 0.22em;
+          text-transform: uppercase;
+          color: rgba(255, 255, 255, 0.35);
+          white-space: nowrap;
+        }
+
+        :root.light .industry-progress-hint {
+          color: rgba(15, 23, 42, 0.4);
         }
 
         .industry-viewport {
@@ -457,14 +461,17 @@ export default function IndustrySection() {
           min-width: 0;
           min-height: 0;
           overflow: hidden;
+          /* Vertical breathing room so the card's top border + hover lift aren't
+             clipped by the viewport's overflow mask. */
+          padding-block: 10px;
           display: flex;
-          align-items: flex-start;
+          align-items: stretch;
         }
 
         .industry-track {
           display: grid;
           grid-auto-flow: column;
-          align-items: start;
+          align-items: stretch;
           padding-left: var(--rail-pad-start);
           padding-right: var(--rail-pad-end);
           grid-auto-columns: calc(
@@ -485,40 +492,48 @@ export default function IndustrySection() {
 
         .industry-card {
           position: relative;
-          height: clamp(28rem, 74vh, 56rem);
+          height: 100%;
           min-height: 0;
-          border-radius: 0;
-          border: 1px solid rgba(255, 255, 255, 0.12);
-          padding: clamp(1.25rem, 1.8vw, 1.8rem);
+          max-height: 56rem;
+          border-radius: var(--industry-radius);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          padding: clamp(1.4rem, 2vw, 2.1rem);
           display: flex;
           flex-direction: column;
-          justify-content: flex-end;
-          background: linear-gradient(180deg, rgba(11, 14, 19, 0.68) 0%, rgba(8, 11, 16, 0.9) 52%, rgba(6, 9, 14, 0.98) 100%);
+          justify-content: space-between;
+          gap: 1rem;
+          background: #0a0d12;
+          overflow: hidden;
           contain: layout paint style;
           backface-visibility: hidden;
           isolation: isolate;
           text-decoration: none;
           color: inherit;
           cursor: pointer;
-          opacity: 0.78;
-          transition: opacity 0.22s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+          opacity: 0.86;
+          transition: opacity 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, transform 0.4s cubic-bezier(0.2, 1, 0.3, 1);
         }
 
         .industry-card:hover,
         .industry-card:focus-visible {
           opacity: 1;
+          border-color: rgba(255, 255, 255, 0.22);
+          box-shadow: 0 18px 50px -24px rgba(0, 0, 0, 0.8);
+          transform: translateY(-4px);
         }
 
         .industry-card:focus-visible {
-          outline: 1px solid rgba(227, 27, 84, 0.75);
-          outline-offset: -1px;
+          outline: 1px solid rgba(227, 27, 84, 0.8);
+          outline-offset: 2px;
         }
 
+        /* Signature multicolor cursor-glow border */
         .industry-card::before {
           content: "";
           position: absolute;
           inset: 0;
           z-index: 3;
+          border-radius: inherit;
           pointer-events: none;
           padding: 1px;
           background: radial-gradient(
@@ -534,30 +549,12 @@ export default function IndustrySection() {
           -webkit-mask-composite: xor;
           mask-composite: exclude;
           opacity: 0;
-          transition: opacity 0.24s ease;
+          transition: opacity 0.3s ease;
         }
 
         .industry-card:hover::before,
         .industry-card:focus-visible::before {
           opacity: 1;
-        }
-
-        .industry-card::after {
-          content: "";
-          position: absolute;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          height: 62%;
-          z-index: 1;
-          pointer-events: none;
-          background:
-            linear-gradient(
-              180deg,
-              rgba(5, 8, 14, 0) 0%,
-              rgba(5, 8, 14, 0.62) 52%,
-              rgba(5, 8, 14, 0.94) 100%
-            );
         }
 
         .industry-card-media {
@@ -566,9 +563,6 @@ export default function IndustrySection() {
           z-index: 0;
           pointer-events: none;
           overflow: hidden;
-          display: flex;
-          align-items: stretch;
-          justify-content: center;
         }
 
         .industry-card-media img {
@@ -576,8 +570,47 @@ export default function IndustrySection() {
           height: 100%;
           object-fit: cover;
           object-position: top center;
-          opacity: 0.94;
-          transform: scale(1.02);
+          opacity: 0.9;
+          transform: scale(1.03);
+          transition: transform 0.6s cubic-bezier(0.2, 1, 0.3, 1), opacity 0.4s ease;
+        }
+
+        .industry-card:hover .industry-card-media img {
+          transform: scale(1.08);
+          opacity: 1;
+        }
+
+        /* Legibility overlay sitting above the image, below the content */
+        .industry-card-media::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background:
+            linear-gradient(180deg, rgba(5, 8, 14, 0.32) 0%, rgba(5, 8, 14, 0) 30%, rgba(5, 8, 14, 0.55) 64%, rgba(5, 8, 14, 0.95) 100%);
+        }
+
+        .industry-card-top {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 0.75rem;
+        }
+
+        .industry-card-tag {
+          border: 1px solid rgba(255, 255, 255, 0.18);
+          background: rgba(8, 11, 16, 0.5);
+          backdrop-filter: blur(6px);
+          -webkit-backdrop-filter: blur(6px);
+          border-radius: 999px;
+          padding: 0.28rem 0.7rem;
+          font-size: 0.6rem;
+          font-weight: 600;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: rgba(248, 250, 252, 0.82);
+          white-space: nowrap;
         }
 
         .industry-card-content {
@@ -586,69 +619,70 @@ export default function IndustrySection() {
           margin-top: auto;
         }
 
-        :root.light .industry-card {
-          border: 1px solid rgba(15, 23, 42, 0.15);
-          background: linear-gradient(180deg, rgba(255, 255, 255, 0.84) 0%, rgba(250, 252, 255, 0.96) 44%, rgba(242, 246, 252, 1) 100%);
-          opacity: 1;
-        }
-
-        :root.light .industry-card::after {
-          background:
-            linear-gradient(
-              180deg,
-              rgba(255, 255, 255, 0) 0%,
-              rgba(247, 250, 255, 0.86) 52%,
-              rgba(242, 246, 252, 1) 100%
-            );
-        }
-
-        :root.light .industry-card:focus-visible {
-          outline-color: rgba(227, 27, 84, 0.8);
-        }
-
         .industry-card-title {
           margin: 0;
-          font-size: clamp(1.42rem, 2vw, 2.22rem);
-          line-height: 1.05;
+          font-size: clamp(1.5rem, 2.1vw, 2.3rem);
+          line-height: 1.04;
           letter-spacing: -0.03em;
+          font-weight: 700;
           color: rgba(248, 250, 252, 0.98);
-          display: inline-flex;
-          align-items: center;
-          gap: 1.1rem;
-        }
-
-        .industry-card-title i {
-          font-size: 0.65em;
-          line-height: 1;
-          opacity: 0.9;
         }
 
         .industry-card-description {
-          margin: 0.8rem 0 0;
-          font-size: clamp(0.9rem, 1vw, 1.04rem);
-          line-height: 1.5;
-          color: rgba(226, 232, 240, 0.84);
+          margin: 0.7rem 0 0;
+          font-size: clamp(0.9rem, 1vw, 1.02rem);
+          line-height: 1.55;
+          color: rgba(226, 232, 240, 0.82);
           width: 100%;
           max-width: none;
           text-wrap: pretty;
         }
 
-        :root.light .industry-card-title {
-          color: rgba(15, 23, 42, 0.94);
+        .industry-card-cta {
+          margin-top: 1.2rem;
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.82rem;
+          font-weight: 600;
+          letter-spacing: 0.01em;
+          color: rgba(248, 250, 252, 0.9);
         }
 
-        :root.light .industry-card-description {
-          color: rgba(15, 23, 42, 0.72);
+        .industry-card-cta i {
+          font-size: 0.95em;
+          color: #E31B54;
+          transition: transform 0.3s cubic-bezier(0.2, 1, 0.3, 1);
+        }
+
+        .industry-card:hover .industry-card-cta i,
+        .industry-card:focus-visible .industry-card-cta i {
+          transform: translateX(4px);
+        }
+
+        :root.light .industry-card {
+          border: 1px solid rgba(15, 23, 42, 0.12);
+          background: #ffffff;
+          opacity: 1;
+        }
+
+        :root.light .industry-card:hover,
+        :root.light .industry-card:focus-visible {
+          border-color: rgba(15, 23, 42, 0.22);
+          box-shadow: 0 20px 50px -28px rgba(15, 23, 42, 0.45);
+        }
+
+        :root.light .industry-card-tag {
+          border-color: rgba(15, 23, 42, 0.16);
+          background: rgba(255, 255, 255, 0.6);
+          color: rgba(15, 23, 42, 0.78);
         }
 
         @media (max-width: 1199px) {
           .industry-header {
-            grid-template-columns: 1fr;
-            row-gap: 0.85rem;
-          }
-
-          .industry-progress-track {
-            width: clamp(10rem, 42vw, 14.5rem);
+            flex-direction: column;
+            align-items: flex-start;
+            row-gap: 1rem;
           }
         }
 
@@ -660,9 +694,9 @@ export default function IndustrySection() {
           .industry-sticky {
             min-height: auto;
             height: auto;
-            gap: 1.45rem;
+            gap: 1.6rem;
             padding-top: 3.8rem;
-            padding-bottom: 3.1rem;
+            padding-bottom: 3.4rem;
           }
 
           .industry-viewport {
@@ -679,22 +713,26 @@ export default function IndustrySection() {
             display: none;
           }
 
-          .industry-viewport::before,
-          .industry-viewport::after {
-            display: none;
-          }
-
           .industry-track {
             padding-inline: var(--site-gutter-inline);
-            grid-auto-columns: min(86vw, 28rem);
+            grid-auto-columns: min(82vw, 27rem);
           }
 
           .industry-card {
-            height: clamp(24rem, 64vh, 32rem);
+            height: clamp(25rem, 66vh, 33rem);
+            scroll-snap-align: start;
+            opacity: 1;
           }
 
           .industry-card-media img {
             transform: scale(1.06);
+          }
+
+          .industry-progress-shell {
+            position: static;
+            transform: none;
+            padding-inline: var(--site-gutter-inline);
+            margin-top: 0.4rem;
           }
         }
 
@@ -714,12 +752,12 @@ export default function IndustrySection() {
           }
 
           .industry-copy {
-            margin-top: 0.7rem;
-            font-size: 0.92rem;
+            margin-top: 0.75rem;
+            font-size: 0.94rem;
           }
 
           .industry-card {
-            padding: 1.1rem;
+            padding: 1.25rem;
           }
 
           .industry-card-media img {
@@ -727,11 +765,19 @@ export default function IndustrySection() {
           }
 
           .industry-card-title {
-            font-size: clamp(1.28rem, 6.4vw, 1.8rem);
+            font-size: clamp(1.35rem, 6.6vw, 1.9rem);
           }
 
           .industry-card-description {
-            font-size: 0.87rem;
+            font-size: 0.88rem;
+          }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .industry-card,
+          .industry-card-media img,
+          .industry-card-cta i {
+            transition: none;
           }
         }
       `}</style>
@@ -745,10 +791,12 @@ export default function IndustrySection() {
         <div ref={stickyRef} className="industry-sticky">
           <div className="industry-header-shell">
             <header className="industry-header">
-              <div>
+              <div className="industry-header-main">
+                <p className="industry-eyebrow">Industries</p>
                 <h2 className="industry-heading">Sectors We Serve.</h2>
                 <p className="industry-copy">
-                  Scroll to move through the industry rail while the section stays pinned until the last card.
+                  Purpose-built systems deployed where reliability, speed, and accountability are
+                  non-negotiable — across the sectors that keep the world running.
                 </p>
               </div>
             </header>
@@ -775,12 +823,16 @@ export default function IndustrySection() {
                       <img src={INDUSTRY_CARD_ART[industry.id]} alt="" loading="lazy" decoding="async" />
                     </div>
                   ) : null}
+                  <div className="industry-card-top">
+                    <span className="industry-card-tag">{industry.tag}</span>
+                  </div>
                   <div className="industry-card-content">
-                    <h3 className="industry-card-title">
-                      <span>{industry.title}</span>
-                      <i className="bi bi-arrow-right" aria-hidden="true" />
-                    </h3>
+                    <h3 className="industry-card-title">{industry.title}</h3>
                     <p className="industry-card-description">{industry.description}</p>
+                    <span className="industry-card-cta">
+                      Explore sector
+                      <i className="bi bi-arrow-right" aria-hidden="true" />
+                    </span>
                   </div>
                 </a>
               ))}
@@ -788,6 +840,7 @@ export default function IndustrySection() {
           </div>
 
           <div className="industry-progress-shell" aria-hidden="true">
+            <span className="industry-progress-hint">Scroll to explore</span>
             <div className="industry-progress-track">
               <span ref={progressFillRef} className="industry-progress-fill" />
             </div>

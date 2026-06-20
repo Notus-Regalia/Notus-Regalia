@@ -28,26 +28,6 @@ const CORNER_POSITIONS: CornerPosition[] = [
   { bottom: 0, right: 0, borderR: true, borderB: true, delay: 1.5 },
 ];
 
-interface AboutTabButtonProps {
-  label: string;
-  isActive: boolean;
-  onClick: () => void;
-  onMouseMove?: (e: React.MouseEvent<HTMLButtonElement>) => void;
-}
-
-const AboutTabButton = memo<AboutTabButtonProps>(({ label, isActive, onClick, onMouseMove }) => (
-  <div className={`${styles.tabBorder}${isActive ? ` ${styles.tabBorderActive}` : ""}`}>
-    <button
-      className={`${styles.tabBtn}${isActive ? ` ${styles.tabBtnActive}` : ""}`}
-      onClick={onClick}
-      onMouseMove={onMouseMove}
-    >
-      {label}
-    </button>
-  </div>
-));
-AboutTabButton.displayName = "AboutTabButton";
-
 const AboutCompany = memo(({}: { onLearnMore?: (page: string) => void }) => {
   const sectionRef = useRef<HTMLElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
@@ -62,11 +42,7 @@ const AboutCompany = memo(({}: { onLearnMore?: (page: string) => void }) => {
     displayContent,
     isTransitioning,
     selectorPosition,
-    activeSubsection,
-    displaySubsection,
-    isTabTransitioning,
     handleContentChange,
-    handleSubsectionChange,
   } = useAboutNavigation(ABOUT_PANEL_ITEMS);
 
   const { handleMouseMove } = useAboutMouseTracking();
@@ -76,10 +52,6 @@ const AboutCompany = memo(({}: { onLearnMore?: (page: string) => void }) => {
   const panelReveal = useReveal('fade-up', { threshold: 0.08, duration: 800, cssDelay: 120 });
 
   const activeContentData = ABOUT_PANEL_CONTENT[activeContent];
-  const currentSubsectionKey = displaySubsection[activeContent];
-  const currentSubsection =
-    activeContentData.subsections.find((s) => s.key === currentSubsectionKey) ||
-    activeContentData.subsections[0];
 
   const selectorStyles = useMemo(
     () => ({
@@ -193,35 +165,22 @@ const AboutCompany = memo(({}: { onLearnMore?: (page: string) => void }) => {
             <div className={styles.contentPanel}>
               <div className={`${styles.contentWrapper} ${isTransitioning ? styles.transitioning : ""}`}>
 
-                {(activeContentData.buttonType === "tabs" || activeContentData.buttonType === "cards") && (
-                  <>
-                    <div className={styles.tabButtonsContainer}>
-                      {activeContentData.subsections.map((subsection) => (
-                        <AboutTabButton
-                          key={subsection.key}
-                          label={subsection.label}
-                          isActive={activeSubsection[activeContent] === subsection.key}
-                          onClick={() => handleSubsectionChange(subsection.key)}
-                          onMouseMove={handleMouseMove}
-                        />
-                      ))}
+                <div className={styles.tabContent} style={{ paddingTop: '2rem' }}>
+                  {activeContentData.subsections.map((subsection, index) => (
+                    <div
+                      key={subsection.key}
+                      style={{ marginTop: index === 0 ? 0 : 'clamp(2rem, 4vw, 3rem)' }}
+                    >
+                      <h3 className={styles.sectionTitle}>{subsection.contentTitle}</h3>
+                      {subsection.description && (
+                        <div className={styles.descriptionContainer}>
+                          {subsection.description.map((paragraph, pIndex) => (
+                            <p key={pIndex} className={styles.descriptionText}>{paragraph}</p>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <div className={styles.dividerCrimson} />
-                  </>
-                )}
-
-                <div
-                  className={`${styles.tabContent} ${isTabTransitioning ? styles.transitioning : ""}`}
-                  style={{ paddingTop: '2rem' }}
-                >
-                  <h3 className={styles.sectionTitle}>{currentSubsection.contentTitle}</h3>
-                  {currentSubsection.description && (
-                    <div className={styles.descriptionContainer}>
-                      {currentSubsection.description.map((paragraph, index) => (
-                        <p key={index} className={styles.descriptionText}>{paragraph}</p>
-                      ))}
-                    </div>
-                  )}
+                  ))}
                 </div>
 
               </div>

@@ -189,12 +189,12 @@ export const OverviewContent: OverviewContent[] = [
 // ─── About Panel ──────────────────────────────────────────────────────────────
 
 export const ABOUT_PANEL_ITEMS: AboutGridItem[] = [
-  { key: 'company',    title: 'Company',                subtitle: 'About Us, Our Story, Timeline' },
-  { key: 'philosophy', title: 'Philosophy',              subtitle: 'Core Beliefs, Operating Doctrine, Systems Principles' },
-  { key: 'ecosystem',  title: 'Ecosystem',               subtitle: 'Subsidiaries, Venture Model, Platform Architecture' },
-  { key: 'direction',  title: 'Direction',               subtitle: 'Mission, Vision, Focus Areas, Ambitions' },
-  { key: 'governance', title: 'Governance',              subtitle: 'Organizational Structure, Leadership Model' },
-  { key: 'ethics',     title: 'Ethics & Responsibility', subtitle: 'Ethical Framework, Risk & Compliance' }
+  { key: 'company',    title: 'Our Story',               subtitle: 'Who we are and the gap we exist to close' },
+  { key: 'direction',  title: 'Direction',               subtitle: 'Where we are headed and why it matters' },
+  { key: 'philosophy', title: 'Philosophy',              subtitle: 'The beliefs that shape how we build' },
+  { key: 'ecosystem',  title: 'Ecosystem',               subtitle: 'How we build, back, and own ventures' },
+  { key: 'governance', title: 'Governance',              subtitle: 'How we are structured and led' },
+  { key: 'ethics',     title: 'Ethics & Responsibility', subtitle: 'The standards we hold ourselves to' }
 ];
 
 export const ABOUT_PANEL_CONTENT: Record<
@@ -202,34 +202,15 @@ export const ABOUT_PANEL_CONTENT: Record<
   AboutContent
 > = {
   company: {
-    title: 'Company',
+    title: 'Our Story',
     buttonType: 'tabs',
     subsections: [
       {
-        key: 'what-we-do',
-        label: 'What We Do',
-        contentTitle: 'We build foundational information systems for complex, real-world data.',
+        key: 'our-story',
+        label: 'Our Story',
+        contentTitle: 'What we do, and why we exist.',
         description: [
-          'Notus Regalia is a technology holding and venture-building company headquartered in the Philippines. We develop and operate multiple ventures through a single, centralized framework — a shared engineering backbone of APIs, data pipelines, and security infrastructure reused across every company we build, back, and incubate.',
-          'Our focus is connected information systems: the backend architecture and data ecosystems that turn complex, real-world data into systems organizations can operate with command and precision. We currently work in a pre-seed, stealth phase, concentrating on development and validation across government and civic operations, defense, healthcare, enterprise, and energy.'
-        ]
-      },
-      {
-        key: 'why-we-exist',
-        label: 'Why We Exist',
-        contentTitle: 'Born from a belief that builders closest to the problem should own the solution.',
-        description: [
-          'Notus Regalia began as a student-led initiative — a small group of builders convinced that the people closest to a problem should own its solution. That conviction became a founder-operator platform: one team, one technical backbone, many ventures.',
-          'We exist to close the gap between emerging technology and real-world impact. Rather than chasing isolated products, we build repeatable operating systems and shared infrastructure that compound across a portfolio, directing capital and effort toward opportunities of asymmetric impact.'
-        ]
-      },
-      {
-        key: 'timeline',
-        label: 'Timeline',
-        contentTitle: 'Every milestone is a decision made, a lesson earned, and a capability built.',
-        description: [
-          'Founded in 2025, Notus Regalia is early by design. Our trajectory favors disciplined, capital-efficient progress over premature scale — validating concepts through stage-gates before committing resources.',
-          'Each milestone marks a deliberate decision, a lesson earned in execution, and a capability added to the shared platform. We are building for decades, not quarters.'
+          'Notus Regalia is a technology holding and venture-building company headquartered in the Philippines, developing and operating multiple ventures through one centralized framework — a shared engineering backbone of APIs, data pipelines, and security infrastructure reused across every company we build, back, and incubate, focused on the connected information systems that turn complex, real-world data into operations run with command and precision. Born from a student-led conviction that the people closest to a problem should own its solution, we exist to close the gap between emerging technology and real-world impact — building repeatable systems and shared infrastructure that compound across a portfolio rather than chasing isolated products.'
         ]
       }
     ]
@@ -241,28 +222,10 @@ export const ABOUT_PANEL_CONTENT: Record<
       {
         key: 'core-beliefs',
         label: 'Core Beliefs',
-        contentTitle: 'Responsible innovation is not a constraint — it is our competitive edge.',
+        contentTitle: 'Our core beliefs in Notus Regalia.',
         description: [
           'We believe responsible innovation is an advantage, not a tax. Systems thinking, long-term ownership, and accountability are built into how we design and operate — not bolted on afterward.',
           'Durable value comes from infrastructure that compounds, governance that preserves speed, and a refusal to confuse motion with progress.'
-        ]
-      },
-      {
-        key: 'operating-doctrine',
-        label: 'Operating Doctrine',
-        contentTitle: 'Discipline and autonomy are not opposites — they are the same engine running at different speeds.',
-        description: [
-          'Our doctrine pairs institutional discipline with operational autonomy. Ventures move fast and independently, but on a common backbone with clear stage-gates, capital-efficiency expectations, and founder-operator alignment.',
-          'We standardize what should be standardized — infrastructure, security, governance — so teams can spend their freedom on the problems that actually differentiate them.'
-        ]
-      },
-      {
-        key: 'systems-principles',
-        label: 'Systems Principles',
-        contentTitle: 'We design for resilience first, because fragile systems do not scale.',
-        description: [
-          'We design for resilience, composability, and human-centered outcomes. Systems are built to fail gracefully, to be reused across ventures, and to keep qualified human judgment in the loop where it matters.',
-          'Shared primitives — APIs, data pipelines, security controls — are treated as products in their own right, so every venture inherits a hardened foundation instead of rebuilding it.'
         ]
       }
     ]
@@ -272,30 +235,12 @@ export const ABOUT_PANEL_CONTENT: Record<
     buttonType: 'tabs',
     subsections: [
       {
-        key: 'subsidiaries',
-        label: 'Subsidiaries',
-        contentTitle: 'Each subsidiary is a focused operator within a unified platform.',
-        description: [
-          'Our ecosystem spans wholly-owned subsidiaries, portfolio companies, and early-stage startups. Each is a focused operator with its own mandate, yet all interoperate on one platform and draw from shared services.',
-          'This structure lets every venture stay close to its market while inheriting centralized infrastructure, capital discipline, and governance.'
-        ]
-      },
-      {
         key: 'venture-model',
         label: 'Venture Model',
-        contentTitle: 'We do not just fund ideas — we build, validate, and own them.',
+        contentTitle: 'How our venture model works.',
         description: [
           'We operate as a venture studio, not a passive investor. We incubate ideas internally, validate them through disciplined stage-gates, and take long-term ownership of the ones that prove out.',
           'Capital, engineering, and operating expertise are deployed together under a founder-operator framework — so a venture is backed by builders, not just a balance sheet.'
-        ]
-      },
-      {
-        key: 'platform-architecture',
-        label: 'Platform Architecture',
-        contentTitle: 'Shared infrastructure. Independent velocity. No duplicated effort.',
-        description: [
-          'A centralized platform provides the APIs, data pipelines, and security primitives every venture needs, so new companies launch on hardened infrastructure instead of reinventing it.',
-          'The result is independent velocity without duplicated effort: shared where it compounds, autonomous where it differentiates.'
         ]
       }
     ]
@@ -320,24 +265,6 @@ export const ABOUT_PANEL_CONTENT: Record<
         description: [
           'We envision critical operations — public, industrial, and enterprise — running on resilient, well-governed information systems that earn trust at scale.',
           'Notus Regalia aims to be the operational backbone beneath that future: the engine behind the next generation of high-impact ventures in Southeast Asia and beyond.'
-        ]
-      },
-      {
-        key: 'strategic-focus',
-        label: 'Strategic Focus Areas',
-        contentTitle: 'We concentrate where the gap between impact and investment is widest.',
-        description: [
-          'We focus on five sectors where reliable systems matter most: government and civic operations, defense, healthcare, enterprise, and energy.',
-          'Within them, we prioritize the problems where the gap between potential impact and current investment is widest — and where shared infrastructure gives us a compounding advantage.'
-        ]
-      },
-      {
-        key: 'ambition',
-        label: 'Ambition',
-        contentTitle: 'We are building for decades, not quarters.',
-        description: [
-          'Our ambition is measured in decades. We are building a durable platform whose value compounds as ventures, infrastructure, and institutional knowledge accumulate.',
-          'Short-term optionality is preserved deliberately; long-term ownership is the goal.'
         ]
       }
     ]

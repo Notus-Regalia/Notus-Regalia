@@ -70,6 +70,16 @@ const NAV_ITEMS: NavItem[] = [
     subtabs: COMPANY_SUBTABS.map(s => ({ id: s.id, label: s.label, external: s.external })),
   },
   {
+    id: 'ventures',
+    label: 'Ventures',
+    icon: 'bi-diagram-3',
+    subtabs: [
+      { id: 'ventures-startups',     label: 'Startups' },
+      { id: 'ventures-subsidiaries', label: 'Subsidiaries' },
+      { id: 'ventures-portfolio',    label: 'Portfolio Companies' },
+    ],
+  },
+  {
     id: 'technologies',
     label: 'Technologies',
     icon: 'bi-crosshair',

@@ -63,10 +63,6 @@ const PIXELS_DARK = [
   "rgba(255,255,255,0.10)", "rgba(255,255,255,0.14)", "rgba(255,255,255,0.10)",
   "rgba(255,255,255,0.18)", "rgba(227,27,84,0.5)",
 ];
-const PIXELS_LIGHT = [
-  "rgba(15,23,42,0.10)", "rgba(15,23,42,0.14)", "rgba(15,23,42,0.10)",
-  "rgba(15,23,42,0.16)", "rgba(227,27,84,0.45)",
-];
 
 export default function FaqSection() {
   const [open, setOpen] = useState<string>("0-0");
@@ -85,14 +81,9 @@ export default function FaqSection() {
     return () => obs.disconnect();
   }, []);
 
-  // Pick pixel colors for the current theme; re-pick when the theme class flips.
+  // The FAQ section is always dark, regardless of theme — always use dark pixels.
   useEffect(() => {
-    const pick = () =>
-      setPixelColors(document.documentElement.classList.contains("light") ? PIXELS_LIGHT : PIXELS_DARK);
-    pick();
-    const obs = new MutationObserver(pick);
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => obs.disconnect();
+    setPixelColors(PIXELS_DARK);
   }, []);
 
   // Reserve the height of the tallest answer so the section's overall height stays
@@ -140,6 +131,11 @@ export default function FaqSection() {
       <style>{`
         .faq-root {
           --accent: #E31B54;
+          /* Pin dark-theme tokens locally so the FAQ stays dark on every theme
+             and light mode. Children inherit these custom properties. */
+          --gradient-section: linear-gradient(to bottom, rgb(20,20,20) 0%, rgb(10,10,10) 50%, rgb(0,0,0) 100%);
+          --content-primary: #ffffff;
+          --content-secondary: #d4d4d4;
           position: relative;
           background: var(--gradient-section, #0a0a0a);
           color: var(--content-primary, #f1f5f9);
@@ -155,13 +151,6 @@ export default function FaqSection() {
           --faq-frame-glow: rgba(255,255,255,0.08);
           --faq-frame-dash: rgba(255,255,255,0.12);
           --faq-frame-mark: rgba(255,255,255,0.6);
-        }
-        :root.light .faq-root {
-          border-top: 1px dashed rgba(0,0,0,0.12);
-          --faq-frame-line: rgba(0,0,0,0.16);
-          --faq-frame-glow: rgba(0,0,0,0.05);
-          --faq-frame-dash: rgba(0,0,0,0.14);
-          --faq-frame-mark: rgba(0,0,0,0.55);
         }
         @media(min-width:768px){ .faq-root { --faq-pad-y: 9rem; } }
         @media(min-width:1024px){ .faq-root { --faq-pad-x: 3.5rem; } }
@@ -217,13 +206,6 @@ export default function FaqSection() {
           0%   { background-position: 200% center; }
           100% { background-position: 0% center; }
         }
-        :root.light .faq-title {
-          background: linear-gradient(135deg,
-            rgba(15,23,42,1) 0%, rgba(15,23,42,0.45) 25%, rgba(15,23,42,0.12) 45%,
-            rgba(15,23,42,0.9) 55%, rgba(15,23,42,0.25) 75%, rgba(15,23,42,1) 100%);
-          -webkit-text-stroke: 1px rgba(15,23,42,0.18);
-          filter: drop-shadow(0 8px 18px rgba(0,0,0,0.12));
-        }
         @media (prefers-reduced-motion: reduce) { .faq-title { animation: none; } }
         /* same two-tone font design as the hero: serif italic + extrabold sans */
         .faq-w1 { display: block; font-family: ui-serif, Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 500; }
@@ -234,7 +216,6 @@ export default function FaqSection() {
           color: var(--content-secondary, rgba(255,255,255,0.55));
           line-height: 1.6;
         }
-        :root.light .faq-subtitle { color: rgba(0,0,0,0.55); }
 
         /* ── Category group ── */
         .faq-group { margin-bottom: 3.5rem; }
@@ -253,10 +234,6 @@ export default function FaqSection() {
         .faq-group-label::after {
           content: ''; flex: 1; height: 1px;
           background: linear-gradient(to right, rgba(255,255,255,0.14), transparent);
-        }
-        :root.light .faq-group-label { color: rgba(0,0,0,0.5); }
-        :root.light .faq-group-label::after {
-          background: linear-gradient(to right, rgba(0,0,0,0.14), transparent);
         }
 
         /* ── Accordion item ── */
@@ -289,7 +266,6 @@ export default function FaqSection() {
         }
         .faq-icon::before { width: 16px; height: 1.5px; transform: translate(-50%, -50%); }
         .faq-icon::after  { width: 1.5px; height: 16px; transform: translate(-50%, -50%); }
-        :root.light .faq-icon::before, :root.light .faq-icon::after { background: rgba(0,0,0,0.6); }
         .faq-item.open .faq-icon { }
         .faq-item.open .faq-icon::before { transform: translate(-50%, -50%) rotate(135deg); }
         .faq-item.open .faq-icon::after  { transform: translate(-50%, -50%) rotate(135deg); }
@@ -316,7 +292,6 @@ export default function FaqSection() {
           transition: transform 0.46s cubic-bezier(0.33, 1, 0.68, 1);
         }
         .faq-item.open .faq-a { transform: translateY(0); }
-        :root.light .faq-a { color: rgba(0,0,0,0.6); }
         @media (prefers-reduced-motion: reduce) {
           .faq-a-wrap, .faq-a { transition: none; }
         }
