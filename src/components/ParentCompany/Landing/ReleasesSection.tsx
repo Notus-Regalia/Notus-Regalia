@@ -45,8 +45,9 @@ export default function ReleasesSection() {
           position: relative;
           background: var(--gradient-section, #0a0a0a);
           color: var(--content-primary, #f1f5f9);
-          /* horizontal gutters match HeroSection: px-8 lg:px-14 xl:px-20 */
-          padding: 7rem 2rem;
+          /* horizontal gutter matches the site standard (--site-gutter-inline) */
+          --site-gutter-inline: 2rem;
+          padding: 7rem var(--site-gutter-inline);
           font-family: 'Inter', system-ui, sans-serif;
           overflow: hidden;
           border-top: 1px dashed rgba(255,255,255,0.09);
@@ -56,9 +57,11 @@ export default function ReleasesSection() {
           --rl-line: rgba(0,0,0,0.12);
           --rl-line-soft: rgba(0,0,0,0.07);
         }
-        @media(min-width:768px){ .releases-root { padding: 8rem 2rem; } }
-        @media(min-width:1024px){ .releases-root { padding: 9rem 3.5rem; } }
-        @media(min-width:1280px){ .releases-root { padding: 9rem 5rem; } }
+        @media(min-width:640px){ .releases-root { --site-gutter-inline: 4rem; } }
+        @media(min-width:768px){ .releases-root { padding-top: 8rem; padding-bottom: 8rem; --site-gutter-inline: 6rem; } }
+        @media(min-width:1024px){ .releases-root { padding-top: 9rem; padding-bottom: 9rem; } }
+        @media(min-width:1280px){ .releases-root { --site-gutter-inline: 8rem; } }
+        @media(min-width:1536px){ .releases-root { --site-gutter-inline: 12rem; } }
 
         .releases-inner { position: relative; z-index: 1; width: 100%; }
 

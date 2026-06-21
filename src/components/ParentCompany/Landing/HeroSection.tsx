@@ -1,18 +1,77 @@
 "use client";
-import { memo, useCallback } from 'react';
-import Threads from '@/components/ParentCompany/Landing/Threads';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import MuxVideo from '@mux/mux-video-react';
 
+const MUX_PLAYBACK_ID = process.env.NEXT_PUBLIC_MUX_PLAYBACK_ID;
 
 const HeroSection = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [muted, setMuted] = useState(true);
+  // Signed playback token, fetched from our server route. Until it arrives the
+  // <MuxVideo> has no credentials, so we hold off mounting it.
+  const [playbackToken, setPlaybackToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/mux-token')
+      .then((res) => (res.ok ? res.json() : Promise.reject(res)))
+      .then((data) => {
+        if (!cancelled && data?.token) setPlaybackToken(data.token);
+      })
+      .catch(() => {
+        /* leave the hero on its solid background if the token can't be minted */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Auto-mute once the hero scrolls out of the viewport, so audio doesn't
+  // keep playing while the user reads the rest of the page.
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) {
+          const video = videoRef.current;
+          if (video && !video.muted) {
+            video.muted = true;
+            setMuted(true);
+          }
+        }
+      },
+      { threshold: 0 }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
     e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
   }, []);
 
+  const toggleMute = useCallback(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    const next = !video.muted;
+    video.muted = next;
+    if (!next) {
+      // Unmuting — make sure playback is running (autoplay may have it paused with sound)
+      video.play().catch(() => {});
+    }
+    setMuted(next);
+  }, []);
+
 
   return (
     <section
+      ref={sectionRef}
       id="hero"
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
       style={{
@@ -20,6 +79,10 @@ const HeroSection = () => {
         contain: 'layout paint',
       }}
     >
+      {/* Warm up the Mux edge early (React 19 hoists these into <head>) so the
+          HLS manifest + first segments start downloading sooner. */}
+      <link rel="preconnect" href="https://stream.mux.com" crossOrigin="anonymous" />
+
       <style jsx>{`
         @media (max-width: 768px) {
           section {
@@ -131,59 +194,6 @@ const HeroSection = () => {
           -webkit-background-clip: text;
           background-clip: text;
           -webkit-text-fill-color: transparent;
-        }
-
-        :global(.light) .hero-title {
-          background-image: none;
-          -webkit-background-clip: unset;
-          background-clip: unset;
-          -webkit-text-fill-color: unset;
-          color: #1e293b;
-        }
-
-        :global(.light) .hero-grid-base {
-          background-image:
-            linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px) !important;
-        }
-
-        :global(.light) .hero-grid-fade {
-          background-image:
-            linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px) !important;
-        }
-
-        :global(.light) .hero-mobile-overlay {
-          background: linear-gradient(to top, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.4) 40%, transparent 70%) !important;
-        }
-
-        :global(.light) .hero-mobile-overlay .hero-mobile-status {
-          color: rgba(0,0,0,0.4) !important;
-        }
-
-        :global(.light) .hero-mobile-overlay .hero-mobile-subtitle {
-          color: rgba(0,0,0,0.5) !important;
-        }
-
-        :global(.light) .hero-mobile-overlay {
-          background: linear-gradient(to bottom, rgba(255,255,255,0.85) 0%, rgba(255,255,255,0.3) 35%, transparent 55%) !important;
-        }
-
-        :global(.light) .hero-scroll-hint span {
-          color: rgba(0,0,0,0.3) !important;
-        }
-
-        :global(.light) .hero-scroll-hint svg path {
-          stroke: rgba(0,0,0,0.3) !important;
-        }
-
-        @keyframes scrollBounce {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(6px); }
-        }
-
-        .hero-scroll-hint {
-          animation: scrollBounce 1.8s ease-in-out infinite;
         }
 
         /* --- Mission Pill (Uiverse "MuhammadHasann" design — static/decorative,
@@ -349,21 +359,6 @@ const HeroSection = () => {
           .hud-dot-wrapper { width: 9px; height: 9px; }
         }
 
-        /* Decorative black pill renders identically in both themes */
-        :global(.light) .hud-text { color: rgba(239, 242, 248, 0.82); }
-        :global(.light) .hud-dot-core {
-          background-color: #E31B54;
-          box-shadow: 0 0 6px rgba(235, 17, 67, 0.75);
-        }
-
-        /* Light mode glass panel — restore cool white */
-        :global(.light) .hero-glass-panel {
-          background: linear-gradient(135deg, rgba(59,130,246,0.08) 0%, rgba(37,99,235,0.05) 50%, rgba(29,78,216,0.03) 100%) !important;
-        }
-        :global(.light) .hero-glass-radial {
-          background: radial-gradient(ellipse at 20% 15%, rgba(96,165,250,0.07) 0%, transparent 60%) !important;
-        }
-
       `}</style>
 
       {/* Faint grid background — right side, on top of threads */}
@@ -372,16 +367,78 @@ const HeroSection = () => {
         <div className="absolute inset-0 hero-grid-fade" style={{ backgroundSize: '40px 40px' }} />
       </div>
 
-      {/* Threads Background */}
-      <div className="absolute inset-0" style={{ width: '100%', height: '100%', zIndex: 2, pointerEvents: 'auto', transform: 'translateZ(0)', willChange: 'transform' }}>
-        <Threads amplitude={3.5} distance={0.3} enableMouseInteraction={true} />
+      {/* Hero Video Background */}
+      <div className="absolute inset-0" style={{ width: '100%', height: '100%', zIndex: 2, pointerEvents: 'none', transform: 'translateZ(0)', willChange: 'transform' }}>
+        {MUX_PLAYBACK_ID && playbackToken && (
+          <MuxVideo
+            ref={videoRef}
+            className="absolute inset-0 w-full h-full object-cover"
+            playbackId={MUX_PLAYBACK_ID}
+            tokens={{ playback: playbackToken }}
+            streamType="on-demand"
+            autoPlay="muted"
+            muted
+            loop
+            playsInline
+            preload="auto"
+            disableTracking
+            aria-hidden="true"
+            style={{ filter: 'contrast(1.08) saturate(0.85) brightness(0.95)', objectPosition: '90% center' }}
+          />
+        )}
+
+        {/* ── Duotone color grade — cool shadows, crimson highlights ── */}
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            mixBlendMode: 'color',
+            opacity: 0.32,
+            background:
+              'linear-gradient(115deg, #0a1830 0%, #112042 45%, #3a1424 78%, #5a1228 100%)',
+          }}
+        />
+
+        {/* ── Fine tech grid mesh ── */}
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            backgroundImage:
+              'repeating-linear-gradient(90deg, rgba(120,180,255,0.07) 0 1px, transparent 1px 44px),' +
+              'repeating-linear-gradient(0deg, rgba(120,180,255,0.07) 0 1px, transparent 1px 44px)',
+            backgroundSize: '44px 44px',
+            maskImage:
+              'linear-gradient(90deg, transparent 0%, #000 35%, #000 100%)',
+            WebkitMaskImage:
+              'linear-gradient(90deg, transparent 0%, #000 35%, #000 100%)',
+            opacity: 0.7,
+          }}
+        />
+
+        {/* ── Scanlines ── */}
+        <div
+          aria-hidden
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            backgroundImage:
+              'repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 3px)',
+            opacity: 0.5,
+          }}
+        />
       </div>
 
       {/* Glass Morphism Left Panel */}
       <div className="absolute top-0 left-0 w-1/2 h-full hidden md:flex items-center pointer-events-none hero-glass-panel" style={{ background: 'linear-gradient(135deg, rgba(7,7,14,0.72) 0%, rgba(10,10,15,0.60) 50%, rgba(8,8,16,0.45) 100%)', backdropFilter: 'blur(5px)', WebkitBackdropFilter: 'blur(5px)', borderRight: '1px dashed var(--border-color)', zIndex: 3, transform: 'translateZ(0)', willChange: 'transform' }}>
         <div className="absolute inset-0 pointer-events-none hero-glass-radial" style={{ background: 'radial-gradient(ellipse at 20% 15%, rgba(30,42,56,0.35) 0%, transparent 60%)' }} />
         <div className="absolute bottom-0 left-0 right-0 h-1/3 pointer-events-none" style={{ background: 'linear-gradient(to top, rgba(255,255,255,0.02), transparent)' }} />
-        <div className="relative z-10 w-full px-8 lg:px-14 xl:px-20 flex flex-col gap-8" style={{ marginTop: '5vh' }}>
+        <div className="relative z-10 w-full pl-8 md:pl-24 xl:pl-32 2xl:pl-48 pr-8 lg:pr-14 xl:pr-20 flex flex-col gap-8" style={{ marginTop: '5vh' }}>
           <div className="pointer-events-auto hud-pill w-fit">
             <span className="hud-dots" aria-hidden="true" />
             <span className="hud-dot-wrapper" aria-hidden="true">
@@ -403,7 +460,7 @@ const HeroSection = () => {
       </div>
 
       {/* Mobile Content Overlay */}
-      <div className="relative z-10 flex md:hidden flex-col justify-between w-full h-full px-5 pb-8 pt-24 pointer-events-none hero-mobile-overlay" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 35%, transparent 55%)', transform: 'translateZ(0)', willChange: 'transform' }}>
+      <div className="relative z-10 flex md:hidden flex-col justify-end w-full h-full px-5 pb-16 pt-24 pointer-events-none hero-mobile-overlay" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 35%, transparent 55%)', transform: 'translateZ(0)', willChange: 'transform' }}>
         <div className="flex flex-col gap-5 w-full">
           <div className="pointer-events-auto hud-pill w-fit">
             <span className="hud-dots" aria-hidden="true" />
@@ -423,9 +480,79 @@ const HeroSection = () => {
             <button className="heroBtn heroBtn-secondary" onMouseMove={handleMouseMove}>View case studies</button>
           </div>
         </div>
-        <div className="flex items-center gap-3 pointer-events-auto hero-scroll-hint self-start">
-          <div className="hero-scroll-arrow"><svg width="20" height="20" viewBox="0 0 16 16" fill="none"><path d="M4 6L8 10L12 6" stroke="rgba(255,255,255,0.5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
-          <span className="text-xs font-mono tracking-[0.15em] uppercase" style={{ color: 'rgba(255,255,255,0.45)' }}>Scroll to explore</span>
+      </div>
+
+      {/* Click-to-toggle-sound region — right half of the exposed video.
+          Sits above the video but below the controls (z-20) so the explicit
+          buttons keep working. */}
+      <button
+        type="button"
+        onClick={toggleMute}
+        aria-label={muted ? 'Unmute video' : 'Mute video'}
+        aria-pressed={!muted}
+        className="absolute top-0 right-0 w-1/2 h-full z-10 cursor-pointer bg-transparent border-0 p-0"
+      />
+
+      {/* Video controls — bottom right */}
+      <div className="absolute bottom-20 right-5 z-20 flex flex-col items-center gap-2">
+        {/* Volume toggle */}
+        <button
+          type="button"
+          onClick={toggleMute}
+          aria-label={muted ? 'Unmute video' : 'Mute video'}
+          aria-pressed={!muted}
+          className="flex items-center justify-center w-8 h-8 rounded-md transition-colors"
+          style={{
+            background: 'rgba(10,10,15,0.5)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+            border: '1px solid rgba(255,255,255,0.18)',
+            color: 'rgba(255,255,255,0.85)',
+          }}
+        >
+          {muted ? (
+            <i className="bi bi-volume-mute" style={{ fontSize: '0.95rem', lineHeight: 1 }} aria-hidden="true" />
+          ) : (
+            <i className="bi bi-volume-down" style={{ fontSize: '0.95rem', lineHeight: 1 }} aria-hidden="true" />
+          )}
+        </button>
+
+        {/* Info — tooltip on hover */}
+        <div className="relative group">
+          <span
+            role="img"
+            tabIndex={0}
+            aria-label="Proof of Concept Rendition"
+            className="flex items-center justify-center w-8 h-8 rounded-md transition-colors"
+            style={{
+              background: 'rgba(10,10,15,0.5)',
+              backdropFilter: 'blur(6px)',
+              WebkitBackdropFilter: 'blur(6px)',
+              border: '1px solid rgba(255,255,255,0.18)',
+              color: 'rgba(255,255,255,0.85)',
+              cursor: 'help',
+            }}
+          >
+            <i className="bi bi-exclamation-square" style={{ fontSize: '0.7rem', lineHeight: 1 }} aria-hidden="true" />
+          </span>
+          <span
+            role="tooltip"
+            className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-2 whitespace-nowrap opacity-0 translate-x-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0"
+            style={{
+              padding: '0.5rem 0.7rem',
+              borderRadius: '4px',
+              background: 'rgba(10,10,12,0.92)',
+              backdropFilter: 'blur(6px)',
+              WebkitBackdropFilter: 'blur(6px)',
+              border: '1px solid rgba(255,255,255,0.14)',
+              color: 'rgba(225,225,232,0.9)',
+              fontSize: '0.66rem',
+              lineHeight: 1.5,
+              letterSpacing: '0.01em',
+            }}
+          >
+            Proof of Concept Rendition
+          </span>
         </div>
       </div>
 

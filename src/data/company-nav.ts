@@ -40,19 +40,6 @@ export const COMPANY_SUBTABS: CompanySubtab[] = [
     ],
   },
   {
-    id: 'company-sectors',
-    label: 'Industries',
-    hero: {
-      title: 'Industries',
-      subtitle: 'Five sectors, one operational backbone — the industries we serve and the systems that bind them.',
-    },
-    sections: [
-      { id: 'sectors-overview',   label: 'Overview' },
-      { id: 'sectors-industries', label: 'Sectors' },
-      { id: 'sectors-explore',    label: 'Explore' },
-    ],
-  },
-  {
     id: 'company-executives',
     label: 'Executives',
     hero: {
@@ -78,26 +65,6 @@ export const COMPANY_SUBTABS: CompanySubtab[] = [
       { id: 'investors-capital',  label: 'Capital' },
       { id: 'investors-explore',  label: 'Explore' },
     ],
-  },
-  {
-    id: 'company-human-rights',
-    label: 'Human Rights',
-    hero: {
-      title: 'NR Human Rights Policy',
-      subtitle: 'Our commitment to upholding human rights across our operations, products, and partnerships.',
-    },
-    sections: [
-      { id: 'hr-commitment',     label: 'Commitment' },
-      { id: 'hr-focus',          label: 'Focus' },
-      { id: 'hr-red-lines',      label: 'Red lines' },
-      { id: 'hr-accountability', label: 'Accountability' },
-      { id: 'hr-learn-more',     label: 'Learn more' },
-    ],
-  },
-  {
-    id: 'company-information-central',
-    label: 'Information Central',
-    external: '/information',
   },
 ];
 

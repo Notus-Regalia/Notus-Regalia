@@ -7,6 +7,8 @@ import { buildPageGraph, type Crumb } from "@/components/seo/pageSchema";
 import { isRootTab } from "@/utils/routes";
 import { COMPANY_SUBTABS } from "@/data/company-nav";
 import { VENTURES_SUBTABS } from "@/data/ventures-nav";
+import { FOUNDERS, getFounderBySlug } from "@/data/Company-data";
+import { SITE_URL } from "@/utils/site";
 
 const DEFAULT_DESCRIPTION =
   "Notus Regalia is a private technology holding and venture-building company engineering critical operational systems across defense, government, healthcare, enterprise, and energy.";
@@ -73,6 +75,10 @@ const ROOT_SEO_LINKS: SeoLink[] = [
     href: `/ventures/${s.slug}`,
     label: s.label,
   })),
+  ...FOUNDERS.filter((f) => f.published).map((f) => ({
+    href: `/company/executives/${f.slug}`,
+    label: f.name,
+  })),
   { href: "/affiliations", label: "Affiliations" },
   { href: "/information", label: "Information Central" },
   { href: "/status", label: "System Status" },
@@ -87,9 +93,11 @@ function resolveRouteMeta(slug?: string[]): {
   description: string;
   canonical: string;
   home: boolean;
+  noindex?: boolean;
 } {
   const tab = slug?.[0];
   const sub = slug?.[1];
+  const exec = slug?.[2];
 
   if (!tab) {
     return {
@@ -98,6 +106,21 @@ function resolveRouteMeta(slug?: string[]): {
       canonical: "/",
       home: true,
     };
+  }
+
+  // Dedicated executive profile — /company/executives/<slug>. Unpublished
+  // profiles are noindex (placeholder content), matching the prior route.
+  if (tab === "company" && sub === "executives" && exec) {
+    const founder = getFounderBySlug(exec);
+    if (founder) {
+      return {
+        title: founder.published ? `${founder.name} — ${founder.title}` : "Executive Profile",
+        description: founder.published ? founder.bio : "Notus Regalia executive profile.",
+        canonical: `/company/executives/${exec}`,
+        home: false,
+        noindex: !founder.published,
+      };
+    }
   }
 
   let title = TAB_META[tab]?.title ?? "Notus Regalia";
@@ -162,6 +185,8 @@ export function generateStaticParams(): { slug: string[] }[] {
     ]),
     ...Object.keys(TECH_SUBTABS).map((sub) => ["technologies", sub]),
     ...VENTURES_SUBTABS.map((s) => ["ventures", s.slug]),
+    // Dedicated executive profiles (all slugs valid; unpublished are noindex).
+    ...FOUNDERS.map((f) => ["company", "executives", f.slug]),
   ];
   return slugs.map((slug) => ({ slug }));
 }
@@ -172,13 +197,14 @@ export async function generateMetadata({
   params: Promise<{ slug?: string[] }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const { title, description, canonical, home } = resolveRouteMeta(slug);
+  const { title, description, canonical, home, noindex } = resolveRouteMeta(slug);
   const desc = clamp(description);
 
   return {
     title: home ? { absolute: title } : title,
     description: desc,
     alternates: { canonical },
+    ...(noindex ? { robots: { index: false, follow: false } } : {}),
     openGraph: {
       type: "website",
       siteName: "Notus Regalia",
@@ -217,16 +243,59 @@ export default async function RootCatchAll({
   }
 
   const { title, description, canonical } = resolveRouteMeta(slug);
-  const graph = buildPageGraph({
-    title,
-    description,
-    canonical,
-    crumbs: rootCrumbs(slug, title),
-  });
+
+  // Dedicated executive profile: emit Person + breadcrumb structured data and
+  // server-render the name/bio, so the canonical URL stays crawlable even
+  // though the visible profile mounts inside the client SPA.
+  const founder =
+    tab === "company" && slug?.[1] === "executives" && slug?.[2]
+      ? getFounderBySlug(slug[2])
+      : undefined;
+
+  const graph = founder
+    ? buildPageGraph({
+        title,
+        description,
+        canonical,
+        crumbs: [
+          { name: "Home", path: "/" },
+          { name: "Company", path: "/company" },
+          { name: "Executives", path: "/company/executives" },
+          { name: founder.name, path: canonical },
+        ],
+      })
+    : buildPageGraph({
+        title,
+        description,
+        canonical,
+        crumbs: rootCrumbs(slug, title),
+      });
+
+  const personGraph =
+    founder && founder.published
+      ? {
+          "@context": "https://schema.org",
+          "@type": "Person",
+          "@id": `${SITE_URL}${canonical}#person`,
+          name: founder.name,
+          jobTitle: founder.title,
+          description: founder.bio,
+          url: `${SITE_URL}${canonical}`,
+          ...(founder.src ? { image: `${SITE_URL}${founder.src}` } : {}),
+          worksFor: { "@id": `${SITE_URL}/#organization` },
+          ...(() => {
+            const sameAs = [founder.linkedin, founder.instagram, founder.x, founder.github].filter(
+              (u): u is string => !!u && u !== "#",
+            );
+            return sameAs.length > 0 ? { sameAs } : {};
+          })(),
+        }
+      : null;
 
   return (
     <main className="min-h-screen" style={{ background: 'var(--surface-primary)', color: 'var(--content-primary)' }}>
       <JsonLd data={graph} />
+      {personGraph && <JsonLd data={personGraph} />}
       <SeoFallback title={title} description={description} links={ROOT_SEO_LINKS} />
       <ClientWrapper />
     </main>

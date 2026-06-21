@@ -158,7 +158,7 @@ input[type="checkbox"], input[type="radio"], select,
   margin: 0 4px; flex-shrink: 0;
 }
 .nav-center { position: relative; flex: 1; min-width: 0; display: flex; align-items: center; overflow: visible; }
-.tabs-row { display: flex; align-items: center; gap: 12px; width: 100%; pointer-events: auto; }
+.tabs-row { display: flex; align-items: center; gap: 31.5px; width: 100%; pointer-events: auto; }
 .nav-right-controls {
   display: flex; align-items: center; gap: 8px;
   flex-shrink: 0; margin-left: auto; position: relative; z-index: 20;
@@ -661,31 +661,31 @@ input[type="checkbox"], input[type="radio"], select,
   opacity: 0.7; letter-spacing: 0.03em; margin-left: 2px;
 }
 
-/* ── Seraph tab — single button: "(icon) Open Seraph ▾" ── */
-.seraph-bar { align-items: stretch; }
-.seraph-label { padding: 11px 16px; gap: 8px; }
-.seraph-chevron {
+/* ── Sefirah tab — single button: "(icon) Open Sefirah ▾" ── */
+.sefirah-bar { align-items: stretch; }
+.sefirah-label { padding: 11px 16px; gap: 8px; }
+.sefirah-chevron {
   margin-left: 2px;
   font-size: 0.62rem;
   display: inline-block;
   transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.seraph-label.is-open .seraph-chevron { transform: rotate(180deg); }
+.sefirah-label.is-open .sefirah-chevron { transform: rotate(180deg); }
 
-/* ── Seraph dropdown strip — right-aligned grid cells (Search · Theme · Lock) ── */
-.seraph-strip-track {
+/* ── Sefirah dropdown strip — right-aligned grid cells (Search · Theme · Lock) ── */
+.sefirah-strip-track {
   flex: 1;
   justify-content: flex-end;
   align-items: stretch;
   overflow: visible;
 }
-.seraph-cell { gap: 8px; min-width: auto; padding: 0 38px; }
-.seraph-cell:first-child { border-left: 1px solid var(--border-color); }
-.seraph-cell i { font-size: 0.85rem; }
+.sefirah-cell { gap: 8px; min-width: auto; padding: 0 38px; }
+.sefirah-cell:first-child { border-left: 1px solid var(--border-color); }
+.sefirah-cell i { font-size: 0.85rem; }
 
 /* Border line follows the cursor with the same radial rainbow gradient as the
    brand buttons (replaces the orbiting navbar border). */
-.seraph-bar-border::before {
+.sefirah-bar-border::before {
   background: radial-gradient(
     160px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
     rgba(0, 255, 166, 0.9),
@@ -701,55 +701,55 @@ input[type="checkbox"], input[type="radio"], select,
 
 /* "View case studies" button style — flat #1f1f1f with a bright white
    hairline. Always dark, even in light mode. */
-.seraph-bar.tab-item,
-:root.light .seraph-bar.tab-item {
+.sefirah-bar.tab-item,
+:root.light .sefirah-bar.tab-item {
   background: #1f1f1f;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28);
   outline: none;
 }
-.seraph-bar-border:hover .seraph-bar.tab-item,
-:root.light .seraph-bar-border:hover .seraph-bar.tab-item {
+.sefirah-bar-border:hover .sefirah-bar.tab-item,
+:root.light .sefirah-bar-border:hover .sefirah-bar.tab-item {
   background: #262626;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28), 0 2px 8px rgba(0, 0, 0, 0.35);
   outline: none;
 }
-.seraph-bar .tab-label-btn,
-.seraph-bar .tab-arrow-btn,
-:root.light .seraph-bar .tab-label-btn,
-:root.light .seraph-bar .tab-arrow-btn {
+.sefirah-bar .tab-label-btn,
+.sefirah-bar .tab-arrow-btn,
+:root.light .sefirah-bar .tab-label-btn,
+:root.light .sefirah-bar .tab-arrow-btn {
   color: rgba(255, 255, 255, 0.66);
 }
-.seraph-bar .tab-label-btn:hover,
-.seraph-bar .tab-arrow-btn:hover,
-:root.light .seraph-bar .tab-label-btn:hover,
-:root.light .seraph-bar .tab-arrow-btn:hover {
+.sefirah-bar .tab-label-btn:hover,
+.sefirah-bar .tab-arrow-btn:hover,
+:root.light .sefirah-bar .tab-label-btn:hover,
+:root.light .sefirah-bar .tab-arrow-btn:hover {
   color: rgba(255, 255, 255, 1);
 }
-.seraph-bar .tab-arrow-btn:hover,
-.seraph-bar .tab-arrow-btn.is-open {
+.sefirah-bar .tab-arrow-btn:hover,
+.sefirah-bar .tab-arrow-btn.is-open {
   background: rgba(255, 255, 255, 0.08);
 }
-.seraph-bar .tab-sep,
-:root.light .seraph-bar .tab-sep {
+.sefirah-bar .tab-sep,
+:root.light .sefirah-bar .tab-sep {
   background: rgba(255, 255, 255, 0.22);
   opacity: 1;
 }
-.seraph-bar .search-shortcut,
-:root.light .seraph-bar .search-shortcut {
+.sefirah-bar .search-shortcut,
+:root.light .sefirah-bar .search-shortcut {
   color: rgba(255, 255, 255, 0.6);
   background: rgba(255, 255, 255, 0.08);
   border-color: rgba(255, 255, 255, 0.18);
 }
 
 /* Animated SVG "goo" loader (Uiverse by Nawsome) — scaled down to bar size */
-.seraph-loader {
+.sefirah-loader {
   width: 20px; height: 20px;
   flex-shrink: 0; display: block;
   opacity: 0.72;
   transition: opacity 0.15s ease;
   filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.35));
 }
-.seraph-label:hover .seraph-loader { opacity: 1; }
+.sefirah-label:hover .sefirah-loader { opacity: 1; }
 
 /* ── Press keyframe — subtle, non-bouncy dip ── */
 @keyframes tabPress {

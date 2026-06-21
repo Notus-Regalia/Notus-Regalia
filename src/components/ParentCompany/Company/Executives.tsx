@@ -1,193 +1,38 @@
 "use client";
-import React, { memo, useState, useEffect, useCallback, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import React, { memo, useState, useCallback, useRef } from 'react';
 import Image from 'next/image';
-import { FOUNDERS, type Founder } from '@/data/Company-data';
+import Link from 'next/link';
+import { FOUNDERS, executiveHref } from '@/data/Company-data';
 import { useReveal } from '@/hooks/useScrollReveal';
 
-const LINKEDIN_PATH = 'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z';
-
-const INSTAGRAM_PATH = 'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z';
-const X_PATH = 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.657l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25h6.826l4.713 6.231 5.451-6.231zM17.083 19.77h1.833L7.084 4.126H5.117L17.083 19.77z';
-const GITHUB_PATH = 'M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12';
-
-/* ─────────────────────────────────────────
-   MODAL — portaled to document.body
-───────────────────────────────────────── */
-function FounderModal({ founder, onClose }: { founder: Founder; onClose: () => void }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener('keydown', onKey);
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  if (!mounted) return null;
-
-  const socials = [
-    { label: 'LinkedIn',  href: founder.linkedin,         path: LINKEDIN_PATH },
-    { label: 'Instagram', href: founder.instagram ?? '#', path: INSTAGRAM_PATH },
-    { label: 'X',         href: founder.x ?? '#',         path: X_PATH },
-    { label: 'GitHub',    href: founder.github ?? '#',    path: GITHUB_PATH },
-  ];
-
-  const socialGrid = (
-    <div className="fc-modal-socials">
-      {socials.map(s => (
-        <div key={s.label} className="tab-item-border">
-          <div className="tab-item">
-            <a href={s.href} aria-label={s.label} onClick={e => e.stopPropagation()} className="tab-label-btn fc-modal-social-tile">
-              <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d={s.path} /></svg>
-            </a>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  return createPortal(
-    <div
-      onClick={onClose}
-      onWheel={e => e.stopPropagation()}
-      onTouchMove={e => e.stopPropagation()}
-      className="fc-modal-overlay"
-      style={{
-        position: 'fixed', inset: 0, zIndex: 99999,
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxSizing: 'border-box',
-        background: 'rgba(0,0,0,0.82)',
-        backdropFilter: 'blur(14px)',
-        WebkitBackdropFilter: 'blur(14px)',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Panel */}
-      <div
-        onClick={e => e.stopPropagation()}
-        className="fc-modal-outer"
-        onMouseMove={e => {
-          const el = e.currentTarget;
-          const rect = el.getBoundingClientRect();
-          el.style.setProperty('--mx', `${e.clientX - rect.left}px`);
-          el.style.setProperty('--my', `${e.clientY - rect.top}px`);
-        }}
-        style={{
-          position: 'relative', width: '70vw', maxWidth: 'none', height: '100dvh',
-          display: 'flex', flexDirection: 'column',
-        }}
-      >
-        <div className="fc-modal-gradient-border" />
-        <div
-          className="fc-modal-panel"
-          style={{
-            position: 'relative', display: 'flex', flexDirection: 'row',
-            width: '100%', flex: 1, minHeight: 0, /* minHeight:0 lets flex child shrink & scroll */
-            overflow: 'hidden',
-            background: '#000000',
-            borderLeft: '1px solid rgba(255,255,255,0.10)',
-            borderRight: '1px solid rgba(255,255,255,0.10)',
-            boxShadow: '0 32px 80px rgba(0,0,0,0.9)',
-          }}
-        >
-        {/* Backdrop — same grid + glow as the banner */}
-        <div className="exec-bg-grid" style={{ opacity: 0.15, zIndex: 0 }} />
-        <div className="exec-bg-glow" style={{ zIndex: 0 }} />
-
-        {/* ── Mobile: top row with image + title side-by-side ── */}
-        <div className="fc-modal-top-row">
-
-          {/* Portrait column */}
-          <div className="fc-modal-portrait-mobile" style={{
-            position: 'relative', flexShrink: 0, width: '320px',
-            overflow: 'hidden',
-            background: 'linear-gradient(170deg, #0a0a0a 0%, #101010 100%)',
-          }}>
-            {founder.src ? (
-              <Image src={founder.src} alt={founder.name} fill style={{ objectFit: 'cover', objectPosition: 'center top' }} sizes="320px" />
-            ) : (
-              <div style={{ position: 'absolute', inset: 0, backgroundImage: 'radial-gradient(circle, rgba(227,27,84,0.15) 1px, transparent 1px)', backgroundSize: '22px 22px' }} />
-            )}
-            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '55%', background: 'linear-gradient(to top, #000000 20%, transparent)', pointerEvents: 'none', zIndex: 1 }} />
-            <span className="fc-modal-chip" style={{
-              position: 'absolute', top: '14px', left: '14px', zIndex: 3,
-              fontFamily: 'ui-monospace, Menlo, monospace', fontSize: '10px',
-              letterSpacing: '0.16em', textTransform: 'uppercase' as const,
-              color: 'rgba(255,255,255,0.7)', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(8px)',
-              border: '1px solid rgba(255,255,255,0.15)', padding: '5px 11px', borderRadius: '4px',
-            }}>{founder.codename}</span>
-          </div>
-
-          {/* Mobile-only title block (next to image) */}
-          <div className="fc-modal-title-mobile">
-            <div className="fc-modal-eyebrow" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'ui-monospace, Menlo, monospace', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase' as const, fontWeight: 700, color: 'rgba(255,255,255,0.30)', marginBottom: '8px' }}>
-              <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#E31B54', flexShrink: 0 }} />
-              Since {founder.since}
-            </div>
-            <h2 className="fc-modal-name" style={{ fontSize: 'clamp(1.1rem, 3vw, 1.4rem)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1, background: 'linear-gradient(135deg, #f1f5f9 0%, rgba(241,245,249,0.6) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>{founder.name}</h2>
-            <p style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: '10px', color: '#E31B54', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.14em', margin: '6px 0 0' }}>{founder.title}</p>
-            <span className="fc-modal-role-tag" style={{ display: 'inline-block', marginTop: '8px', fontFamily: 'ui-monospace, Menlo, monospace', fontSize: '9px', textTransform: 'uppercase' as const, letterSpacing: '0.12em', color: 'rgba(255,255,255,0.30)', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', padding: '3px 8px', borderRadius: '4px', alignSelf: 'flex-start' }}>{founder.role}</span>
-            {socialGrid}
-          </div>
-
-        </div>
-
-        {/* Info column */}
-        <div className="fc-modal-info" style={{ position: 'relative', zIndex: 1, flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', borderLeft: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden', minWidth: 0 }}>
-          <div className="fc-modal-scroll" style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehavior: 'contain', minWidth: 0, padding: '2.25rem 2.5rem 1.5rem 2rem' }}>
-            {/* Desktop-only eyebrow/name/title (hidden on mobile since it's in the top row) */}
-            <div className="fc-modal-desktop-header" style={{ alignItems: 'flex-start', justifyContent: 'space-between', gap: '1.5rem' }}>
-              <div style={{ minWidth: 0 }}>
-                <div className="fc-modal-eyebrow" style={{ display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'ui-monospace, Menlo, monospace', fontSize: '10px', letterSpacing: '0.2em', textTransform: 'uppercase' as const, fontWeight: 700, color: 'rgba(255,255,255,0.30)', marginBottom: '16px' }}>
-                  <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#E31B54', flexShrink: 0 }} />
-                  {founder.role}
-                </div>
-                <h2 className="fc-modal-name" style={{ fontSize: 'clamp(1.4rem, 3vw, 2rem)', fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.1, background: 'linear-gradient(135deg, #f1f5f9 0%, rgba(241,245,249,0.6) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0 }}>{founder.name}</h2>
-                <p style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontSize: '11px', color: '#E31B54', fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: '0.14em', margin: '10px 0 0' }}>{founder.title}</p>
-              </div>
-              {/* Socials — top right, aligned with the name line */}
-              <div style={{ marginTop: '26px', flexShrink: 0 }}>{socialGrid}</div>
-            </div>
-            <div className="fc-modal-divider" style={{ width: '100%', height: '1px', margin: '24px 0', background: 'linear-gradient(90deg, rgba(227,27,84,0.3), rgba(255,255,255,0.06) 50%, transparent)' }} />
-            <div>
-              <span className="fc-modal-about-label" style={{ display: 'block', fontFamily: 'ui-monospace, Menlo, monospace', fontSize: '9px', textTransform: 'uppercase' as const, letterSpacing: '0.22em', color: 'rgba(255,255,255,0.25)', marginBottom: '10px' }}>About</span>
-              <p className="fc-modal-bio" style={{ fontSize: '14px', lineHeight: 1.85, color: 'rgba(255,255,255,0.55)', margin: 0 }}>{founder.bio}</p>
-            </div>
-          </div>
-        </div>
-        </div>
-      </div>
-    </div>,
-    document.body
-  );
-}
+/* Open an executive's dedicated profile inline (replacing the Executives page)
+   rather than navigating to the standalone route. The Links keep their real
+   href so SEO crawlers and modified clicks (⌘/ctrl/middle → new tab) still work;
+   a plain left-click is intercepted and handled in-page by Company/index.tsx. */
+const openExecutiveInline = (slug: string) => (e: React.MouseEvent) => {
+  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+  e.preventDefault();
+  window.dispatchEvent(new CustomEvent('executive-open', { detail: { slug } }));
+};
 
 /* ─────────────────────────────────────────
    EXECUTIVE CAROUSEL — landing banner
 ───────────────────────────────────────── */
-const ExecCarousel = memo(({ onExpand }: { onExpand: (f: Founder) => void }) => {
+const ExecCarousel = memo(() => {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const touchX = useRef<number | null>(null);
   const count = FOUNDERS.length;
 
   const next = useCallback(() => setIndex(i => (i + 1) % count), [count]);
   const prev = useCallback(() => setIndex(i => (i - 1 + count) % count), [count]);
 
-  useEffect(() => {
-    if (scrolled) return;
-    const onScroll = () => { if (window.scrollY > 60) setScrolled(true); };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, [scrolled]);
+  // Drives the cursor-following gradient border on the brand (hero) CTA button.
+  const handleBtnMouseMove = useCallback((e: React.MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
+    e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
+  }, []);
 
   return (
     <div
@@ -216,24 +61,12 @@ const ExecCarousel = memo(({ onExpand }: { onExpand: (f: Founder) => void }) => 
             <span className="exec-anim exec-role">{f.role}</span>
             <p className="exec-anim exec-bio">{f.bio}</p>
             <div className="exec-anim exec-actions">
-              <div className="tab-item-border">
-                <div className="tab-item">
-                  <button className="tab-label-btn" onClick={() => onExpand(f)} style={{ padding: '11px 18px 11px 16px' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="13" height="13">
-                      <path d="M15 3h6m0 0v6m0-6-7 7M9 21H3m0 0v-6m0 6 7-7" />
-                    </svg>
-                    <span>View Profile</span>
-                  </button>
-                </div>
-              </div>
-              <div className="tab-item-border">
-                <div className="tab-item">
-                  <a href={f.linkedin} aria-label="LinkedIn" className="tab-label-btn" style={{ padding: '11px 18px 11px 16px', textDecoration: 'none' }}>
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d={LINKEDIN_PATH} /></svg>
-                    <span>LinkedIn</span>
-                  </a>
-                </div>
-              </div>
+              <Link href={executiveHref(f.slug)} onClick={openExecutiveInline(f.slug)} onMouseMove={handleBtnMouseMove} className="exec-cta">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="13" height="13">
+                  <path d="M15 3h6m0 0v6m0-6-7 7M9 21H3m0 0v-6m0 6 7-7" />
+                </svg>
+                <span>View Profile</span>
+              </Link>
             </div>
           </div>
           <div className="exec-slide-portrait">
@@ -248,13 +81,6 @@ const ExecCarousel = memo(({ onExpand }: { onExpand: (f: Founder) => void }) => 
       ))}
 
       <span className="exec-counter">{String(index + 1).padStart(2, '0')} — {String(count).padStart(2, '0')}</span>
-
-      <div className={`exec-scroll-hint${scrolled ? ' exec-hidden' : ''}`} aria-hidden="true">
-        <span>Scroll to explore</span>
-        <svg className="exec-scroll-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
-          <path d="M12 5v14m0 0 6-6m-6 6-6-6" />
-        </svg>
-      </div>
 
       <div className="exec-controls">
         <div className="exec-dots">
@@ -285,17 +111,8 @@ ExecCarousel.displayName = 'ExecCarousel';
    EXECUTIVES SECTION
 ───────────────────────────────────────── */
 const Executives = () => {
-  const [activeFounder, setActiveFounder] = useState<Founder | null>(null);
-  const handleExpand = useCallback((f: Founder) => {
-    setActiveFounder(f);
-  }, []);
-
   /* ── Scroll-triggered reveal ── */
   const foundersReveal = useReveal('fade-up', { threshold: 0.1, duration: 800 });
-
-  const handleClose = useCallback(() => {
-    setActiveFounder(null);
-  }, []);
 
   return (
     <>
@@ -408,6 +225,41 @@ const Executives = () => {
           display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;
         }
         .exec-actions{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;}
+        /* View Profile — the site's hero white CTA button. The gradient border
+           follows the cursor via --mouse-x / --mouse-y. */
+        .exec-cta{
+          --btn-surface:radial-gradient(ellipse at bottom, rgba(255,255,255,1) 0%, rgba(226,229,233,1) 48%);
+          --btn-text:rgba(0,0,0,0.66);
+          --btn-text-hover:rgba(0,0,0,1);
+          --btn-inset:rgba(0,0,0,0.12);
+          --btn-line:linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 50%, rgba(0,0,0,0) 100%);
+          position:relative;display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
+          padding:12px 22px;border:0;border-radius:7px;text-decoration:none;
+          font-size:.9rem;font-weight:500;line-height:1;cursor:pointer;
+          box-shadow:inset 0 0 0 1px var(--btn-inset);
+          background:var(--btn-surface);color:var(--btn-text);
+          transition:transform .35s cubic-bezier(.22,1,.36,1),box-shadow .35s cubic-bezier(.22,1,.36,1),color .35s ease;
+        }
+        .exec-cta > *{position:relative;z-index:1;}
+        .exec-cta svg{flex-shrink:0;}
+        .exec-cta::before{
+          content:'';width:70%;height:1px;position:absolute;bottom:0;left:15%;
+          background:var(--btn-line);opacity:.2;transition:opacity .35s ease;
+        }
+        .exec-cta:hover{
+          color:var(--btn-text-hover);transform:translateY(-2px);
+          box-shadow:inset 0 0 0 1px var(--btn-inset),0 6px 18px -6px rgba(0,0,0,0.45);
+        }
+        .exec-cta:hover::before{opacity:1;}
+        .exec-cta::after{
+          content:'';position:absolute;inset:-1.5px;border-radius:8.5px;padding:1px;
+          background:radial-gradient(180px circle at var(--mouse-x,50%) var(--mouse-y,50%),
+            rgba(0,255,166,0.9),rgba(255,215,0,0.7),rgba(236,72,153,0.7),rgba(147,51,234,0.6),rgba(59,130,246,0.5),transparent 70%);
+          -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
+          -webkit-mask-composite:xor;mask-composite:exclude;
+          opacity:0;transition:opacity .3s ease;pointer-events:none;z-index:0;
+        }
+        .exec-cta:hover::after{opacity:1;}
         .exec-counter{
           position:absolute;top:clamp(96px,12vh,116px);right:clamp(2.5rem,10vw,13rem);z-index:5;
           font-family:ui-monospace,Menlo,monospace;font-size:.65rem;letter-spacing:.2em;color:rgba(255,255,255,.4);
@@ -458,25 +310,6 @@ const Executives = () => {
           .exec-controls{padding:.85rem 1.2rem;}
         }
 
-        /* ── Scroll hint — bottom-center tooltip, dismissed on scroll ── */
-        @keyframes exec-arrow-bob{
-          0%,100%{transform:translateY(-1px);opacity:.95;}
-          50%{transform:translateY(4px);opacity:.45;}
-        }
-        .exec-scroll-hint{
-          position:absolute;left:50%;bottom:96px;transform:translateX(-50%);z-index:6;
-          display:inline-flex;align-items:center;gap:9px;
-          padding:9px 16px;border-radius:999px;
-          border:1px solid rgba(255,255,255,.12);background:rgba(0,0,0,.55);
-          backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-          font-family:ui-monospace,Menlo,monospace;font-size:.6rem;letter-spacing:.22em;
-          text-transform:uppercase;color:rgba(255,255,255,.5);
-          pointer-events:none;
-          transition:opacity .5s ease,transform .5s ease;
-        }
-        .exec-scroll-hint .exec-scroll-arrow{color:#E31B54;animation:exec-arrow-bob 1.6s ease-in-out infinite;flex-shrink:0;}
-        .exec-scroll-hint.exec-hidden{opacity:0;transform:translateX(-50%) translateY(10px);}
-
         /* ── Founders overview grid (below the banner) ── */
         .exec-overview{
           position:relative;background:#000000;
@@ -489,7 +322,7 @@ const Executives = () => {
           -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
         }
         .exec-overview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;}
-        .exec-ov-card{cursor:pointer;min-width:0;outline:none;}
+        .exec-ov-card{display:block;cursor:pointer;min-width:0;outline:none;text-decoration:none;color:inherit;}
         .exec-ov-portrait{
           position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;
           background:linear-gradient(170deg,#0a0a0a 0%,#101010 100%);
@@ -531,115 +364,16 @@ const Executives = () => {
           .exec-ov-eyebrow{margin-top:1.5rem;}
           .exec-ov-bio{padding-right:0;}
         }
-        /* ── Modal social grid — navbar-style icon pills
-           (LinkedIn / IG / X / GitHub), same system as search/theme/hide ── */
-        .fc-modal-socials{
-          display:grid;grid-template-columns:repeat(4,auto);gap:8px;flex-shrink:0;
-        }
-        .fc-modal-social-tile{
-          width:40px;height:40px;padding:0 !important;
-          align-items:center;justify-content:center;
-        }
-        .fc-modal-scroll{
-          overflow-y:auto;
-          overscroll-behavior:contain;
-        }
-
-        /* ── Mobile modal layout ── */
-        @media(max-width:767px){
-          .fc-modal-panel{flex-direction:column !important;}
-          .fc-modal-top-row{
-            display:flex !important;flex-direction:row !important;
-            border-bottom:1px solid rgba(255,255,255,.08);
-            min-height:160px;
-          }
-          .fc-modal-portrait-mobile{
-            position:relative;width:30%;min-width:30%;max-width:30%;flex-shrink:0;
-            overflow:hidden;
-            background:linear-gradient(170deg,#0a0a0a 0%,#101010 100%);
-          }
-          .fc-modal-title-mobile{
-            position:relative;z-index:1;
-            flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;
-            padding:1rem 1rem;min-width:0;width:70%;
-          }
-          .fc-modal-chip{display:none !important;}
-          .fc-modal-role-tag{display:none !important;}
-          .fc-modal-divider{display:none !important;}
-          .fc-modal-info{
-            border-left:none !important;
-            padding:0 !important;
-          }
-          .fc-modal-scroll{padding:1.25rem 1.25rem 1rem !important;}
-          .fc-modal-outer{width:100% !important;max-width:100% !important;height:92dvh !important;margin:0 8px;border-radius:16px;}
-          .fc-modal-panel{border-radius:16px !important;border:1px solid rgba(255,255,255,.10) !important;}
-          .fc-modal-gradient-border{border-radius:16px;padding:1px;}
-          .fc-modal-socials{gap:6px;margin-top:14px;}
-          .fc-modal-social-tile{width:33px;height:33px;}
-          .fc-modal-social-tile svg{width:12px;height:12px;}
-        }
-        @media(min-width:768px){
-          .fc-modal-top-row{display:contents !important;}
-          .fc-modal-portrait-mobile{
-            position:relative;width:320px;min-width:320px;flex-shrink:0;
-            overflow:hidden;
-            background:linear-gradient(170deg,#0a0a0a 0%,#101010 100%);
-          }
-          .fc-modal-title-mobile{display:none !important;}
-          .fc-modal-desktop-header{display:flex;}
-        }
-        @media(max-width:767px){
-          .fc-modal-desktop-header{display:none !important;}
-        }
-
-        .fc-modal-outer {
-          position:relative; display:flex; flex-direction:column;
-          width:70vw; max-width:none; height:100dvh; border-radius:0;
-          margin:0 auto;
-          transform-origin: center bottom;
-        }
-        .fc-modal-gradient-border {
-          position:absolute; inset:0; border-radius:0; padding:0 1px;
-          opacity:0; transition:opacity .4s ease; pointer-events:none; z-index:10;
-          background:radial-gradient(700px circle at var(--mx,50%) var(--my,50%), rgba(0,255,166,.7),rgba(255,215,0,.5),rgba(236,72,153,.5),rgba(147,51,234,.5),rgba(59,130,246,.4),transparent 65%);
-          -webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);
-          -webkit-mask-composite:xor; mask-composite:exclude;
-        }
-        .fc-modal-outer:hover .fc-modal-gradient-border { opacity:1; }
-
-        /* Modal is always dark — matches the banner; only the page grid
-           backdrop changes in light mode. */
+        /* The banner stays always-dark; only the page grid backdrop
+           changes in light mode. */
         :root.light .teams-root::before{ display: none; }
-
-        @keyframes modal-overlay-in {
-          from { opacity: 0; }
-          to   { opacity: 1; }
-        }
-        @keyframes modal-panel-in {
-          from {
-            opacity: 0;
-            transform: scale(0.94) translateY(16px);
-            filter: blur(4px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-            filter: blur(0px);
-          }
-        }
-        .fc-modal-overlay {
-          animation: modal-overlay-in 0.2s ease both;
-        }
-        .fc-modal-outer {
-          animation: modal-panel-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
-        }
 
       `}</style>
 
       <div style={{ paddingBottom: '8rem' }}>
         <section id="section-executives" className="teams-root">
           <div className="founders-section" ref={foundersReveal.ref} style={foundersReveal.style} data-nosnippet>
-            <ExecCarousel onExpand={handleExpand} />
+            <ExecCarousel />
           </div>
 
           {/* ── Founders overview grid ── */}
@@ -647,12 +381,11 @@ const Executives = () => {
             <h2 className="exec-overview-title">Notus Executives</h2>
             <div className="exec-overview-grid">
               {FOUNDERS.map(f => (
-                <article
+                <Link
                   key={f.id}
+                  href={executiveHref(f.slug)}
+                  onClick={openExecutiveInline(f.slug)}
                   className="exec-ov-card"
-                  onClick={() => handleExpand(f)}
-                  tabIndex={0}
-                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleExpand(f); } }}
                 >
                   <div className="exec-ov-portrait">
                     {f.src ? (
@@ -664,14 +397,12 @@ const Executives = () => {
                   <span className="exec-ov-eyebrow">{f.title}</span>
                   <h3 className="exec-ov-name">{f.name}</h3>
                   <p className="exec-ov-bio">{f.bio}</p>
-                </article>
+                </Link>
               ))}
             </div>
           </div>
         </section>
       </div>
-
-      {activeFounder && <FounderModal founder={activeFounder} onClose={handleClose} />}
     </>
   );
 };

@@ -22,9 +22,9 @@ const SUGGESTIONS: SectionItem[] = [
   { label: 'Information Central', tabId: 'information', external: '/information',                        icon: 'bi-box-arrow-up-right', aka: 'Newsroom, investors, legals', keywords: [] },
 ];
 
-// ── Animated "Seraph" goo loader (Uiverse by Nawsome), themeable via currentColor ──
-const SeraphIcon = ({ className }: { className?: string }) => {
-  const goo = `seraph-goo-${useId().replace(/:/g, '')}`;
+// ── Animated "Sefirah" goo loader (Uiverse by Nawsome), themeable via currentColor ──
+const SefirahIcon = ({ className }: { className?: string }) => {
+  const goo = `sefirah-goo-${useId().replace(/:/g, '')}`;
   return (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 248 248" aria-hidden>
       <filter id={goo}>
@@ -66,20 +66,10 @@ function useAutoResizeTextarea({ minHeight, maxHeight }: { minHeight: number; ma
   return { textareaRef, adjustHeight };
 }
 
-export default function SeraphAssistant() {
+export default function SefirahAssistant() {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
   const [placeholder, setPlaceholder] = useState('Search');
-  const [bubbleIdx, setBubbleIdx] = useState(0);
-  const [bubbleShown, setBubbleShown] = useState(false);
-  const [bubblesOff, setBubblesOff] = useState(false); // silenced after first interaction
-
-  // Rotating greeting bubbles (time-aware first message).
-  const bubbles = useMemo(() => {
-    const h = new Date().getHours();
-    const greeting = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-    return [greeting, "I am Seraph. What's yours?", 'How can I help?', 'What are you looking for?', 'Need a hand?'];
-  }, []);
 
   // Draggable FAB with magnetic edge-snap.
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -125,27 +115,6 @@ export default function SeraphAssistant() {
     return () => clearTimeout(t);
   }, [open, value]);
 
-  // Cycle the greeting bubble one message at a time. Paused while the panel is
-  // open, and silenced for the rest of the session once Seraph is opened.
-  useEffect(() => {
-    if (open || bubblesOff) { setBubbleShown(false); return; }
-    let hideT: ReturnType<typeof setTimeout>;
-    let nextT: ReturnType<typeof setTimeout>;
-    const cycle = () => {
-      setBubbleShown(true);
-      hideT = setTimeout(() => {
-        setBubbleShown(false);
-        // Pause gap between messages (after the fade-out completes).
-        nextT = setTimeout(() => {
-          setBubbleIdx(i => (i + 1) % bubbles.length);
-          cycle();
-        }, 1100);
-      }, 3800);
-    };
-    const startT = setTimeout(cycle, 1400);
-    return () => { clearTimeout(startT); clearTimeout(hideT); clearTimeout(nextT); };
-  }, [open, bubblesOff, bubbles.length]);
-
   // Live site search — same index/scoring as the ⌘K search bar.
   const results = useMemo(() => searchSections(value), [value]);
 
@@ -153,7 +122,7 @@ export default function SeraphAssistant() {
     if (item.external) {
       window.open(item.external, '_blank', 'noopener,noreferrer');
     } else {
-      window.dispatchEvent(new CustomEvent('seraph-navigate', {
+      window.dispatchEvent(new CustomEvent('sefirah-navigate', {
         detail: { tabId: item.tabId, subtabId: item.subtabId },
       }));
     }
@@ -193,7 +162,6 @@ export default function SeraphAssistant() {
     if (!d.moved && Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 4) {
       d.moved = true;
       setDragging(true);
-      setBubblesOff(true);
     }
     if (!d.moved) return;
     const w = el.offsetWidth, h = el.offsetHeight;
@@ -226,7 +194,6 @@ export default function SeraphAssistant() {
 
   const onFabClick = useCallback(() => {
     if (suppressClick.current) { suppressClick.current = false; return; }
-    setBubblesOff(true);
     setOpen(o => !o);
   }, []);
 
@@ -276,10 +243,10 @@ export default function SeraphAssistant() {
 
   return (
     <>
-      {/* Floating assistant button + greeting bubble (draggable, edge-magnetic) */}
+      {/* Floating assistant button (draggable, edge-magnetic) */}
       <div
         ref={wrapRef}
-        className="seraph-fab-wrap"
+        className="sefirah-fab-wrap"
         style={fabPos ? {
           left: fabPos.x, top: fabPos.y, right: 'auto', bottom: 'auto',
           // Exact follow while auto-docking to the nav line (the strip's own
@@ -288,126 +255,117 @@ export default function SeraphAssistant() {
         } : undefined}
       >
         <button
-          type="button"
-          className={cn('seraph-bubble', bubbleShown && !open && 'show')}
-          onClick={() => { setBubblesOff(true); setOpen(true); }}
-          tabIndex={-1}
-          aria-hidden
-        >
-          {bubbles[bubbleIdx]}
-        </button>
-        <button
-          className={cn('seraph-fab', open && 'is-open', dragging && 'dragging', snap && `snapping-${snap}`)}
+          className={cn('sefirah-fab', open && 'is-open', dragging && 'dragging', snap && `snapping-${snap}`)}
           onClick={onFabClick}
           onPointerDown={onFabPointerDown}
           onPointerMove={onFabPointerMove}
           onPointerUp={onFabPointerUp}
           onAnimationEnd={() => setSnap('')}
-          aria-label="Open Seraph assistant"
+          aria-label="Open Sefirah assistant"
           aria-expanded={open}
         >
-          <SeraphIcon className="seraph-fab-icon" />
+          <SefirahIcon className="sefirah-fab-icon" />
         </button>
       </div>
 
       {/* Backdrop */}
       <div
-        className={cn('seraph-backdrop', open && 'open')}
+        className={cn('sefirah-backdrop', open && 'open')}
         onClick={() => setOpen(false)}
         aria-hidden
       />
 
       {/* Right sidebar panel */}
       <aside
-        className={cn('seraph-panel', open && 'open')}
+        className={cn('sefirah-panel', open && 'open')}
         role="dialog"
         aria-modal="true"
-        aria-label="Seraph assistant"
+        aria-label="Sefirah assistant"
       >
-        <div className="seraph-panel-head">
-          <div className="seraph-panel-title">
-            <SeraphIcon className="seraph-title-icon" />
-            <span>Seraph</span>
+        <div className="sefirah-panel-head">
+          <div className="sefirah-panel-title">
+            <SefirahIcon className="sefirah-title-icon" />
+            <span>Sefirah</span>
           </div>
-          <button className="seraph-close" onClick={() => setOpen(false)} aria-label="Close Seraph">
+          <button className="sefirah-close" onClick={() => setOpen(false)} aria-label="Close Sefirah">
             <i className="bi bi-x-lg" />
           </button>
         </div>
 
-        <div className="seraph-panel-body">
-          <h2 className="seraph-greeting">How can I help?</h2>
+        <div className="sefirah-panel-body">
+          <h2 className="sefirah-greeting">How can I help?</h2>
 
           {/* Quick settings — pill row above the search */}
-          <div className="seraph-actions">
-            <button type="button" className="seraph-action" onClick={toggleTheme}>
+          <div className="sefirah-actions">
+            <button type="button" className="sefirah-action" onClick={toggleTheme}>
               <i className={`bi ${isDark ? 'bi-sun' : 'bi-moon'}`} />
               <span>Switch theme</span>
             </button>
-            <button type="button" className="seraph-action" onClick={lockNavigation}>
+            <button type="button" className="sefirah-action" onClick={lockNavigation}>
               <i className="bi bi-lock" />
               <span>Lock navigation</span>
             </button>
-            <button type="button" className="seraph-action" title="Coming soon">
+            <button type="button" className="sefirah-action" title="Coming soon">
               <i className="bi bi-translate" />
               <span>Language</span>
             </button>
           </div>
 
           {/* Input field — doubles as the search bar */}
-          <div className="seraph-input-box">
+          <div className="sefirah-input-box">
             <textarea
               ref={textareaRef}
               value={value}
               onChange={(e) => { setValue(e.target.value); adjustHeight(); }}
               onKeyDown={handleKeyDown}
               placeholder={placeholder}
-              className="seraph-textarea"
+              className="sefirah-textarea"
             />
           </div>
 
           {/* While typing: live results (mirrors the ⌘K search).
               When empty: suggested destinations. */}
           {value.trim() ? (
-            <div className="seraph-results">
+            <div className="sefirah-results">
               {results.length === 0 ? (
-                <div className="seraph-empty">No results found</div>
+                <div className="sefirah-empty">No results found</div>
               ) : (
                 <>
-                <div className="seraph-suggested-head">Results</div>
+                <div className="sefirah-suggested-head">Results</div>
                 {results.map((item) => (
                   <button
                     key={`${item.tabId}-${item.subtabId || ''}-${item.label}`}
                     type="button"
-                    className="seraph-result"
+                    className="sefirah-result"
                     onClick={() => navigate(item)}
                   >
                     <i className={`bi ${item.icon}`} />
-                    <span className="seraph-result-text">
-                      <span className="seraph-result-label">{item.label}</span>
-                      {item.aka && <span className="seraph-result-aka">{item.aka}</span>}
+                    <span className="sefirah-result-text">
+                      <span className="sefirah-result-label">{item.label}</span>
+                      {item.aka && <span className="sefirah-result-aka">{item.aka}</span>}
                     </span>
-                    {item.external && <i className="bi bi-box-arrow-up-right seraph-result-ext" />}
+                    {item.external && <i className="bi bi-box-arrow-up-right sefirah-result-ext" />}
                   </button>
                 ))}
                 </>
               )}
             </div>
           ) : (
-            <div className="seraph-results seraph-suggested">
-              <div className="seraph-suggested-head">Suggestions</div>
+            <div className="sefirah-results sefirah-suggested">
+              <div className="sefirah-suggested-head">Suggestions</div>
               {SUGGESTIONS.map((item) => (
                 <button
                   key={`sug-${item.tabId}-${item.subtabId || ''}-${item.label}`}
                   type="button"
-                  className="seraph-result"
+                  className="sefirah-result"
                   onClick={() => navigate(item)}
                 >
                   <i className={`bi ${item.icon}`} />
-                  <span className="seraph-result-text">
-                    <span className="seraph-result-label">{item.label}</span>
-                    {item.aka && <span className="seraph-result-aka">{item.aka}</span>}
+                  <span className="sefirah-result-text">
+                    <span className="sefirah-result-label">{item.label}</span>
+                    {item.aka && <span className="sefirah-result-aka">{item.aka}</span>}
                   </span>
-                  {item.external && <i className="bi bi-box-arrow-up-right seraph-result-ext" />}
+                  {item.external && <i className="bi bi-box-arrow-up-right sefirah-result-ext" />}
                 </button>
               ))}
             </div>
@@ -415,47 +373,25 @@ export default function SeraphAssistant() {
         </div>
       </aside>
 
-      <style>{SERAPH_CSS}</style>
+      <style>{SEFIRAH_CSS}</style>
     </>
   );
 }
 
-const SERAPH_CSS = `
-/* ── Floating assistant button + greeting bubble (bottom-right) ── */
-.seraph-fab-wrap {
+const SEFIRAH_CSS = `
+/* ── Floating assistant button (bottom-right) ── */
+.sefirah-fab-wrap {
   position: fixed; right: 24px; bottom: 24px; z-index: 70;
   display: inline-flex; align-items: center;
   transform-origin: center;
-  animation: seraphPopIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: sefirahPopIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-@keyframes seraphPopIn {
+@keyframes sefirahPopIn {
   0%   { opacity: 0; transform: scale(0); }
   55%  { opacity: 1; transform: scale(1.15); }
   100% { opacity: 1; transform: scale(1); }
 }
-.seraph-bubble {
-  position: absolute; right: calc(100% + 12px); top: 50%;
-  max-width: 220px; white-space: nowrap;
-  padding: 9px 14px; border-radius: 16px 16px 4px 16px;
-  /* Always dark, regardless of theme (matches the FAB). */
-  background: rgba(20, 20, 22, 0.96);
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.92); font-family: inherit; font-size: 0.82rem; font-weight: 500; line-height: 1;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4);
-  cursor: pointer;
-  opacity: 0; transform: translateY(-50%) translateX(10px) scale(0.94); transform-origin: right center;
-  pointer-events: none;
-  transition: opacity 0.35s ease, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.seraph-bubble::after {
-  content: ''; position: absolute; right: -5px; top: 50%;
-  width: 11px; height: 11px; background: rgba(20, 20, 22, 0.96);
-  border-right: 1px solid rgba(255, 255, 255, 0.12); border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  transform: translateY(-50%) rotate(-45deg);
-}
-.seraph-bubble.show { opacity: 1; transform: translateY(-50%) translateX(0) scale(1); pointer-events: auto; }
-.seraph-fab {
+.sefirah-fab {
   position: relative; flex-shrink: 0; isolation: isolate;
   width: 58px; height: 58px; border-radius: 50%;
   cursor: grab; touch-action: none;
@@ -475,8 +411,8 @@ const SERAPH_CSS = `
    constant spin. Both layers are the SAME thin ring (concentric): ::after is the
    crisp light line, ::before is a blurred copy that disperses the light outward.
    Ring-masked, so the black face/icon stay black. */
-.seraph-fab::before,
-.seraph-fab::after {
+.sefirah-fab::before,
+.sefirah-fab::after {
   content: ''; position: absolute; inset: -1.5px; border-radius: 50%;
   pointer-events: none; z-index: -1;
   background: conic-gradient(from 0deg,
@@ -489,33 +425,33 @@ const SERAPH_CSS = `
     transparent 250deg);
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 1.6px), #000 calc(100% - 1.6px));
   mask: radial-gradient(farthest-side, transparent calc(100% - 1.6px), #000 calc(100% - 1.6px));
-  animation: seraphWave 3s ease-in-out infinite alternate;
+  animation: sefirahWave 3s ease-in-out infinite alternate;
 }
 /* blurred copy — the light dispersing outward from the crest */
-.seraph-fab::before {
+.sefirah-fab::before {
   inset: -2.5px; filter: blur(4px); opacity: 0.7;
 }
-.seraph-fab:hover::before { opacity: 0.95; }
-@keyframes seraphWave {
+.sefirah-fab:hover::before { opacity: 0.95; }
+@keyframes sefirahWave {
   from { transform: rotate(-140deg); }
   to   { transform: rotate(140deg); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .seraph-fab::before, .seraph-fab::after { animation: none; }
+  .sefirah-fab::before, .sefirah-fab::after { animation: none; }
 }
-.seraph-fab:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 14px 34px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18); }
-.seraph-fab:active { transform: scale(0.97); }
-.seraph-fab.is-open { transform: scale(0.92); opacity: 0.85; }
-.seraph-fab.dragging { cursor: grabbing; transform: scale(1.08); box-shadow: 0 18px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2); }
+.sefirah-fab:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 14px 34px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18); }
+.sefirah-fab:active { transform: scale(0.97); }
+.sefirah-fab.is-open { transform: scale(0.92); opacity: 0.85; }
+.sefirah-fab.dragging { cursor: grabbing; transform: scale(1.08); box-shadow: 0 18px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.2); }
 
 /* Waterball squash-and-stretch when released and snapping to a side */
-.seraph-fab.snapping-left,
-.seraph-fab.snapping-right {
-  animation: seraphBlob 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+.sefirah-fab.snapping-left,
+.sefirah-fab.snapping-right {
+  animation: sefirahBlob 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
-.seraph-fab.snapping-left  { transform-origin: left center; }
-.seraph-fab.snapping-right { transform-origin: right center; }
-@keyframes seraphBlob {
+.sefirah-fab.snapping-left  { transform-origin: left center; }
+.sefirah-fab.snapping-right { transform-origin: right center; }
+@keyframes sefirahBlob {
   0%   { transform: scale(1.08, 1.08); }
   30%  { transform: scale(1.26, 0.8); }   /* stretch along flight (horizontal) */
   55%  { transform: scale(0.8, 1.2); }    /* squash against the wall */
@@ -523,18 +459,18 @@ const SERAPH_CSS = `
   90%  { transform: scale(0.97, 1.04); }
   100% { transform: scale(1, 1); }
 }
-.seraph-fab-icon { width: 30px; height: 30px; display: block; }
+.sefirah-fab-icon { width: 30px; height: 30px; display: block; }
 
 /* ── Backdrop ── */
-.seraph-backdrop {
+.sefirah-backdrop {
   position: fixed; inset: 0; z-index: 79;
   background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
   opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
 }
-.seraph-backdrop.open { opacity: 1; pointer-events: auto; }
+.sefirah-backdrop.open { opacity: 1; pointer-events: auto; }
 
 /* ── Right sidebar panel ── */
-.seraph-panel {
+.sefirah-panel {
   /* Pin dark-theme tokens locally so the sidebar stays dark on every theme,
      light mode, and mobile. Children inherit these custom properties. */
   --surface-secondary: rgb(10, 10, 10);
@@ -557,44 +493,44 @@ const SERAPH_CSS = `
   transform: translateX(100%);
   transition: transform 0.4s cubic-bezier(0.22,1,0.36,1);
 }
-.seraph-panel.open { transform: translateX(0); }
+.sefirah-panel.open { transform: translateX(0); }
 
-.seraph-panel-head {
+.sefirah-panel-head {
   display: flex; align-items: center; justify-content: space-between;
   padding: 18px 20px; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0;
 }
-.seraph-panel-title { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 1.05rem; color: var(--content-primary); }
-.seraph-title-icon { width: 24px; height: 24px; color: var(--content-primary); }
-.seraph-close {
+.sefirah-panel-title { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 1.05rem; color: var(--content-primary); }
+.sefirah-title-icon { width: 24px; height: 24px; color: var(--content-primary); }
+.sefirah-close {
   display: inline-flex; align-items: center; justify-content: center;
   width: 34px; height: 34px; border-radius: 9px; border: none;
   background: transparent; color: var(--content-faint); cursor: pointer; font-size: 0.95rem;
   transition: color 0.15s ease, background 0.15s ease;
 }
-.seraph-close:hover { color: var(--content-primary); background: var(--hover-bg); }
+.sefirah-close:hover { color: var(--content-primary); background: var(--hover-bg); }
 
-.seraph-panel-body { flex: 1; overflow-y: auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 22px; }
-.seraph-greeting { font-size: 1.4rem; font-weight: 700; text-align: center; color: var(--content-primary); margin-top: 6px; }
+.sefirah-panel-body { flex: 1; overflow-y: auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 22px; }
+.sefirah-greeting { font-size: 1.4rem; font-weight: 700; text-align: center; color: var(--content-primary); margin-top: 6px; }
 
 /* ── Input box (prompt / search) ── */
-.seraph-input-box {
+.sefirah-input-box {
   border-radius: 14px;
   background: var(--surface-card);
   border: 1px solid var(--border-color);
   box-shadow: inset 0 1px 0 var(--glass-inset-top);
   transition: border-color 0.2s ease;
 }
-.seraph-input-box:focus-within { border-color: var(--content-faint); }
-.seraph-textarea {
+.sefirah-input-box:focus-within { border-color: var(--content-faint); }
+.sefirah-textarea {
   width: 100%; resize: none; background: transparent; border: none; outline: none;
   color: var(--content-primary); font-family: inherit; font-size: 0.9rem; line-height: 1.5;
   padding: 14px; min-height: 60px;
 }
-.seraph-textarea::placeholder { color: var(--content-faint); }
+.sefirah-textarea::placeholder { color: var(--content-faint); }
 
 /* ── Quick settings — small rounded pills, single row ── */
-.seraph-actions { display: flex; flex-wrap: nowrap; gap: 6px; justify-content: center; }
-.seraph-action {
+.sefirah-actions { display: flex; flex-wrap: nowrap; gap: 6px; justify-content: center; }
+.sefirah-action {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 6px 10px; border-radius: 999px;
   border: 1px solid var(--border-color); background: var(--hover-bg);
@@ -602,32 +538,32 @@ const SERAPH_CSS = `
   cursor: pointer; white-space: nowrap;
   transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
-.seraph-action:hover { color: var(--content-primary); background: var(--hover-bg-strong); border-color: var(--content-faint); }
-.seraph-action:active { transform: scale(0.96); }
-.seraph-action i { font-size: 0.8rem; }
+.sefirah-action:hover { color: var(--content-primary); background: var(--hover-bg-strong); border-color: var(--content-faint); }
+.sefirah-action:active { transform: scale(0.96); }
+.sefirah-action i { font-size: 0.8rem; }
 
 /* ── Live search results ── */
-.seraph-results { display: flex; flex-direction: column; gap: 2px; }
-.seraph-result {
+.sefirah-results { display: flex; flex-direction: column; gap: 2px; }
+.sefirah-result {
   display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
   padding: 10px 12px; border-radius: 10px; border: none; background: transparent;
   color: var(--content-faint); font-size: 0.88rem; font-weight: 500; cursor: pointer;
   transition: color 0.12s ease, background 0.12s ease;
 }
-.seraph-result:hover { color: var(--content-primary); background: var(--hover-bg); }
-.seraph-result > i { font-size: 0.95rem; width: 20px; text-align: center; flex-shrink: 0; }
-.seraph-result-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.seraph-result-aka { font-size: 0.72rem; color: var(--content-faint); opacity: 0.6; font-weight: 400; }
-.seraph-result-ext { margin-left: auto; font-size: 0.75rem; opacity: 0.55; }
-.seraph-empty { padding: 20px; text-align: center; color: var(--content-faint); font-style: italic; font-size: 0.85rem; }
-.seraph-suggested-head {
+.sefirah-result:hover { color: var(--content-primary); background: var(--hover-bg); }
+.sefirah-result > i { font-size: 0.95rem; width: 20px; text-align: center; flex-shrink: 0; }
+.sefirah-result-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sefirah-result-aka { font-size: 0.72rem; color: var(--content-faint); opacity: 0.6; font-weight: 400; }
+.sefirah-result-ext { margin-left: auto; font-size: 0.75rem; opacity: 0.55; }
+.sefirah-empty { padding: 20px; text-align: center; color: var(--content-faint); font-style: italic; font-size: 0.85rem; }
+.sefirah-suggested-head {
   padding: 4px 12px 8px; font-size: 0.7rem; font-weight: 600;
   letter-spacing: 0.05em; text-transform: uppercase; color: var(--content-muted);
 }
 
 @media (max-width: 640px) {
-  .seraph-fab-wrap { right: 16px; bottom: 16px; }
-  .seraph-fab { width: 52px; height: 52px; }
-  .seraph-fab-icon { width: 27px; height: 27px; }
+  .sefirah-fab-wrap { right: 16px; bottom: 16px; }
+  .sefirah-fab { width: 52px; height: 52px; }
+  .sefirah-fab-icon { width: 27px; height: 27px; }
 }
 `;

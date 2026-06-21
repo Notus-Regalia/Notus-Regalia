@@ -215,7 +215,7 @@ const SearchModal = ({ isOpen, onClose, onNavigate }: SearchModalProps) => {
   // True if any search query is present
   const hasQuery = query.trim().length > 0;
 
-  // Memoised keyword-based search (shared with the Seraph assistant)
+  // Memoised keyword-based search (shared with the Sefirah assistant)
   const searchResults = useMemo(() => searchSections(query), [query]);
 
   // When no query, show the Trending and Suggested sections

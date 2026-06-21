@@ -3,7 +3,6 @@
 import { memo, type ReactNode } from "react";
 import PageHero from "./PageHero";
 import ExploreNext from "./ExploreNext";
-import IndustrySection from "../../Landing/IndustrySection";
 import WhatWeDoBentoSection from "../../Landing/BentoSection";
 import CompanyHeader from "../CompanyHeader";
 import AboutCompany from "../AboutCompany";
@@ -15,13 +14,6 @@ import {
   Timeline,
   CtaLink,
 } from "./blocks";
-import {
-  HumanRightsStyles,
-  FrameworkSwitcher,
-  FocusDuo,
-  RedLinesList,
-  AccountabilityStepper,
-} from "./HumanRightsSections";
 import { getCompanySubtab } from "@/data/company-nav";
 import { useReveal } from "@/hooks/useScrollReveal";
 
@@ -45,24 +37,6 @@ const RevealSection = ({ id, children }: { id: string; children: ReactNode }) =>
     </div>
   );
 };
-
-export const SectorsPage = memo(() => {
-  const tab = getCompanySubtab('company-sectors');
-  return (
-    <>
-      <div id="sectors-overview">
-        <PageHero {...tab.hero!} />
-      </div>
-      <RevealSection id="sectors-industries">
-        <IndustrySection />
-      </RevealSection>
-      <RevealSection id="sectors-explore">
-        <ExploreNext current="company-sectors" />
-      </RevealSection>
-    </>
-  );
-});
-SectorsPage.displayName = "SectorsPage";
 
 export const AboutCompanyPage = memo(({ onLearnMore }: { onLearnMore?: (page: string) => void }) => {
   return (
@@ -133,57 +107,3 @@ export const InvestorsPage = memo(() => {
   );
 });
 InvestorsPage.displayName = "InvestorsPage";
-
-export const HumanRightsPage = memo(() => {
-  const tab = getCompanySubtab('company-human-rights');
-  return (
-    <>
-      <div id="hr-overview">
-        <PageHero {...tab.hero!} />
-      </div>
-      <BlocksStyles />
-      <HumanRightsStyles />
-
-      <ContentSection
-        id="hr-commitment"
-        title="Rights treated as an engineering requirement"
-        subtitle="We build systems for mission-critical operations — healthcare delivery and national defense — where failure or misuse falls on human lives. So we treat respect for human rights as a requirement of equal rank to safety and security, grounded in the world's recognized standards."
-      >
-        <FrameworkSwitcher />
-      </ContentSection>
-
-      <ContentSection
-        id="hr-focus"
-        title="A heightened standard in critical systems"
-        subtitle="Our work concentrates in two domains where potential impacts are most severe: systems that touch patients, and systems that touch the use of force. Both carry earlier review, stricter controls, and more conservative defaults."
-      >
-        <FocusDuo />
-      </ContentSection>
-
-      <ContentSection
-        id="hr-red-lines"
-        title="What we will not do"
-        subtitle="Some engagements we decline outright, regardless of commercial value. These limits admit no exceptions."
-      >
-        <RedLinesList />
-      </ContentSection>
-
-      <ContentSection
-        id="hr-accountability"
-        title="Diligence, design, and remedy"
-        subtitle="Our commitments are enforced through a continuing due-diligence cycle, safeguards engineered into the systems themselves, board-level oversight, and an open channel for anyone affected by our work."
-      >
-        <AccountabilityStepper />
-      </ContentSection>
-
-      <ContentSection
-        id="hr-learn-more"
-        title="Read the full policy"
-        subtitle="This is an overview. The complete NR Human Rights Policy — every commitment, red line, and grievance mechanism — lives in our Information Central."
-      >
-        <CtaLink href="/information/legals/human-rights" label="Learn more" icon="bi-arrow-right" />
-      </ContentSection>
-    </>
-  );
-});
-HumanRightsPage.displayName = "HumanRightsPage";

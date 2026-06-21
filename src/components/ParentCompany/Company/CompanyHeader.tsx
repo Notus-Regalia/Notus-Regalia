@@ -1,117 +1,241 @@
 "use client";
 
-import { memo, useEffect, useState } from "react";
-import { StarfieldBackground } from "@/components/ui/starfield-background"; // adjust path if needed
+import { memo, useCallback, useRef } from "react";
+import { StarfieldBackground } from "@/components/ui/starfield-background";
+import { ScrollSmoother } from "gsap/ScrollSmoother";
+import { useReveal } from "@/hooks/useScrollReveal";
+import { trackBrandGlow } from "./subpages/blocks";
 
-const PHRASES = ["Manila, Philippines.", "14.5995° N, 120.9842° E"];
-const TYPING_SPEED = 100;    // ms per character typed
-const DELETING_SPEED = 60;  // ms per character deleted
-const PAUSE_AFTER_TYPE = 2500; // ms to pause after fully typed
-const PAUSE_AFTER_DELETE = 600; // ms to pause after fully deleted
+/* ─────────────────────────────────────────────────────────────
+   About Us — full modern hero.
 
-function useTypingLoop(phrases: string[]) {
-  const [displayed, setDisplayed] = useState("");
-  const [phraseIndex, setPhraseIndex] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
+   Replaces the old "NOTUS REGALIA + Manila typing" banner with a
+   text-forward hero: eyebrow chip, headline, supporting line and a
+   CTA, over an elevated starfield (crimson ambient glow, vignette,
+   faint grid, and a bottom fade that blends into the company panel).
+   ───────────────────────────────────────────────────────────── */
 
-  useEffect(() => {
-    const current = phrases[phraseIndex];
-
-    if (!isDeleting && displayed === current) {
-      // Fully typed — pause then start deleting
-      const timeout = setTimeout(() => setIsDeleting(true), PAUSE_AFTER_TYPE);
-      return () => clearTimeout(timeout);
-    }
-
-    if (isDeleting && displayed === "") {
-      // Fully deleted — pause then move to next phrase
-      const timeout = setTimeout(() => {
-        setIsDeleting(false);
-        setPhraseIndex((i) => (i + 1) % phrases.length);
-      }, PAUSE_AFTER_DELETE);
-      return () => clearTimeout(timeout);
-    }
-
-    const speed = isDeleting ? DELETING_SPEED : TYPING_SPEED;
-    const timeout = setTimeout(() => {
-      setDisplayed(
-        isDeleting ? current.slice(0, displayed.length - 1) : current.slice(0, displayed.length + 1)
-      );
-    }, speed);
-
-    return () => clearTimeout(timeout);
-  }, [displayed, isDeleting, phraseIndex, phrases]);
-
-  return displayed;
-}
+const NAVBAR_OFFSET = 96; // fixed navbar (~84px) + breathing room
 
 const CompanyHeader = memo(() => {
-  const typedText = useTypingLoop(PHRASES);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  const eyebrowReveal = useReveal("fade-up", { threshold: 0.2, duration: 700 });
+  const titleReveal = useReveal("fade-up", { threshold: 0.2, duration: 800, cssDelay: 100 });
+  const subReveal = useReveal("fade-up", { threshold: 0.2, duration: 800, cssDelay: 220 });
+  const ctaReveal = useReveal("fade-up", { threshold: 0.2, duration: 800, cssDelay: 340 });
+
+  /* Scroll past the hero into the company profile panel below it. */
+  const scrollToContent = useCallback(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const target = el.getBoundingClientRect().bottom + window.scrollY - NAVBAR_OFFSET;
+    const sm = typeof window !== "undefined" ? ScrollSmoother.get?.() : null;
+    if (sm) sm.scrollTo(target, true);
+    else window.scrollTo({ top: target, behavior: "smooth" });
+  }, []);
 
   return (
-    <section className="relative" style={{ marginBottom: 0 }}>
+    <section
+      ref={sectionRef}
+      className="relative"
+      style={{ marginBottom: 0, background: "#000000" }}
+    >
       <div
         className="relative flex items-center justify-center overflow-hidden"
         style={{
-          height: "clamp(340px, 48vh, 520px)",
+          minHeight: "clamp(560px, 92vh, 860px)",
           // Clear the fixed navbar (~84px) + subtab strip (~50px).
-          paddingTop: "clamp(132px, 16vh, 172px)",
+          paddingTop: "clamp(140px, 16vh, 180px)",
+          paddingBottom: "clamp(3rem, 8vh, 6rem)",
         }}
       >
         <StarfieldBackground
           position="absolute"
-          count={300}
+          count={320}
           speed={0.4}
           starColor="#ffffff"
           twinkle={true}
         />
 
-        <div className="relative z-10 flex flex-col items-center gap-3">
-          <h1
-            className="select-none text-4xl font-bold tracking-[0.35em] sm:text-5xl md:text-6xl lg:text-7xl"
+        {/* ── Faint perspective grid ── */}
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            backgroundImage:
+              "repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 96px)," +
+              "repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 96px)",
+            backgroundSize: "96px 96px",
+            backgroundPosition: "center",
+            maskImage:
+              "radial-gradient(ellipse 70% 60% at center, #000 35%, transparent 80%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 70% 60% at center, #000 35%, transparent 80%)",
+            opacity: 0.6,
+          }}
+        />
+
+        {/* ── Crimson ambient glow ── */}
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: "8%",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "min(900px, 90vw)",
+            height: "min(900px, 90vw)",
+            pointerEvents: "none",
+            background:
+              "radial-gradient(circle, rgba(229,43,80,0.20) 0%, rgba(229,43,80,0.06) 38%, transparent 68%)",
+            filter: "blur(8px)",
+          }}
+        />
+
+        {/* ── Vignette + bottom fade into the next section ── */}
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+            background:
+              "radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.55) 100%)," +
+              "linear-gradient(180deg, rgba(0,0,0,0.35) 0%, transparent 22%, transparent 70%, #000000 100%)",
+          }}
+        />
+
+        {/* ── Content ── */}
+        <div className="relative z-10 flex flex-col items-center px-6" style={{ maxWidth: "920px" }}>
+          {/* Eyebrow chip */}
+          <span
+            ref={eyebrowReveal.ref}
             style={{
+              display: "inline-flex",
+              alignItems: "center",
+              padding: "0.2rem 0.55rem",
+              borderRadius: "2px",
+              border: "1px solid rgba(255,255,255,0.14)",
+              background: "#141414", /* onyx black — matches .release-tag */
+              fontFamily: "ui-monospace, Menlo, monospace",
+              fontSize: "0.7rem",
+              fontWeight: 700,
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+              color: "#f1f5f9",
+              ...eyebrowReveal.style,
+            }}
+          >
+            Who we are
+          </span>
+
+          {/* Headline */}
+          <h1
+            ref={titleReveal.ref}
+            className="select-none text-center font-bold"
+            style={{
+              margin: "1.4rem 0 0",
+              fontSize: "clamp(2.5rem, 7vw, 5rem)",
+              lineHeight: 1.04,
+              letterSpacing: "-0.03em",
               background:
-                "linear-gradient(180deg, #ffffff 0%, #b0b0b0 40%, #8a8a8a 70%, #a0a0a0 100%)",
+                "linear-gradient(180deg, #ffffff 0%, #d8d8de 46%, #9a9aa2 100%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               backgroundClip: "text",
-              textAlign: "center",
+              ...titleReveal.style,
             }}
           >
-            NOTUS REGALIA
+            Building the systems
+            <br />
+            our world{" "}
+            <span
+              style={{
+                background:
+                  "linear-gradient(180deg, #ff5e7e 0%, #E52B50 60%, #b01038 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              depends on
+            </span>
+            .
           </h1>
 
+          {/* Supporting line */}
           <p
-            className="select-none font-mono text-xs tracking-[0.15em] sm:text-sm"
-            style={{ color: "rgba(180,180,190,0.7)" }}
+            ref={subReveal.ref}
+            className="select-none text-center"
+            style={{
+              margin: "1.6rem 0 0",
+              maxWidth: "620px",
+              fontSize: "clamp(1rem, 1.6vw, 1.18rem)",
+              lineHeight: 1.65,
+              color: "rgba(190,190,200,0.82)",
+              ...subReveal.style,
+            }}
           >
-            Based in{" "}
-            <span
-              style={{ color: "rgba(220,220,230,0.9)" }}
-              aria-label="Location"
-            >
-              {typedText}
-              {/* Blinking cursor */}
-              <span
-                style={{
-                  display: "inline-block",
-                  width: "1px",
-                  height: "1em",
-                  backgroundColor: "rgba(220,220,230,0.8)",
-                  marginLeft: "2px",
-                  verticalAlign: "text-bottom",
-                  animation: "blink 1s step-end infinite",
-                }}
-              />
-            </span>
+            Notus Regalia engineers mission-critical systems across defense,
+            healthcare, and the public sector — built for the moments that
+            cannot fail.
           </p>
+
+          {/* CTA */}
+          <div
+            ref={ctaReveal.ref}
+            style={{ marginTop: "2.2rem", display: "flex", ...ctaReveal.style }}
+          >
+            <button
+              type="button"
+              className="brand-btn"
+              onClick={scrollToContent}
+              onMouseMove={trackBrandGlow}
+            >
+              <span>Explore the company</span>
+              <i className="bi bi-arrow-down" />
+            </button>
+          </div>
         </div>
+
+        {/* ── Scroll cue ── */}
+        <button
+          type="button"
+          aria-label="Scroll to company profile"
+          onClick={scrollToContent}
+          style={{
+            position: "absolute",
+            bottom: "clamp(1.5rem, 4vh, 2.5rem)",
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 10,
+            display: "inline-flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: "0.4rem",
+            background: "transparent",
+            border: 0,
+            cursor: "pointer",
+            color: "rgba(190,190,200,0.55)",
+            fontFamily: "var(--font-mono, monospace)",
+            fontSize: "0.62rem",
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            animation: "heroScrollBob 2.4s ease-in-out infinite",
+          }}
+        >
+          Scroll
+          <i className="bi bi-chevron-double-down" style={{ fontSize: "0.85rem" }} />
+        </button>
       </div>
 
       <style>{`
-        @keyframes blink {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0; }
+        @keyframes heroScrollBob {
+          0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.55; }
+          50% { transform: translateX(-50%) translateY(6px); opacity: 1; }
         }
       `}</style>
     </section>

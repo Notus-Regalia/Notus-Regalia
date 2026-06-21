@@ -57,6 +57,7 @@ interface NavItem {
   label: string;
   icon: string;
   isSpecial?: boolean;
+  external?: string;   // when set, the tab opens this URL in a new tab
   subtabs?: SubtabItem[];
 }
 
@@ -91,6 +92,13 @@ const NAV_ITEMS: NavItem[] = [
       { id: 'technologies-enterprise',       label: 'Enterprise' },
       { id: 'technologies-energy',           label: 'Energy' },
     ],
+  },
+  {
+    id: 'news',
+    label: 'News',
+    icon: 'bi-broadcast',
+    // Opens the Information Central in a new tab instead of an in-app view.
+    external: '/information',
   },
 ];
 
@@ -591,6 +599,9 @@ const Navbar = ({
   const isProgrammaticScrollRef  = useRef(false);
   const programmaticScrollTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [companyDetailOpen, setCompanyDetailOpen] = useState(false);
+  // Active inline executive profile — when set, the company strip shows a
+  // single "Executives › <name>" breadcrumb instead of the subtab nav.
+  const [companyExecutive, setCompanyExecutive] = useState<{ name: string; slug: string } | null>(null);
 
   // ── Hover preview: peek a tab's subtab strip and blur the page behind ──
   const [previewTab, setPreviewTab] = useState<string | null>(null);
@@ -636,6 +647,35 @@ const Navbar = ({
     return () => window.removeEventListener('company-detail', handler);
   }, []);
 
+  // ── Listen for inline executive profile events ──
+  // Opening forces the executive breadcrumb layer; closing (true→false) returns
+  // the strip to the subtab nav so the Executives page pill is active again.
+  const execWasOpenRef = useRef(false);
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const d = (e as CustomEvent).detail ?? {};
+      const open = !!d.open;
+      setCompanyExecutive(open ? { name: d.name ?? '', slug: d.slug ?? '' } : null);
+      if (!open && execWasOpenRef.current) {
+        setStripMode('nav');
+        setModeEpoch(n => n + 1);
+      }
+      execWasOpenRef.current = open;
+    };
+    window.addEventListener('company-executive', handler);
+    return () => window.removeEventListener('company-executive', handler);
+  }, []);
+
+  // Synthetic subtab feeding the executive breadcrumb layer: anchor reads
+  // "Executives", the single crumb is the executive's name.
+  const executiveCrumbSubtab = useMemo<CompanySubtab>(() => ({
+    id: 'company-executives',
+    label: 'Executives',
+    sections: companyExecutive
+      ? [{ id: `executive:${companyExecutive.slug}`, label: companyExecutive.name }]
+      : [],
+  }), [companyExecutive]);
+
   // ── Collapse / show nav ──
   const handleCollapseNav = useCallback(() => {
     setNavCollapsed(true);
@@ -655,7 +695,7 @@ const Navbar = ({
     navCollapsedRef.current = false;
   }, []);
 
-  // The Seraph assistant ("Lock navigation" action) collapses the nav via event.
+  // The Sefirah assistant ("Lock navigation" action) collapses the nav via event.
   useEffect(() => {
     const onCollapse = () => handleCollapseNav();
     window.addEventListener('nav-collapse', onCollapse);
@@ -887,6 +927,12 @@ const Navbar = ({
   // ── Tab label click ──
   // Main-tab switches just fade; instant scroll-to-top happens while content is invisible
   const handleTabClick = useCallback((tabId: string) => {
+    // External tabs (e.g. News → Information Central) just open a link.
+    const navItem = NAV_ITEMS.find(i => i.id === tabId);
+    if (navItem?.external) {
+      window.open(navItem.external, '_blank', 'noopener,noreferrer');
+      return;
+    }
     // Re-clicking the already-active Company tab forces the main subtab strip
     // (closes any open breadcrumbs) back to the active-page pill.
     if (tabId === 'company' && activeTab === 'company') {
@@ -1033,14 +1079,14 @@ const Navbar = ({
     }
   }, [setActiveTab, onSubtabClick, setNavProgress, syncNavProgressFor]);
 
-  // Seraph assistant search → reuse the same in-app navigation as ⌘K.
+  // Sefirah assistant search → reuse the same in-app navigation as ⌘K.
   useEffect(() => {
     const onNavigate = (e: Event) => {
       const d = (e as CustomEvent).detail as { tabId: string; subtabId?: string };
       if (d?.tabId) handleSearchNavigate(d.tabId, d.subtabId);
     };
-    window.addEventListener('seraph-navigate', onNavigate);
-    return () => window.removeEventListener('seraph-navigate', onNavigate);
+    window.addEventListener('sefirah-navigate', onNavigate);
+    return () => window.removeEventListener('sefirah-navigate', onNavigate);
   }, [handleSearchNavigate]);
 
   // ── Mobile sidebar ──
@@ -1049,6 +1095,12 @@ const Navbar = ({
   const toggleMobileTab = useCallback((id: string) => setMobileExpandedTab(p => p === id ? null : id), []);
 
   const handleMobileTabClick = useCallback((tabId: string) => {
+    const navItem = NAV_ITEMS.find(i => i.id === tabId);
+    if (navItem?.external) {
+      window.open(navItem.external, '_blank', 'noopener,noreferrer');
+      setMobileOpen(false); setMobileExpandedTab(null);
+      return;
+    }
     setActiveTab(tabId); setMobileOpen(false); setMobileExpandedTab(null);
     setNavProgress(0);
     setTimeout(() => {
@@ -1214,9 +1266,12 @@ const Navbar = ({
                       <button
                         className={`tab-label-btn${active ? ' is-active' : ''}`}
                         onClick={() => handleTabClick(item.id)}
-                        style={labelFontStyle}
+                        style={item.external
+                          ? { ...labelFontStyle, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }
+                          : labelFontStyle}
                       >
                         {item.label}
+                        {item.external && <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.7rem' }} />}
                       </button>
 
                       {hasSubtabs && (
@@ -1258,11 +1313,11 @@ const Navbar = ({
         >
           <div className="subtab-strip-clip">
             <div
-              className={`subtab-strip-inner company-strip${stripMode === 'crumbs' && !companyDetailOpen ? ' mode-crumbs' : ''}`}
+              className={`subtab-strip-inner company-strip${(stripMode === 'crumbs' && !companyDetailOpen) || companyExecutive ? ' mode-crumbs' : ''}`}
               style={{ position: 'relative' }}
             >
                 {/* Layer 1: "Return to Previous Page" — visible when detail open */}
-                <div className={`strip-crossfade-layer ${companyDetailOpen ? 'strip-layer-visible' : 'strip-layer-hidden'}`}>
+                <div className={`strip-crossfade-layer ${companyDetailOpen && !companyExecutive ? 'strip-layer-visible' : 'strip-layer-hidden'}`}>
                   <div className="strip-tabs-track">
                     <button
                       className="strip-tab strip-tab-active"
@@ -1283,8 +1338,10 @@ const Navbar = ({
                 </div>
                 {/* Layer 2: main subtab navigation */}
                 <CompanyNavLayer
-                  visible={!companyDetailOpen && (companyPreviewOnly || stripMode === 'nav')}
-                  activeSubtabId={companySubtab.id}
+                  visible={!companyDetailOpen && !companyExecutive && (companyPreviewOnly || stripMode === 'nav')}
+                  // While only peeking the Company strip from another tab, no page
+                  // is actually active — don't light up the default "About Us" pill.
+                  activeSubtabId={companyPreviewOnly ? '' : companySubtab.id}
                   onNavigate={handleCompanyNavigate}
                   onExpandCrumbs={toggleStripMode}
                   onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
@@ -1293,11 +1350,23 @@ const Navbar = ({
                 />
                 {/* Layer 3: breadcrumbs of the active standalone page */}
                 <CompanyCrumbsLayer
-                  visible={!companyDetailOpen && !companyPreviewOnly && stripMode === 'crumbs'}
+                  visible={!companyDetailOpen && !companyExecutive && !companyPreviewOnly && stripMode === 'crumbs'}
                   subtab={companySubtab}
                   activeSectionId={scrollSpySection}
                   onCrumbClick={handleCrumbClick}
                   onShowNav={toggleStripMode}
+                  onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
+                  isMobile={isMobile}
+                />
+                {/* Layer 4: inline executive profile breadcrumb.
+                    The anchor's "×" closes the profile and returns to the
+                    Executives page. */}
+                <CompanyCrumbsLayer
+                  visible={!!companyExecutive}
+                  subtab={executiveCrumbSubtab}
+                  activeSectionId={executiveCrumbSubtab.sections?.[0]?.id ?? null}
+                  onCrumbClick={() => {}}
+                  onShowNav={() => window.dispatchEvent(new CustomEvent('company-executive-back'))}
                   onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
                   isMobile={isMobile}
                 />
@@ -1374,6 +1443,7 @@ const Navbar = ({
                 >
                   <span className="mob-tab-left">
                     {item.label}
+                    {item.external && <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.7rem', marginLeft: '0.4rem' }} />}
                   </span>
                   {hasSubtabs && (
                     <i className={`bi bi-chevron-right mob-tab-chevron${isTabExpanded ? ' open' : ''}`} />

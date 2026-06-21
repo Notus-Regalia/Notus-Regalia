@@ -49,6 +49,11 @@ export interface FounderEducation {
 
 export interface Founder {
   id: string;
+  /** URL slug for the dedicated executive page, e.g. /company/executives/<slug> */
+  slug: string;
+  /** When false, the dedicated page renders a "Coming Soon" state and is kept
+   *  out of search (noindex, excluded from the sitemap). */
+  published: boolean;
   codename: string;
   name: string;
   title: string;
@@ -72,12 +77,14 @@ export interface CompanyStat {
 export const FOUNDERS: Founder[] = [
   {
     id: 'F-001',
+    slug: 'jansen-jekk-tesnado',
+    published: true,
     codename: 'Alpha',
     name: 'Jansen Jekk Tesnado',
     title: 'Founder & CEO',
     role: 'Governance, Systems Architecture & Engineering',
-    src: '/assets/Founder-1.jpg',
-    bio: "Leading Notus Regalia with an unwavering focus on long-term vision and strategic direction. Responsible for shaping the organizational culture and ensuring every unit operates in alignment with the company's core mission.",
+    src: '/assets/jansen-jekk-tesnado.jpg',
+    bio: "Jansen Jekk Tesnado is the founder and chief executive of Notus Regalia, the technology holding and venture-building company he established in 2025 while still an Information Technology undergraduate. He leads the company's governance, systems architecture, and engineering — setting its long-term direction and building the shared technical backbone its ventures run on. Drawn early to the conviction that the people closest to a problem should own its solution, he turned a student-led initiative into a founder-operator platform working across government, defense, healthcare, enterprise, and energy. Today he focuses on shaping the organization's culture and ensuring every unit operates in alignment with its core mission.",
     since: '2025',
     linkedin: 'https://www.linkedin.com/in/jansenjekk',
     instagram: '#',
@@ -89,6 +96,8 @@ export const FOUNDERS: Founder[] = [
   },
   {
     id: 'F-002',
+    slug: 'kenneth-tomaniog',
+    published: false,
     codename: 'Beta',
     name: 'Kenneth Tomaniog',
     title: 'Founder & Lead Engineer',
@@ -106,6 +115,8 @@ export const FOUNDERS: Founder[] = [
   },
   {
     id: 'F-003',
+    slug: 'alyanna-ricci-evangelista',
+    published: false,
     codename: 'Delta',
     name: 'Alyanna Ricci Evangelista',
     title: 'Founder & Engineer',
@@ -123,6 +134,8 @@ export const FOUNDERS: Founder[] = [
   },
   {
     id: 'F-004',
+    slug: 'andrei-brent-bangajo',
+    published: false,
     codename: 'Epsilon',
     name: 'Andrei Brent Bangajo',
     title: 'Founder & Engineer',
@@ -139,6 +152,13 @@ export const FOUNDERS: Founder[] = [
     ],
   },
 ];
+
+/** Look up an executive by their URL slug. */
+export const getFounderBySlug = (slug: string): Founder | undefined =>
+  FOUNDERS.find(f => f.slug === slug);
+
+/** Build the dedicated executive page path for a founder. */
+export const executiveHref = (slug: string): string => `/company/executives/${slug}`;
 
 export const COMPANY_STATS: CompanyStat[] = [
   { value: '4',  accent: true,  label: 'Founders'      },

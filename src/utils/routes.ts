@@ -7,10 +7,10 @@
    the single source of truth for translating between the in-app
    tab/subtab ids and the clean path URLs the address bar shows.
 
-     Root SPA:     /company/sectors        <-> tab=company,  subtab=company-sectors
+     Root SPA:     /company/executives     <-> tab=company,  subtab=company-executives
      Info Central:  /information/newsroom/releases <-> tab=newsroom, subtab=releases
 
-   Root subtab ids carry a redundant "<tab>-" prefix (e.g. company-sectors);
+   Root subtab ids carry a redundant "<tab>-" prefix (e.g. company-executives);
    it is stripped for the URL slug and re-added when parsing back.
    ───────────────────────────────────────────────────────────── */
 

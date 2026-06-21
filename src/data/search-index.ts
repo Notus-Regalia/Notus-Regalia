@@ -1,5 +1,5 @@
 // Shared site search index + scoring. Consumed by the SearchModal (⌘K) and the
-// Seraph assistant panel so both stay in sync.
+// Sefirah assistant panel so both stay in sync.
 
 export interface SectionItem {
   label: string;

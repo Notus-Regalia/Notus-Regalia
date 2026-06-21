@@ -139,7 +139,7 @@ export default function FaqSection() {
           position: relative;
           background: var(--gradient-section, #0a0a0a);
           color: var(--content-primary, #f1f5f9);
-          /* horizontal gutters match HeroSection: px-8 lg:px-14 xl:px-20 */
+          /* horizontal gutter matches the site standard (--site-gutter-inline) */
           --faq-pad-x: 2rem; --faq-pad-y: 7rem;
           padding: var(--faq-pad-y) var(--faq-pad-x);
           font-family: 'Inter', system-ui, sans-serif;
@@ -152,9 +152,10 @@ export default function FaqSection() {
           --faq-frame-dash: rgba(255,255,255,0.12);
           --faq-frame-mark: rgba(255,255,255,0.6);
         }
-        @media(min-width:768px){ .faq-root { --faq-pad-y: 9rem; } }
-        @media(min-width:1024px){ .faq-root { --faq-pad-x: 3.5rem; } }
-        @media(min-width:1280px){ .faq-root { --faq-pad-x: 5rem; } }
+        @media(min-width:640px){ .faq-root { --faq-pad-x: 4rem; } }
+        @media(min-width:768px){ .faq-root { --faq-pad-y: 9rem; --faq-pad-x: 6rem; } }
+        @media(min-width:1280px){ .faq-root { --faq-pad-x: 8rem; } }
+        @media(min-width:1536px){ .faq-root { --faq-pad-x: 12rem; } }
 
         .faq-inner { position: relative; z-index: 1; width: 100%; }
         /* Two columns on desktop: title (left) + accordions (right) */
@@ -186,30 +187,16 @@ export default function FaqSection() {
           .faq-head { text-align: left; margin-bottom: 0; align-self: stretch; }
           .faq-head-inner { position: sticky; top: 6rem; }
         }
-        /* ── Title — "tahoe glass" shimmer text (from the pixel hero) ── */
+        /* ── Title — clean, single-style heading ── */
         .faq-title {
           display: block;
+          font-family: 'Inter', system-ui, sans-serif;
           font-size: clamp(2.2rem, 5vw, 3.4rem);
-          line-height: 1.0;
+          line-height: 1.1;
           letter-spacing: -0.02em;
-          color: transparent;
-          background: linear-gradient(135deg,
-            rgba(255,255,255,1) 0%, rgba(255,255,255,0.4) 25%, rgba(255,255,255,0.1) 45%,
-            rgba(255,255,255,0.9) 55%, rgba(255,255,255,0.2) 75%, rgba(255,255,255,1) 100%);
-          background-size: 200% auto;
-          -webkit-background-clip: text; background-clip: text;
-          -webkit-text-stroke: 1px rgba(255,255,255,0.28);
-          filter: drop-shadow(0 12px 28px rgba(0,0,0,0.4)) drop-shadow(0 4px 8px rgba(0,0,0,0.2));
-          animation: faqShimmer 8s linear infinite;
+          font-weight: 600;
+          color: var(--content-primary, #ffffff);
         }
-        @keyframes faqShimmer {
-          0%   { background-position: 200% center; }
-          100% { background-position: 0% center; }
-        }
-        @media (prefers-reduced-motion: reduce) { .faq-title { animation: none; } }
-        /* same two-tone font design as the hero: serif italic + extrabold sans */
-        .faq-w1 { display: block; font-family: ui-serif, Georgia, 'Times New Roman', serif; font-style: italic; font-weight: 500; }
-        .faq-w2 { display: block; font-family: 'Inter', system-ui, sans-serif; font-weight: 800; letter-spacing: -0.03em; }
         .faq-subtitle {
           margin-top: 1.1rem;
           font-size: clamp(0.95rem, 2vw, 1.05rem);
@@ -347,10 +334,7 @@ export default function FaqSection() {
               </div>
             )}
             <div className="faq-head-inner">
-              <h2 className="faq-title">
-                <span className="faq-w1">Frequently Asked</span>
-                <span className="faq-w2">Questions</span>
-              </h2>
+              <h2 className="faq-title">Frequently Asked Questions</h2>
               <p className="faq-subtitle">
                 Everything you need to know about how Notus Regalia builds, funds, and operates.
               </p>

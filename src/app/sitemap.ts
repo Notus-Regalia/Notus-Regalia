@@ -17,6 +17,8 @@ const ROUTES: [string, number][] = [
   ['/company/about', 0.8],
   ['/company/sectors', 0.8],
   ['/company/executives', 0.7],
+  // Only published executive profiles are indexable (see Company-data FOUNDERS).
+  ['/company/executives/jansen-jekk-tesnado', 0.6],
   ['/company/investors', 0.7],
   ['/company/human-rights', 0.6],
 

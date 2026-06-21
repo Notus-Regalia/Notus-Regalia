@@ -88,12 +88,12 @@ export default function SitemapPage() {
 
           {/* Right — logo above powered-by */}
           <div className="flex flex-col items-end gap-3">
-            <Image src="/assets/seraph-logo.png" alt="Seraph" width={68} height={40} style={{ objectFit: 'contain' }} />
+            <Image src="/assets/sefirah-logo.png" alt="Sefirah" width={68} height={40} style={{ objectFit: 'contain' }} />
             <span
               className="inline-flex items-center gap-1.5 select-none text-xs uppercase"
               style={{ letterSpacing: '0.18em', color: 'var(--content-faint, rgba(160,160,170,0.5))' }}
             >
-              Powered by <span style={{ fontWeight: 600, color: '#ffffff' }}>Seraph</span>
+              Powered by <span style={{ fontWeight: 600, color: '#ffffff' }}>Sefirah</span>
             </span>
           </div>
         </div>

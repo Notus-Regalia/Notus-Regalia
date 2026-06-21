@@ -1,14 +1,16 @@
 "use client";
 import { useState, useEffect, useRef, useCallback } from 'react';
 import DetailView from './details';
+import ExecutiveProfile from './ExecutiveProfile';
+import ExecutiveComingSoon from './ExecutiveComingSoon';
 import {
-  SectorsPage,
   AboutCompanyPage,
   ExecutivesPage,
   InvestorsPage,
-  HumanRightsPage,
 } from './subpages/pages';
 import { getCompanySubtab } from '@/data/company-nav';
+import { getFounderBySlug, executiveHref } from '@/data/Company-data';
+import { rootHref } from '@/utils/routes';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 
 /* ── Transition timings (ms) ── */
@@ -25,6 +27,10 @@ const Company = ({ activeSubtab }: CompanyProps) => {
 
   const [displayedSubtab, setDisplayedSubtab] = useState(targetSubtab);
   const [detailPage, setDetailPage] = useState<string | null>(null);
+  /* Slug of the executive whose dedicated profile replaces the Executives page. */
+  const [executiveSlug, setExecutiveSlug] = useState<string | null>(null);
+  const executiveSlugRef = useRef<string | null>(null);
+  executiveSlugRef.current = executiveSlug;
 
   /* Phase: 'idle' → 'fade-out' → swap → 'fade-in' → 'idle' */
   const [phase, setPhase] = useState<'idle' | 'fade-out' | 'fade-in'>('idle');
@@ -68,6 +74,7 @@ const Company = ({ activeSubtab }: CompanyProps) => {
     runTransition(() => {
       setDisplayedSubtab(targetSubtab);
       setDetailPage(null);
+      setExecutiveSlug(null);
     });
   }, [targetSubtab, displayedSubtab, detailPage, phase, runTransition]);
 
@@ -79,6 +86,65 @@ const Company = ({ activeSubtab }: CompanyProps) => {
   const closeDetail = useCallback(() => {
     runTransition(() => setDetailPage(null));
   }, [runTransition]);
+
+  /* ── Executive profile actions ──
+     A profile replaces the entire Executives page in place (no full navigation),
+     and the navbar strip swaps to a breadcrumb for the selected executive. The
+     address bar is kept in sync (/company/executives/<slug>) for SEO and so the
+     URL is shareable — without leaving the SPA. */
+  const openExecutive = useCallback((slug: string) => {
+    if (slug === executiveSlugRef.current) return;
+    runTransition(() => setExecutiveSlug(slug));
+    window.history.pushState(null, '', executiveHref(slug));
+  }, [runTransition]);
+
+  const closeExecutive = useCallback(() => {
+    if (!executiveSlugRef.current) return;
+    runTransition(() => setExecutiveSlug(null));
+    window.history.pushState(null, '', rootHref('company', 'company-executives'));
+  }, [runTransition]);
+
+  // An Executives card / "View Profile" left-click opens the profile inline.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const slug = (e as CustomEvent).detail?.slug as string | undefined;
+      if (slug) openExecutive(slug);
+    };
+    window.addEventListener('executive-open', handler);
+    return () => window.removeEventListener('executive-open', handler);
+  }, [openExecutive]);
+
+  // Direct load + browser back/forward: sync the profile to the path without
+  // re-pushing. /company/executives/<slug> → open that profile; else → close.
+  useEffect(() => {
+    const syncFromPath = (animate: boolean) => {
+      const segs = window.location.pathname.replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
+      const slug = segs[0] === 'company' && segs[1] === 'executives' && segs[2] ? segs[2] : null;
+      const next = slug && getFounderBySlug(slug) ? slug : null;
+      if (next === executiveSlugRef.current) return;
+      if (animate) runTransition(() => setExecutiveSlug(next));
+      else setExecutiveSlug(next);
+    };
+    syncFromPath(false); // initial: open instantly if landed on a profile URL
+    const onPop = () => syncFromPath(true);
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, [runTransition]);
+
+  // Tell the navbar to swap its strip to the executive breadcrumb (and back).
+  useEffect(() => {
+    const founder = executiveSlug ? getFounderBySlug(executiveSlug) : null;
+    window.dispatchEvent(new CustomEvent('company-executive', {
+      detail: { open: !!founder, name: founder?.name ?? '', slug: executiveSlug },
+    }));
+  }, [executiveSlug]);
+
+  // Closing the breadcrumb returns to the Executives main page.
+  useEffect(() => {
+    const handler = () => closeExecutive();
+    window.addEventListener('company-executive-back', handler);
+    return () => window.removeEventListener('company-executive-back', handler);
+  }, [closeExecutive]);
 
   // Dispatch navbar events when detail state changes
   useEffect(() => {
@@ -96,11 +162,11 @@ const Company = ({ activeSubtab }: CompanyProps) => {
   useEffect(() => {
     const handler = (e: Event) => {
       const { tab } = (e as CustomEvent).detail;
-      if (tab === 'company') closeDetail();
+      if (tab === 'company') { closeDetail(); closeExecutive(); }
     };
     window.addEventListener('tab-reset', handler);
     return () => window.removeEventListener('tab-reset', handler);
-  }, [closeDetail]);
+  }, [closeDetail, closeExecutive]);
 
   /* ── Transition style ── */
   const wrapStyle: React.CSSProperties = {
@@ -113,6 +179,19 @@ const Company = ({ activeSubtab }: CompanyProps) => {
         : 'none',
   };
 
+  if (executiveSlug) {
+    const founder = getFounderBySlug(executiveSlug);
+    if (founder) {
+      return (
+        <div style={{ paddingTop: 'env(safe-area-inset-top)', ...wrapStyle }}>
+          {founder.published
+            ? <ExecutiveProfile founder={founder} onBack={closeExecutive} />
+            : <ExecutiveComingSoon name={founder.name} title={founder.title} onBack={closeExecutive} />}
+        </div>
+      );
+    }
+  }
+
   if (detailPage) {
     return (
       <div style={wrapStyle}>
@@ -123,10 +202,8 @@ const Company = ({ activeSubtab }: CompanyProps) => {
 
   const renderPage = () => {
     switch (displayedSubtab) {
-      case 'company-sectors':      return <SectorsPage />;
       case 'company-executives':   return <ExecutivesPage />;
       case 'company-investors':    return <InvestorsPage />;
-      case 'company-human-rights': return <HumanRightsPage />;
       case 'company-about':
       default:                     return <AboutCompanyPage onLearnMore={openDetail} />;
     }

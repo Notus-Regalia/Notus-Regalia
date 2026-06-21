@@ -5,10 +5,12 @@ import MainContent from './MainContent';
 import Footer from './Footer';
 import LoadingScreen from './LoadingScreen';
 import CookieBanner from './CookieBanner';
-import SeraphAssistant from './SeraphAssistant';
+import SefirahAssistant from './SefirahAssistant';
+import SefirahTutorial from './SefirahTutorial';
 import SmoothScroller from './SmoothScroller';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { DEFAULT_SUBTABS, isRootTab, parseRootPath, rootHref, type RootTab } from '@/utils/routes';
+import { hasConsentDecision, CONSENT_EVENT } from '@/utils/consent';
 
 const gsapScrollToTop = (smooth = true) => {
   const sm = typeof window !== 'undefined' ? ScrollSmoother.get?.() : null;
@@ -22,9 +24,39 @@ const ClientWrapper = () => {
   const [activeTab, setActiveTab]               = useState<TabType>('home');
   const [activeSubtab, setActiveSubtab]         = useState<string | undefined>(undefined);
   const [loading, setLoading]                   = useState(true);
+  const [showTutorial, setShowTutorial]         = useState(false);
+
+  const TUTORIAL_KEY = 'nr-sefirah-tutorial-seen';
 
   const handleLoadingComplete = useCallback(() => {
     setLoading(false);
+  }, []);
+
+  // First-time visitors get the guided Sefirah intro — but only after loading
+  // finishes AND the cookie banner is resolved, so the two never overlap.
+  useEffect(() => {
+    if (loading) return;
+    let seen = false;
+    try { seen = localStorage.getItem(TUTORIAL_KEY) === '1'; } catch { /* private mode */ }
+    if (seen) return;
+
+    let timer: ReturnType<typeof setTimeout>;
+    // Let the orb pop in and dock before spotlighting it.
+    const arm = () => { timer = setTimeout(() => setShowTutorial(true), 700); };
+
+    if (hasConsentDecision()) {
+      arm();
+      return () => clearTimeout(timer);
+    }
+    // Cookie banner is up — wait for the user's choice, then introduce Sefirah.
+    const onConsent = () => arm();
+    window.addEventListener(CONSENT_EVENT, onConsent, { once: true });
+    return () => { window.removeEventListener(CONSENT_EVENT, onConsent); clearTimeout(timer); };
+  }, [loading]);
+
+  const dismissTutorial = useCallback(() => {
+    setShowTutorial(false);
+    try { localStorage.setItem(TUTORIAL_KEY, '1'); } catch { /* private mode */ }
   }, []);
 
   // Sync state from the current path (initial mount + browser back/forward).
@@ -101,7 +133,8 @@ const ClientWrapper = () => {
         </div>
       </SmoothScroller>
       <CookieBanner visible={!loading} />
-      {!loading && <SeraphAssistant />}
+      {!loading && <SefirahAssistant />}
+      {showTutorial && <SefirahTutorial onClose={dismissTutorial} />}
     </>
   );
 };

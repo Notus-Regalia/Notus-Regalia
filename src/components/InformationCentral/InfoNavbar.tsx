@@ -373,17 +373,17 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
     window.location.href = url.toString();
   }, []);
 
-  // Seraph assistant (mounted on Information Central) → search + lock nav.
+  // Sefirah assistant (mounted on Information Central) → search + lock nav.
   useEffect(() => {
     const onNav = (e: Event) => {
       const d = (e as CustomEvent).detail as { tabId: string; subtabId?: string };
       if (d?.tabId) handleSearchNavigate(d.tabId, d.subtabId);
     };
     const onCollapse = () => handleCollapseNav();
-    window.addEventListener('seraph-navigate', onNav);
+    window.addEventListener('sefirah-navigate', onNav);
     window.addEventListener('nav-collapse', onCollapse);
     return () => {
-      window.removeEventListener('seraph-navigate', onNav);
+      window.removeEventListener('sefirah-navigate', onNav);
       window.removeEventListener('nav-collapse', onCollapse);
     };
   }, [handleSearchNavigate, handleCollapseNav]);

@@ -3,11 +3,11 @@ import JsonLd from '@/components/seo/JsonLd';
 import { buildPageGraph } from '@/components/seo/pageSchema';
 
 export const metadata: Metadata = {
-  title: 'System Status - Seraph',
+  title: 'System Status - Sefirah',
   description: 'Real-time operational status of Notus Regalia websites, platforms, and services.',
   alternates: { canonical: '/status' },
   openGraph: {
-    title: 'System Status - Seraph | Notus Regalia',
+    title: 'System Status - Sefirah | Notus Regalia',
     description: 'Real-time operational status of Notus Regalia websites, platforms, and services.',
     url: '/status',
     // Defining openGraph overrides the opengraph-image.tsx file convention,

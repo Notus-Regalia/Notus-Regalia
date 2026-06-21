@@ -225,7 +225,7 @@ export default function IndustrySection() {
           ease: "none",
           force3D: true,
           scrollTrigger: {
-            trigger: section,
+            trigger: sticky,
             start: "bottom bottom",
             end: () => `+=${getTravelDistance()}`,
             pin: sticky,
@@ -280,6 +280,7 @@ export default function IndustrySection() {
           border-bottom: 1px solid rgba(255, 255, 255, 0.08);
           color: var(--content-primary, #fff);
           overflow: clip;
+          padding-bottom: clamp(6rem, 12vw, 14rem);
         }
 
         @media(min-width:640px){ .industry-section { --site-gutter-inline: 4rem; } }
@@ -324,14 +325,17 @@ export default function IndustrySection() {
           opacity: 0.6;
         }
 
-        .industry-sticky::after {
+        .industry-section::after {
           content: "";
           position: absolute;
-          inset: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: clamp(8rem, 16vw, 20rem);
           z-index: 1;
           pointer-events: none;
           background:
-            linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba(0, 0, 0, 0.42) 100%);
+            linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.42) 100%);
         }
 
         :root.light .industry-sticky::before {
@@ -341,9 +345,9 @@ export default function IndustrySection() {
           opacity: 0.5;
         }
 
-        :root.light .industry-sticky::after {
+        :root.light .industry-section::after {
           background:
-            linear-gradient(180deg, rgba(255, 255, 255, 0) 55%, rgba(226, 232, 240, 0.5) 100%);
+            linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(226, 232, 240, 0.5) 100%);
         }
 
         .industry-header-shell {
@@ -361,7 +365,8 @@ export default function IndustrySection() {
         }
 
         .industry-header-main {
-          max-width: 74rem;
+          max-width: none;
+          flex: 1;
         }
 
         .industry-eyebrow {
@@ -398,7 +403,7 @@ export default function IndustrySection() {
         }
 
         .industry-copy {
-          max-width: 70rem;
+          max-width: none;
           margin: 0.95rem 0 0;
           color: rgba(226, 232, 240, 0.6);
           font-size: clamp(1rem, 1.35vw, 1.14rem);
@@ -792,8 +797,7 @@ export default function IndustrySection() {
           <div className="industry-header-shell">
             <header className="industry-header">
               <div className="industry-header-main">
-                <p className="industry-eyebrow">Industries</p>
-                <h2 className="industry-heading">Sectors We Serve.</h2>
+                <h2 className="industry-heading">Industries We Serve.</h2>
                 <p className="industry-copy">
                   Purpose-built systems deployed where reliability, speed, and accountability are
                   non-negotiable — across the sectors that keep the world running.
@@ -840,7 +844,6 @@ export default function IndustrySection() {
           </div>
 
           <div className="industry-progress-shell" aria-hidden="true">
-            <span className="industry-progress-hint">Scroll to explore</span>
             <div className="industry-progress-track">
               <span ref={progressFillRef} className="industry-progress-fill" />
             </div>
