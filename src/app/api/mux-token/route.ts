@@ -13,17 +13,8 @@ const keySecret = process.env.MUX_SIGNING_PRIVATE_KEY;
 
 export async function GET() {
   if (!playbackId || !keyId || !keySecret) {
-    // TEMP DIAGNOSTIC: report which vars are present (booleans only — never the
-    // values) so a deploy can be checked from outside. Remove once playback works.
     return NextResponse.json(
-      {
-        error: 'Mux signing env vars are not configured',
-        present: {
-          NEXT_PUBLIC_MUX_PLAYBACK_ID: Boolean(playbackId),
-          MUX_SIGNING_KEY_ID: Boolean(keyId),
-          MUX_SIGNING_PRIVATE_KEY: Boolean(keySecret),
-        },
-      },
+      { error: 'Mux signing env vars are not configured' },
       { status: 500 },
     );
   }
@@ -33,19 +24,22 @@ export async function GET() {
   // `type: 'video'` scopes the token to playback (audience "v"). The hero loops,
   // so give it a generous window to outlast long sessions.
   //
-  // Do NOT pin a `min_resolution` here. For signed playback the restriction
-  // lives in the token claims, and `min_resolution: '2160p'` made Mux serve a
-  // manifest with a SINGLE 4K rendition (~12.5 Mbps, H.264 High@5.2). That
-  // plays on a fast dev machine but breaks in production: real connections
-  // can't sustain 12.5 Mbps for an autoplaying background loop, and many
-  // phones/laptops can't hardware-decode 4K H.264 — with no lower rung in the
-  // ladder, ABR has nothing to fall back to and the video never starts.
-  // Leaving the ladder intact lets ABR pick a rendition that actually plays.
+  // Quality FLOOR, not a lock. For signed playback the restriction lives in the
+  // token claims. `min_resolution: '1080p'` keeps the 1080p / 1440p / 2160p
+  // rungs and drops the soft 360–720p ones, so the hero never opens blurry
+  // while ABR ramps up — yet 4K-capable devices on a fast connection still
+  // climb to 2160p on their own.
+  //
+  // Do NOT raise this to '2160p': that collapses the manifest to a SINGLE 4K
+  // rendition (~12.5 Mbps, H.264 High@5.2). With no lower rung to fall back to,
+  // connections that can't sustain 12.5 Mbps — and devices that can't decode
+  // 4K H.264 — get nothing, so the autoplaying background video never starts.
   const token = await mux.jwt.signPlaybackId(playbackId, {
     type: 'video',
     expiration: '12h',
     keyId,
     keySecret,
+    params: { min_resolution: '1080p' },
   });
 
   return NextResponse.json(
