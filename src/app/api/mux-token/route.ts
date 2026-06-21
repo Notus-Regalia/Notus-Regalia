@@ -23,15 +23,20 @@ export async function GET() {
 
   // `type: 'video'` scopes the token to playback (audience "v"). The hero loops,
   // so give it a generous window to outlast long sessions.
-  // For SIGNED playback, rendition limits must live in the token claims — query
-  // params on the manifest URL are ignored. `min_resolution: 2160p` pins the
-  // hero to the 4K rendition so ABR never drops to a softer one.
+  //
+  // Do NOT pin a `min_resolution` here. For signed playback the restriction
+  // lives in the token claims, and `min_resolution: '2160p'` made Mux serve a
+  // manifest with a SINGLE 4K rendition (~12.5 Mbps, H.264 High@5.2). That
+  // plays on a fast dev machine but breaks in production: real connections
+  // can't sustain 12.5 Mbps for an autoplaying background loop, and many
+  // phones/laptops can't hardware-decode 4K H.264 — with no lower rung in the
+  // ladder, ABR has nothing to fall back to and the video never starts.
+  // Leaving the ladder intact lets ABR pick a rendition that actually plays.
   const token = await mux.jwt.signPlaybackId(playbackId, {
     type: 'video',
     expiration: '12h',
     keyId,
     keySecret,
-    params: { min_resolution: '2160p' },
   });
 
   return NextResponse.json(

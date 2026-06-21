@@ -123,7 +123,11 @@ const StickyThemeTab = ({ visible, isMobile }: { visible: boolean; isMobile: boo
 
 
 // ─────────────────────────────────────────────────────────────
-//  StripRow — subtab strip with a single sliding indicator
+//  StripRow — morphing-pill subtab strip
+//  Used by Ventures/Technologies. Mirrors the Company nav layer's
+//  look: each subtab is a standalone page, the active one expands
+//  into a rounded pill (burger + label). These pages have no in-page
+//  sections, so there is no breadcrumb plus / breadcrumb layer.
 // ─────────────────────────────────────────────────────────────
 interface StripRowProps {
   item: NavItem;
@@ -140,10 +144,7 @@ const StripRow = memo(({
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const trackRef = useRef<HTMLDivElement | null>(null);
 
-  const [indStyle, setIndStyle] = useState<{ left: number; width: number } | null>(null);
-  const [animate, setAnimate] = useState(false);
   const [entering, setEntering] = useState(false);
-  const hasPlacedRef = useRef(false);
   const [atEnd, setAtEnd] = useState(false);
 
   // Track scroll position to determine arrow direction
@@ -165,7 +166,7 @@ const StripRow = memo(({
     return () => track.removeEventListener('scroll', handler);
   }, [isVisible, updateScrollState]);
 
-  // Auto-scroll the active subtab button into center view
+  // Auto-scroll the active subtab pill into center view (mobile overflow)
   useEffect(() => {
     if (!activeSubtabId || !isVisible) return;
     const idx = item.subtabs!.findIndex(s => s.id === activeSubtabId);
@@ -174,7 +175,7 @@ const StripRow = memo(({
     const track = trackRef.current;
     if (!btn || !track) return;
 
-    // Wait a frame for layout to settle
+    // Wait a frame for layout (the pill morph) to settle
     requestAnimationFrame(() => {
       const trackRect = track.getBoundingClientRect();
       const btnRect = btn.getBoundingClientRect();
@@ -184,60 +185,13 @@ const StripRow = memo(({
     });
   }, [activeSubtabId, isVisible, item.subtabs]);
 
-  const place = useCallback((shouldAnimate: boolean) => {
-    if (!activeSubtabId) return;
-    const idx = item.subtabs!.findIndex(s => s.id === activeSubtabId);
-    if (idx < 0) return;
-    const btn = btnRefs.current[idx];
-    const track = trackRef.current;
-    if (!btn || !track) return;
-
-    let left = 0;
-    let el: HTMLElement | null = btn;
-    while (el && el !== track) {
-      left += el.offsetLeft;
-      el = el.offsetParent as HTMLElement | null;
-    }
-    const width = btn.offsetWidth;
-
-    if (!shouldAnimate) {
-      setAnimate(false);
-      setIndStyle({ left, width });
-      requestAnimationFrame(() => setAnimate(true));
-    } else {
-      setAnimate(true);
-      setIndStyle({ left, width });
-    }
-
-    hasPlacedRef.current = true;
-  }, [activeSubtabId, item.subtabs]);
-
+  // Staggered entrance the first frame the strip opens
   useEffect(() => {
-    place(hasPlacedRef.current);
-  }, [activeSubtabId]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!isVisible) {
-      hasPlacedRef.current = false;
-      setAnimate(false);
-      setIndStyle(null);
-      setEntering(false);
-      return;
-    }
+    if (!isVisible) { setEntering(false); return; }
     setEntering(true);
-    const enterTimer = setTimeout(() => setEntering(false), 400);
-    const t = setTimeout(() => place(false), 40);
-    return () => { clearTimeout(t); clearTimeout(enterTimer); };
-  }, [isVisible]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const indicatorCSSStyle: React.CSSProperties = {
-    left: indStyle?.left ?? 0,
-    width: indStyle?.width ?? 0,
-    opacity: indStyle ? 1 : 0,
-    transition: animate
-      ? 'left 0.32s cubic-bezier(0.4, 0, 0.2, 1), width 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease'
-      : 'none',
-  };
+    const t = setTimeout(() => setEntering(false), 400);
+    return () => clearTimeout(t);
+  }, [isVisible]);
 
   const handleArrowClick = useCallback(() => {
     if (isMobile && trackRef.current) {
@@ -266,35 +220,48 @@ const StripRow = memo(({
         <div className="subtab-strip-inner">
 
           <div className="strip-tabs-track" ref={trackRef}>
-            <div
-              className="strip-indicator"
-              style={indicatorCSSStyle}
-              aria-hidden
-            >
-              <div className="strip-indicator-bg" />
-              <div className="strip-indicator-corner tl" />
-              <div className="strip-indicator-corner tr" />
-              <div className="strip-indicator-corner bl" />
-              <div className="strip-indicator-corner br" />
-            </div>
-
-            {item.subtabs!.map((sub, idx) => (
-              <button
-                key={sub.id}
-                ref={el => { btnRefs.current[idx] = el; }}
-                className={`strip-tab${activeSubtabId === sub.id ? ' strip-tab-active' : ''}`}
-                style={{ '--si': idx } as React.CSSProperties}
-                onClick={() => onSubtabClick(sub)}
-              >
-                {sub.label}
-              </button>
-            ))}
+            {item.subtabs!.map((sub, idx) => {
+              const isActive = activeSubtabId === sub.id;
+              // External items just open a link, so they stay plain tabs.
+              if (sub.external) {
+                return (
+                  <button
+                    key={sub.id}
+                    ref={el => { btnRefs.current[idx] = el; }}
+                    className={`strip-tab strip-tab-external${isActive ? ' strip-tab-active' : ''}`}
+                    style={{ '--si': idx, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' } as React.CSSProperties}
+                    onClick={() => window.open(sub.external!, '_blank', 'noopener,noreferrer')}
+                  >
+                    {sub.label}
+                    <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.7rem' }} />
+                  </button>
+                );
+              }
+              // Same morphing button as the Company nav layer: the active page
+              // springs the burger open and expands into the breadcrumb-title
+              // pill. No plus — these pages have no in-page sections.
+              return (
+                <button
+                  key={sub.id}
+                  ref={el => { btnRefs.current[idx] = el; }}
+                  className={`strip-tab strip-tab-morph${isActive ? ' strip-tab-pill' : ''}`}
+                  style={{ '--si': idx } as React.CSSProperties}
+                  onClick={() => onSubtabClick(sub)}
+                  aria-label={sub.label}
+                >
+                  <span className="strip-morph-burger" aria-hidden>
+                    <span /><span /><span />
+                  </span>
+                  <span className="strip-morph-label">{sub.label}</span>
+                </button>
+              );
+            })}
           </div>
 
           <button
             className="strip-collapse"
             onClick={handleArrowClick}
-            aria-label={isMobile ? `Scroll ${item.label} sections` : `Hide ${item.label} sections`}
+            aria-label={isMobile ? `Scroll ${item.label} pages` : `Hide ${item.label} pages`}
           >
             <i className={`bi ${arrowIcon}`} />
           </button>
@@ -1377,9 +1344,13 @@ const Navbar = ({
         {NAV_ITEMS.filter(item => item.subtabs?.length && item.id !== 'company').map((item) => {
           const isActiveItem   = item.id === activeTab;
           const isVisible      = stripVisibleFor(item.id);
-          // On the active tab, honour the current subtab; when only peeking,
-          // highlight the first subtab as a sensible default.
-          const activeSubtabId = (isActiveItem ? activeSubtab : undefined) ?? item.subtabs![0].id;
+          const previewOnly    = !!previewTab && previewTab === item.id && !isActiveItem;
+          // On the active tab, light up the current page's pill; while only
+          // peeking from another tab, highlight nothing (consistent with the
+          // Company strip — no page is actually active during a hover).
+          const activeSubtabId = previewOnly
+            ? null
+            : ((isActiveItem ? activeSubtab : undefined) ?? item.subtabs![0].id);
 
           return (
             <div
