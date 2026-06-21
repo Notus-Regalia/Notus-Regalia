@@ -13,8 +13,17 @@ const keySecret = process.env.MUX_SIGNING_PRIVATE_KEY;
 
 export async function GET() {
   if (!playbackId || !keyId || !keySecret) {
+    // TEMP DIAGNOSTIC: report which vars are present (booleans only — never the
+    // values) so a deploy can be checked from outside. Remove once playback works.
     return NextResponse.json(
-      { error: 'Mux signing env vars are not configured' },
+      {
+        error: 'Mux signing env vars are not configured',
+        present: {
+          NEXT_PUBLIC_MUX_PLAYBACK_ID: Boolean(playbackId),
+          MUX_SIGNING_KEY_ID: Boolean(keyId),
+          MUX_SIGNING_PRIVATE_KEY: Boolean(keySecret),
+        },
+      },
       { status: 500 },
     );
   }
