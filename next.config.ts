@@ -1,29 +1,5 @@
 import type { NextConfig } from "next";
 
-const isDev = process.env.NODE_ENV === 'development';
-
-const cspDirectives = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-  "object-src 'none'",
-  // 'unsafe-inline' kept for Next.js inline scripts & CSS-in-JS.
-  // TODO: migrate to nonce-based CSP to eliminate 'unsafe-inline' entirely.
-  // 'unsafe-eval' required in dev for webpack HMR; stripped in production builds.
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://va.vercel-scripts.com https://vitals.vercel-insights.com`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
-  "font-src 'self' data: https:",
-  "connect-src 'self' https: wss:",
-  "media-src 'self' data: blob: https:",
-  "worker-src 'self' blob:",
-  "frame-src 'self'",
-  "manifest-src 'self'",
-  // Only upgrade insecure requests in production — dev server is HTTP-only.
-  ...(isDev ? [] : ["upgrade-insecure-requests"]),
-].join("; ");
-
 const nextConfig: NextConfig = {
   reactStrictMode: true,
 
@@ -66,11 +42,8 @@ const nextConfig: NextConfig = {
         key: 'X-DNS-Prefetch-Control',
         value: 'off',
       },
-      {
-        // Enforce CSP in production; report-only in dev so the dev server works.
-        key: isDev ? 'Content-Security-Policy-Report-Only' : 'Content-Security-Policy',
-        value: cspDirectives,
-      },
+      // Content-Security-Policy is set in src/middleware.ts so it can carry a
+      // fresh per-request nonce (a static header here can't). See that file.
     ];
 
     // Enable HSTS only after HTTPS is fully configured on your domain.

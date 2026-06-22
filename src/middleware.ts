@@ -9,6 +9,46 @@ const WINDOW_MS = 60_000;
 const MAX_REQUESTS_PER_WINDOW = 80;
 const CLEANUP_INTERVAL_MS = 5 * 60_000;
 
+const isDev = process.env.NODE_ENV === 'development';
+
+// CSP is generated here (not in next.config) because a strong policy needs a
+// fresh per-request nonce for inline scripts. Next.js reads the nonce from the
+// `Content-Security-Policy` REQUEST header we set below and stamps it onto its
+// own inline bootstrap scripts automatically; our JSON-LD scripts read it from
+// the `x-nonce` request header. No 'unsafe-inline' in script-src — an attacker
+// can't guess the nonce, so injected inline scripts are blocked.
+//
+// 'self' covers Next's /_next/* chunk files; the explicit hosts cover Vercel
+// Analytics/Speed Insights (which inject their own <script src>). We avoid
+// 'strict-dynamic' precisely so those host allowlists stay active.
+const buildCsp = (nonce: string) =>
+  [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+    // 'unsafe-eval' is only needed by webpack HMR in dev; never in production.
+    `script-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-eval'" : ''} https://va.vercel-scripts.com https://vitals.vercel-insights.com`,
+    // Inline styles can't be nonced (CSS-in-JS / style= attrs). Style injection
+    // is low-risk compared to script injection, so 'unsafe-inline' stays here.
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data: https:",
+    "connect-src 'self' https: wss:",
+    "media-src 'self' data: blob: https:",
+    "worker-src 'self' blob:",
+    "frame-src 'self'",
+    "manifest-src 'self'",
+    // Violation reporting: report-to is the modern Reporting API (paired with
+    // the Reporting-Endpoints response header); report-uri is the legacy
+    // fallback still honored by older browsers.
+    "report-to csp-endpoint",
+    "report-uri /api/csp-report",
+    // Dev server is HTTP-only, so only force HTTPS upgrades in production.
+    ...(isDev ? [] : ["upgrade-insecure-requests"]),
+  ].join("; ");
+
 const globalStore = globalThis as typeof globalThis & {
   __nrRateLimitStore?: Map<string, RateBucket>;
   __nrRateLimitCleanupAt?: number;
@@ -87,7 +127,27 @@ export function middleware(request: NextRequest) {
     logSecurityEvent('large_query_string', request, { ip, queryLength });
   }
 
-  const response = NextResponse.next();
+  // Per-request nonce for CSP. base64-encoded UUID is unguessable and cheap.
+  const nonce = btoa(crypto.randomUUID());
+  const csp = buildCsp(nonce);
+
+  // Forward the nonce to the rendered page. Next.js parses the nonce out of the
+  // request's Content-Security-Policy header to stamp its own inline scripts;
+  // our server components read x-nonce for JSON-LD scripts.
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-nonce', nonce);
+  requestHeaders.set('Content-Security-Policy', csp);
+
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
+
+  // Enforce in production; report-only in dev so the dev server (eval, etc.)
+  // keeps working while still surfacing violations.
+  response.headers.set(
+    isDev ? 'Content-Security-Policy-Report-Only' : 'Content-Security-Policy',
+    csp,
+  );
+  response.headers.set('Reporting-Endpoints', 'csp-endpoint="/api/csp-report"');
+
   response.headers.set('X-RateLimit-Limit', String(MAX_REQUESTS_PER_WINDOW));
   response.headers.set('X-RateLimit-Remaining', String(remaining));
   response.headers.set('X-RateLimit-Reset', String(resetSeconds));

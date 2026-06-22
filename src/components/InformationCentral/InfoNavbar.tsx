@@ -1,5 +1,6 @@
 "use client";
 import Image from 'next/image';
+import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
@@ -599,12 +600,12 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
               </div>
             );
           })}
-          <a className="mob-tab-btn" href="/">
+          <Link className="mob-tab-btn" href="/">
             <span className="mob-tab-left">
               <i className="bi bi-arrow-left" />
               Back to Notus Regalia
             </span>
-          </a>
+          </Link>
         </div>
       </div>
     </>

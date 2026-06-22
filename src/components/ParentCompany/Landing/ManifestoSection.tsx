@@ -186,7 +186,7 @@ export default function ManifestoSection() {
         <div className="manifesto-container">
           <div className="quote-block">
             <h2 className="quote-text">
-              "We do not build empires by accident. Every stone is placed with deliberate intent."
+              &ldquo;We do not build empires by accident. Every stone is placed with deliberate intent.&rdquo;
             </h2>
             <div className="quote-author">
               Notus Regalia Protocol 2026

@@ -1,6 +1,7 @@
 "use client";
 
 import { memo } from "react";
+import Link from "next/link";
 import { StarfieldBackground } from "@/components/ui/starfield-background";
 import { trackBrandGlow } from "@/components/ParentCompany/Company/subpages/blocks";
 
@@ -112,10 +113,10 @@ const VenturesComingSoon = memo(({ title, blurb }: ComingSoonProps) => (
       <h1 className="vc-title">{title}</h1>
       <p className="vc-sub">{blurb}</p>
       <div className="vc-meter" aria-hidden />
-      <a className="brand-btn vc-back" href="/company/about" onMouseMove={trackBrandGlow}>
+      <Link className="brand-btn vc-back" href="/company/about" onMouseMove={trackBrandGlow}>
         <i className="bi bi-arrow-left" />
         <span>Back to Company</span>
-      </a>
+      </Link>
     </div>
   </section>
 ));

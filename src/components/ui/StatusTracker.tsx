@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useEffect, useState } from "react";
+import Link from "next/link";
 import { AnimateNumber } from "./animated-blur-number";
 
 /* ─────────────────────────────────────────────────────────────
@@ -119,10 +120,10 @@ const StatusTracker = memo(() => {
             <div className="st-stat-k">{s.k}</div>
           </div>
         ))}
-        <a className="st-stat st-stat-link" href="/contact">
+        <Link className="st-stat st-stat-link" href="/contact">
           <div className="st-stat-v"><i className="bi bi-exclamation-triangle" /></div>
           <div className="st-stat-k">Report an Issue</div>
-        </a>
+        </Link>
       </div>
 
       {/* Services grid */}

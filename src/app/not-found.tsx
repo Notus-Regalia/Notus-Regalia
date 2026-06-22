@@ -1,5 +1,6 @@
 // Branded 404 page. A missing page isn't an error/maintenance state, so it
 // keeps the brand look but says "Page Not Found" with a route home.
+import Link from "next/link";
 import StatusScreen from "@/components/ui/StatusScreen";
 
 export default function NotFound() {
@@ -9,9 +10,9 @@ export default function NotFound() {
       title="Page Not Found"
       description="The page you're looking for doesn't exist or may have moved. Let's get you back to operational ground."
       action={
-        <a className="nr-cta" href="/">
+        <Link className="nr-cta" href="/">
           Back to Homepage
-        </a>
+        </Link>
       }
     />
   );

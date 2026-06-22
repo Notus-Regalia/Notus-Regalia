@@ -1,3 +1,5 @@
+import { headers } from "next/headers";
+
 // Serializes data for safe embedding inside a <script> tag. JSON.stringify
 // alone does NOT escape `</script>`, `<!--`, or the U+2028 / U+2029 line
 // separators, any of which can break out of the script element. Escaping the
@@ -12,10 +14,14 @@ export function serializeJsonLd(data: object): string {
 }
 
 // Renders a JSON-LD <script> for structured data. Server component.
-export default function JsonLd({ data }: { data: object }) {
+// The nonce (set per-request in middleware) is required: CSP applies to inline
+// <script> of any type, so without it a strict policy blocks this element.
+export default async function JsonLd({ data }: { data: object }) {
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <script
       type="application/ld+json"
+      nonce={nonce}
       dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }}
     />
   );
