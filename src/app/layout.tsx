@@ -5,6 +5,7 @@ import "./globals.css";
 import "@/styles/About.module.css";
 import ConsentRuntime from "@/components/consent/ConsentRuntime";
 import { SITE_URL, SITE_NAME } from "@/utils/site";
+import { serializeJsonLd } from "@/components/seo/JsonLd";
 
 const SITE_DESCRIPTION =
   "Notus Regalia is a private technology holding and venture-building company engineering critical operational systems across defense, government, healthcare, enterprise, and energy.";
@@ -160,7 +161,7 @@ export default function RootLayout({
         {/* JSON-LD structured data (valid anywhere in the document). */}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }}
         />
         <CursorClickPulse />
         <ThemeProvider>
