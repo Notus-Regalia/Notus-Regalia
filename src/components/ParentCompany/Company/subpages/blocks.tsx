@@ -88,8 +88,6 @@ const BLOCKS_CSS = `
   text-transform: uppercase; color: var(--content-faint);
 }
 
-/* Roadmap section gets extra breathing room before the next section. */
-#direction-roadmap { padding-bottom: clamp(6rem, 11vh, 9rem); }
 /* Timeline — modern canvas rail */
 .cb-timeline {
   position: relative; display: flex; flex-direction: column;

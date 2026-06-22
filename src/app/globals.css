@@ -185,9 +185,11 @@
 }
 
 html {
-  /* GSAP ScrollSmoother handles smoothing on desktop;
-     on mobile (where GSAP is disabled) fall back to native smooth scroll */
-  scroll-behavior: smooth;
+  /* Keep scroll resets instant. GSAP ScrollSmoother drives smooth scrolling on
+     desktop, and every intentional smooth scroll passes behavior:'smooth'
+     explicitly — a global `scroll-behavior: smooth` only fights ScrollSmoother
+     and animates every tab/subtab scroll-to-top. */
+  scroll-behavior: auto;
   cursor: var(--app-cursor-default), auto;
 }
 

@@ -6,7 +6,6 @@ import ExecutiveComingSoon from './ExecutiveComingSoon';
 import {
   AboutCompanyPage,
   DirectionPage,
-  GovernancePage,
   ExecutivesPage,
   InvestorsPage,
 } from './subpages/pages';
@@ -48,7 +47,7 @@ const Company = ({ activeSubtab }: CompanyProps) => {
   const scrollToTop = useCallback(() => {
     const sm = typeof window !== 'undefined' ? ScrollSmoother.get?.() : null;
     if (sm) { sm.scrollTo(0, false); }
-    else { window.scrollTo({ top: 0 }); }
+    else { window.scrollTo({ top: 0, behavior: 'instant' }); }
   }, []);
 
   /* ── Transition engine: fade out, apply swap, fade in ── */
@@ -212,7 +211,6 @@ const Company = ({ activeSubtab }: CompanyProps) => {
   const renderPage = () => {
     switch (displayedSubtab) {
       case 'company-direction':    return <DirectionPage />;
-      case 'company-governance':   return <GovernancePage />;
       case 'company-executives':   return <ExecutivesPage />;
       case 'company-investors':    return <InvestorsPage />;
       case 'company-about':

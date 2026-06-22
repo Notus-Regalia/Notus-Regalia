@@ -19,7 +19,6 @@ interface Sector {
   no: string;
   name: string;
   domain: string;
-  icon: string;
   statement: string;
 }
 
@@ -28,7 +27,6 @@ const SECTORS: Sector[] = [
     no: "01",
     name: "Government",
     domain: "Public Infrastructure",
-    icon: "bi-bank",
     statement:
       "Build the secure, interoperable backbone of public institutions — making civic operations transparent, responsive, and accountable to the people they serve.",
   },
@@ -36,7 +34,6 @@ const SECTORS: Sector[] = [
     no: "02",
     name: "Defense",
     domain: "National Security",
-    icon: "bi-shield-shaded",
     statement:
       "Deliver mission-critical systems that give operators decisive command — resilient and dependable in the moments that cannot fail.",
   },
@@ -44,7 +41,6 @@ const SECTORS: Sector[] = [
     no: "03",
     name: "Healthcare",
     domain: "Clinical Systems",
-    icon: "bi-heart-pulse",
     statement:
       "Turn fragmented health data into coordinated care, extending reliable outcomes to the populations that need them most.",
   },
@@ -52,7 +48,6 @@ const SECTORS: Sector[] = [
     no: "04",
     name: "Energy",
     domain: "Critical Grids",
-    icon: "bi-lightning-charge",
     statement:
       "Engineer intelligent infrastructure that monitors, optimizes, and secures the grids modern life depends on.",
   },
@@ -60,7 +55,6 @@ const SECTORS: Sector[] = [
     no: "05",
     name: "Enterprise",
     domain: "Operational Platforms",
-    icon: "bi-buildings",
     statement:
       "Provide the integrated platforms that let enterprises operate with command and precision across every function.",
   },
@@ -128,13 +122,6 @@ const SM_CSS = `
   background: linear-gradient(180deg, #ffffff 0%, #d8d8de 55%, #9a9aa2 100%);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
 }
-/* icon relocated to sit right after the title */
-.im-icon {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: clamp(28px, 3.4vw, 34px); height: clamp(28px, 3.4vw, 34px); border-radius: 9px; flex-shrink: 0;
-  border: 1px solid rgba(255,255,255,0.16); background: rgba(255,255,255,0.025);
-  color: #fff; font-size: .85rem;
-}
 .im-domain {
   font-family: ui-monospace, Menlo, monospace; font-size: .6rem; font-weight: 700;
   letter-spacing: .22em; text-transform: uppercase; color: rgba(190,190,200,0.6);
@@ -159,7 +146,6 @@ const IndustryMission = memo(({ sector, flip }: { sector: Sector; flip: boolean 
             <span className="im-no" aria-hidden>{sector.no}</span>
             <h3 className="im-name">
               <span className="im-name-text">{sector.name}</span>
-              <span className="im-icon" aria-hidden><i className={`bi ${sector.icon}`} /></span>
             </h3>
             <span className="im-domain">{sector.domain}</span>
           </div>

@@ -7,13 +7,10 @@ import CompanyHeader from "../CompanyHeader";
 import AboutStory from "../AboutStory";
 import SectorMissions from "../SectorMissions";
 import { StoryHero, StoryHeroStyles, type Story } from "../StoryHero";
-import Governance from "../Governance";
 import Executives from "../Executives";
 import Investors from "../Investors";
 import {
   BlocksStyles,
-  ContentSection,
-  Timeline,
   CtaLink,
 } from "./blocks";
 import { getCompanySubtab } from "@/data/company-nav";
@@ -84,22 +81,6 @@ export const DirectionPage = memo(() => {
       {/* Vision (corporate anchor) → Sector Missions (operational). */}
       <StoryHero story={VISION_STORY} />
       <SectorMissions />
-      {/* "Roadmap" — the phased path toward that direction. */}
-      <ContentSection
-        id="direction-roadmap"
-        eyebrow="Where we're headed"
-        title="Roadmap"
-        subtitle="The phased path of how Notus Regalia scales its systems, sectors, and impact."
-      >
-        <Timeline
-          phases={[
-            { phase: 'Phase 01 · Foundation', title: 'Core Platform & Sectors', desc: 'Establish the operational backbone and the first wave of sector deployments across government and defense.' },
-            { phase: 'Phase 02 · Expansion', title: 'Cross-Sector Integration', desc: 'Extend into healthcare, enterprise, and energy with shared intelligence and interoperable systems.' },
-            { phase: 'Phase 03 · Autonomy', title: 'Adaptive Operations', desc: 'Mature AI-assisted operations that elevate human operators and compress decision cycles at scale.' },
-            { phase: 'Phase 04 · Horizon', title: 'Global Resilience Network', desc: 'A resilient, allied network of mission-critical systems spanning every sector we serve.' },
-          ]}
-        />
-      </ContentSection>
       <RevealSection id="direction-explore">
         <ExploreNext current="company-direction" />
       </RevealSection>
@@ -107,26 +88,6 @@ export const DirectionPage = memo(() => {
   );
 });
 DirectionPage.displayName = "DirectionPage";
-
-export const GovernancePage = memo(() => {
-  const tab = getCompanySubtab('company-governance');
-  return (
-    <>
-      <div id="governance-overview">
-        <PageHero {...tab.hero!} />
-      </div>
-      {/* Governance · Ethics & Responsibility · Commitments — editorial
-          "pillars" layout (no sidebar tabs). */}
-      <RevealSection id="governance-framework">
-        <Governance />
-      </RevealSection>
-      <RevealSection id="governance-explore">
-        <ExploreNext current="company-governance" />
-      </RevealSection>
-    </>
-  );
-});
-GovernancePage.displayName = "GovernancePage";
 
 export const ExecutivesPage = memo(() => {
   return (

@@ -50,22 +50,7 @@ export const COMPANY_SUBTABS: CompanySubtab[] = [
     sections: [
       { id: 'direction-vision',  label: 'Vision' },
       { id: 'direction-purpose', label: 'Missions' },
-      { id: 'direction-roadmap', label: 'Roadmap' },
       { id: 'direction-explore', label: 'Explore' },
-    ],
-  },
-  {
-    id: 'company-governance',
-    label: 'Governance',
-    hero: {
-      eyebrow: 'How we stay accountable',
-      title: 'Governance',
-      subtitle: 'The structure, ethics, and commitments that keep Notus Regalia accountable.',
-    },
-    sections: [
-      { id: 'governance-overview',  label: 'Overview' },
-      { id: 'governance-framework', label: 'Framework' },
-      { id: 'governance-explore',   label: 'Explore' },
     ],
   },
   {
