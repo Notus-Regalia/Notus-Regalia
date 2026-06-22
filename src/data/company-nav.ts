@@ -30,13 +30,42 @@ export const COMPANY_SUBTABS: CompanySubtab[] = [
     hero: {
       eyebrow: 'Company Profile',
       title: 'About the Company',
-      subtitle: 'Why we build — our philosophy, direction, and the governance that keeps us accountable.',
+      subtitle: 'Who we are, what we engineer, and the philosophy behind why we exist.',
     },
     sections: [
-      { id: 'about-our-company', label: 'Our Company' },
-      { id: 'about-what-we-do',  label: 'What we Engineer' },
-      { id: 'about-roadmap',     label: 'Roadmap' },
-      { id: 'about-explore',     label: 'Explore' },
+      { id: 'about-origin',  label: 'Origin' },
+      { id: 'about-build',   label: 'What We Build' },
+      { id: 'about-operate', label: 'How We Operate' },
+      { id: 'about-explore', label: 'Explore' },
+    ],
+  },
+  {
+    id: 'company-direction',
+    label: 'Direction',
+    hero: {
+      eyebrow: 'Where we are headed',
+      title: 'Direction',
+      subtitle: 'Our mission, our vision, and the phased path we are building toward.',
+    },
+    sections: [
+      { id: 'direction-vision',  label: 'Vision' },
+      { id: 'direction-purpose', label: 'Missions' },
+      { id: 'direction-roadmap', label: 'Roadmap' },
+      { id: 'direction-explore', label: 'Explore' },
+    ],
+  },
+  {
+    id: 'company-governance',
+    label: 'Governance',
+    hero: {
+      eyebrow: 'How we stay accountable',
+      title: 'Governance',
+      subtitle: 'The structure, ethics, and commitments that keep Notus Regalia accountable.',
+    },
+    sections: [
+      { id: 'governance-overview',  label: 'Overview' },
+      { id: 'governance-framework', label: 'Framework' },
+      { id: 'governance-explore',   label: 'Explore' },
     ],
   },
   {

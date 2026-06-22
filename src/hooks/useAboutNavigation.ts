@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
-type WorldContentType = "company" | "philosophy" | "ecosystem" | "direction" | "governance" | "ethics";
+import type { AboutContentKey } from '@/data/Company-data';
+
+type WorldContentType = AboutContentKey;
 
 interface UseAboutNavigationReturn {
   activeContent: WorldContentType;
@@ -18,14 +20,20 @@ const INITIAL_SUBSECTIONS: Record<WorldContentType, string> = {
   company: 'our-story',
   philosophy: 'core-beliefs',
   ecosystem: 'venture-model',
-  direction: 'mission',
+  mission: 'mission',
+  vision: 'vision',
   governance: 'org-structure',
-  ethics: 'ethical-framework'
+  ethics: 'ethical-framework',
+  commitments: 'to-partners'
 };
 
-export const useAboutNavigation = (gridItems: any[]): UseAboutNavigationReturn => {
-  const [activeContent, setActiveContent] = useState<WorldContentType>("company");
-  const [displayContent, setDisplayContent] = useState<WorldContentType>("company");
+export const useAboutNavigation = (
+  gridItems: { key: WorldContentType }[],
+  initialKey?: WorldContentType,
+): UseAboutNavigationReturn => {
+  const firstKey = initialKey ?? gridItems[0]?.key ?? 'company';
+  const [activeContent, setActiveContent] = useState<WorldContentType>(firstKey);
+  const [displayContent, setDisplayContent] = useState<WorldContentType>(firstKey);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [selectorPosition, setSelectorPosition] = useState(0);
   const [activeSubsection, setActiveSubsection] = useState<Record<WorldContentType, string>>(INITIAL_SUBSECTIONS);

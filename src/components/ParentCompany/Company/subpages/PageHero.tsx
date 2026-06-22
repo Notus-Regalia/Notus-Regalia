@@ -7,10 +7,13 @@ interface PageHeroProps {
   eyebrow?: string;
   title: string;
   subtitle: string;
+  /** When set, the hero uses this image (with the home-hero color grade) instead
+      of the starfield background. Path is relative to /public. */
+  bgImage?: string;
 }
 
 /* Shared hero header for each standalone Company subtab page. */
-const PageHero = memo(({ title, subtitle }: PageHeroProps) => (
+const PageHero = memo(({ title, subtitle, bgImage }: PageHeroProps) => (
   <section className="relative" style={{ marginBottom: 0 }}>
     <div
       className="relative flex items-center justify-center overflow-hidden"
@@ -21,13 +24,77 @@ const PageHero = memo(({ title, subtitle }: PageHeroProps) => (
         paddingTop: "clamp(132px, 16vh, 172px)",
       }}
     >
-      <StarfieldBackground
-        position="absolute"
-        count={260}
-        speed={0.4}
-        starColor="#ffffff"
-        twinkle={true}
-      />
+      {bgImage ? (
+        // Image background with the same color grade as the home-tab hero:
+        // duotone grade + tech-grid mesh + scanlines, plus a readability scrim.
+        <div aria-hidden className="absolute inset-0" style={{ background: "#05060a" }}>
+          {/* Base image — same filter the home hero applies to its video */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage: `url(${bgImage})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              filter: "contrast(1.08) saturate(0.85) brightness(0.95)",
+            }}
+          />
+
+          {/* Duotone color grade — cool shadows, crimson highlights */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              mixBlendMode: "color",
+              opacity: 0.32,
+              background:
+                "linear-gradient(115deg, #0a1830 0%, #112042 45%, #3a1424 78%, #5a1228 100%)",
+            }}
+          />
+
+          {/* Fine tech grid mesh */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage:
+                "repeating-linear-gradient(90deg, rgba(120,180,255,0.07) 0 1px, transparent 1px 44px)," +
+                "repeating-linear-gradient(0deg, rgba(120,180,255,0.07) 0 1px, transparent 1px 44px)",
+              backgroundSize: "44px 44px",
+              opacity: 0.7,
+            }}
+          />
+
+          {/* Scanlines */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              backgroundImage:
+                "repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 1px, transparent 1px 3px)",
+              opacity: 0.5,
+            }}
+          />
+
+          {/* Readability scrim — keeps the centered title legible over the image */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              background:
+                "radial-gradient(ellipse at center, rgba(5,6,10,0.35) 0%, rgba(5,6,10,0.72) 100%)",
+            }}
+          />
+        </div>
+      ) : (
+        <StarfieldBackground
+          position="absolute"
+          count={260}
+          speed={0.4}
+          starColor="#ffffff"
+          twinkle={true}
+        />
+      )}
 
       <div className="relative z-10 flex flex-col items-center gap-4 px-6">
         <h1

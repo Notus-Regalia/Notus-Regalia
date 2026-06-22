@@ -82,7 +82,7 @@ const MissionBanner = memo(() => {
           style={{
             position: "absolute",
             inset: 0,
-            backgroundImage: "url(/Banner-1.png)",
+            backgroundImage: "url(/Banner-1.jpg)",
             backgroundSize: "cover",
             backgroundPosition: "center",
             filter: "contrast(1.08) saturate(0.85) brightness(0.95)",

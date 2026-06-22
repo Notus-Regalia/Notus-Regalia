@@ -33,8 +33,18 @@ export interface AboutContent {
   buttonLink?: string;
 }
 
+export type AboutContentKey =
+  | 'company'
+  | 'philosophy'
+  | 'ecosystem'
+  | 'mission'
+  | 'vision'
+  | 'governance'
+  | 'ethics'
+  | 'commitments';
+
 export interface AboutGridItem {
-  key: 'company' | 'philosophy' | 'ecosystem' | 'direction' | 'governance' | 'ethics';
+  key: AboutContentKey;
   title: string;
   subtitle: string;
 }
@@ -84,7 +94,7 @@ export const FOUNDERS: Founder[] = [
     title: 'Founder & CEO',
     role: 'Governance, Systems Architecture & Engineering',
     src: '/assets/jansen-jekk-tesnado.jpg',
-    bio: "Jansen Jekk Tesnado is the founder and chief executive of Notus Regalia, the technology holding and venture-building company he established in 2025 while still an Information Technology undergraduate. He leads the company's governance, systems architecture, and engineering — setting its long-term direction and building the shared technical backbone its ventures run on. Drawn early to the conviction that the people closest to a problem should own its solution, he turned a student-led initiative into a founder-operator platform working across government, defense, healthcare, enterprise, and energy. Today he focuses on shaping the organization's culture and ensuring every unit operates in alignment with its core mission.",
+    bio: "Jansen Jekk Tesnado is the Founder and Chief Executive Officer of Notus Regalia, a technology holding and venture-building company he established in 2025 while pursuing a degree in Information Systems at the University of Santo Tomas. Guided by the principle that enduring progress depends on the ability to develop and control critical technologies, he founded Notus Regalia to create solutions that strengthen national and industrial capability.\n\nAlongside his entrepreneurial work, Tesnado has served in executive leadership positions within the University of Santo Tomas, contributing to student governance, elections, and organizational development at the university-wide level. His leadership experience includes executive roles within the UST Central Commission on Elections, the UST Student Organizations Coordinating Council, and the UST Central Student Council, where he has worked on institutional initiatives, stakeholder engagement, and organizational governance.\n\nAs CEO, he leads the company's strategic direction, governance, systems architecture, and engineering, overseeing the shared technological foundation that powers its portfolio. His work centers on designing scalable institutions, cultivating high-performance teams, and aligning every venture with Notus Regalia's mission of advancing critical industries through technology. Today, he focuses on long-term growth, organizational culture, and building enduring capabilities that extend beyond any single product, market, or generation.",
     since: '2025',
     linkedin: 'https://www.linkedin.com/in/jansenjekk',
     instagram: '#',
@@ -208,19 +218,27 @@ export const OverviewContent: OverviewContent[] = [
 
 // ─── About Panel ──────────────────────────────────────────────────────────────
 
-export const ABOUT_PANEL_ITEMS: AboutGridItem[] = [
-  { key: 'company',    title: 'Our Story',               subtitle: 'Who we are and the gap we exist to close' },
-  { key: 'direction',  title: 'Direction',               subtitle: 'Where we are headed and why it matters' },
-  { key: 'philosophy', title: 'Philosophy',              subtitle: 'The beliefs that shape how we build' },
-  { key: 'ecosystem',  title: 'Ecosystem',               subtitle: 'How we build, back, and own ventures' },
-  { key: 'governance', title: 'Governance',              subtitle: 'How we are structured and led' },
-  { key: 'ethics',     title: 'Ethics & Responsibility', subtitle: 'The standards we hold ourselves to' }
+/* Panel items grouped by Company subtab. Each `key` indexes into
+   ABOUT_PANEL_CONTENT below. The grid-nav sidebar on each subtab page
+   renders its own group. */
+export const ABOUT_US_ITEMS: AboutGridItem[] = [
+  { key: 'company',    title: 'Our Story',  subtitle: 'Who we are and the gap we exist to close' },
+  { key: 'philosophy', title: 'Philosophy', subtitle: 'The beliefs that shape how we build' },
+  { key: 'ecosystem',  title: 'Ecosystem',  subtitle: 'How we build, back, and own ventures' }
 ];
 
-export const ABOUT_PANEL_CONTENT: Record<
-  'company' | 'philosophy' | 'ecosystem' | 'direction' | 'governance' | 'ethics',
-  AboutContent
-> = {
+export const DIRECTION_ITEMS: AboutGridItem[] = [
+  { key: 'mission', title: 'Mission', subtitle: 'What we set out to do' },
+  { key: 'vision',  title: 'Vision',  subtitle: 'The future we are building toward' }
+];
+
+export const GOVERNANCE_ITEMS: AboutGridItem[] = [
+  { key: 'governance',  title: 'Governance',              subtitle: 'How we are structured and led' },
+  { key: 'ethics',      title: 'Ethics & Responsibility', subtitle: 'The standards we hold ourselves to' },
+  { key: 'commitments', title: 'Commitments',             subtitle: 'The promises we operate against' }
+];
+
+export const ABOUT_PANEL_CONTENT: Record<AboutContentKey, AboutContent> = {
   company: {
     title: 'Our Story',
     buttonType: 'tabs',
@@ -265,8 +283,8 @@ export const ABOUT_PANEL_CONTENT: Record<
       }
     ]
   },
-  direction: {
-    title: 'Direction',
+  mission: {
+    title: 'Mission',
     buttonType: 'tabs',
     subsections: [
       {
@@ -277,7 +295,13 @@ export const ABOUT_PANEL_CONTENT: Record<
           'Our mission is to identify, develop, and scale ventures that solve real-world problems through technology and disciplined execution — across government and civic operations, defense, healthcare, enterprise, and energy.',
           'We measure success by the durability of the systems we build and the operational command they give the organizations that rely on them.'
         ]
-      },
+      }
+    ]
+  },
+  vision: {
+    title: 'Vision',
+    buttonType: 'tabs',
+    subsections: [
       {
         key: 'vision',
         label: 'Vision',
@@ -342,6 +366,30 @@ export const ABOUT_PANEL_CONTENT: Record<
         description: [
           'We identify, monitor, and mitigate operational, regulatory, and reputational risk continuously — building security, privacy, and accountability into systems from the start.',
           'Our practices align with applicable data-protection law, including the Philippine Data Privacy Act, and scale in rigor with the sensitivity of the systems we operate.'
+        ]
+      }
+    ]
+  },
+  commitments: {
+    title: 'Commitments',
+    buttonType: 'tabs',
+    subsections: [
+      {
+        key: 'to-partners',
+        label: 'To Our Partners',
+        contentTitle: 'The organizations that rely on us are partners, not customers.',
+        description: [
+          'We commit to long-term ownership of the systems we deploy — maintaining, hardening, and evolving them well past launch rather than handing off and walking away.',
+          'Every engagement is held to the same standard of transparency, accountability, and operational continuity, regardless of sector or scale.'
+        ]
+      },
+      {
+        key: 'to-responsible-tech',
+        label: 'To Responsible Technology',
+        contentTitle: 'We hold ourselves accountable for what our technology makes possible.',
+        description: [
+          'We commit to qualified human oversight over consequential decisions, equitable performance across the populations we serve, and security and privacy as defaults rather than features.',
+          'These commitments are reviewed as our systems grow in reach, so accountability scales with impact.'
         ]
       }
     ]

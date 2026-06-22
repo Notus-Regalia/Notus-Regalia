@@ -17,6 +17,14 @@ export interface VenturesSubtab {
 
 export const VENTURES_SUBTABS: VenturesSubtab[] = [
   {
+    id: 'ventures-incubating',
+    slug: 'incubating',
+    label: 'Incubating Ventures',
+    title: 'Incubating Ventures',
+    blurb:
+      'Ventures we are actively incubating from the ground up — concepts moving through validation and our stage-gates toward launch. This space is taking shape.',
+  },
+  {
     id: 'ventures-startups',
     slug: 'startups',
     label: 'Startups',
@@ -42,7 +50,7 @@ export const VENTURES_SUBTABS: VenturesSubtab[] = [
   },
 ];
 
-export const DEFAULT_VENTURES_SUBTAB = 'ventures-startups';
+export const DEFAULT_VENTURES_SUBTAB = 'ventures-incubating';
 
 export const getVenturesSubtab = (id?: string | null): VenturesSubtab =>
   VENTURES_SUBTABS.find((s) => s.id === id) ??

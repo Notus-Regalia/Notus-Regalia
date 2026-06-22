@@ -22,7 +22,7 @@ export const PRODUCTS: Product[] = [
     title: 'MEGIDDO',
     subtitle: '  Matrix for Executive Governance in Intelligence, Defense, and Directive Operations\n\nMEGIDDO is a Flagship Strategic Intelligence Platform for Command & Control Systems engineered to power secure command and control environments. It integrates multi-domain data, advanced analytics, and AI-driven modeling into a unified operational interface, enabling real-time situational awareness and executive-level strategic oversight.',
     tag: 'C2',
-    bgImage: '/assets/megiddo-bg.png',
+    bgImage: '/assets/megiddo-bg.jpg',
   },
   {
     id: 'argos',

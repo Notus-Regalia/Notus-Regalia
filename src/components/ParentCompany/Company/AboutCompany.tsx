@@ -1,13 +1,11 @@
 "use client";
 import { memo, useMemo, useCallback, useRef, useState, useEffect } from "react";
-import { ABOUT_PANEL_ITEMS, ABOUT_PANEL_CONTENT } from "@/data/Company-data";
+import { ABOUT_US_ITEMS, ABOUT_PANEL_CONTENT, type AboutGridItem } from "@/data/Company-data";
 import { useAboutNavigation } from "@/hooks/useAboutNavigation";
 import { useAboutMouseTracking } from "@/hooks/useAboutMouseTracking";
 import GridNavButton from "@/components/ui/GridNavButton";
 import styles from "@/styles/About.module.css";
 import { useReveal } from "@/hooks/useScrollReveal";
-
-type AboutContentType = "company" | "philosophy" | "ecosystem" | "direction" | "governance" | "ethics";
 
 type CornerPosition = {
   top?: number;
@@ -28,7 +26,15 @@ const CORNER_POSITIONS: CornerPosition[] = [
   { bottom: 0, right: 0, borderR: true, borderB: true, delay: 1.5 },
 ];
 
-const AboutCompany = memo(({}: { onLearnMore?: (page: string) => void }) => {
+interface AboutCompanyProps {
+  /** Panel items (grid-nav entries) to show for this subtab. */
+  items?: AboutGridItem[];
+  /** Section heading shown above the panel. */
+  heading?: string;
+  onLearnMore?: (page: string) => void;
+}
+
+const AboutCompany = memo(({ items = ABOUT_US_ITEMS, heading = "Our Company" }: AboutCompanyProps) => {
   const sectionRef = useRef<HTMLElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -43,7 +49,7 @@ const AboutCompany = memo(({}: { onLearnMore?: (page: string) => void }) => {
     isTransitioning,
     selectorPosition,
     handleContentChange,
-  } = useAboutNavigation(ABOUT_PANEL_ITEMS);
+  } = useAboutNavigation(items);
 
   const { handleMouseMove } = useAboutMouseTracking();
 
@@ -55,10 +61,10 @@ const AboutCompany = memo(({}: { onLearnMore?: (page: string) => void }) => {
 
   const selectorStyles = useMemo(
     () => ({
-      top: `${selectorPosition * (100 / ABOUT_PANEL_ITEMS.length)}%`,
-      height: `${100 / ABOUT_PANEL_ITEMS.length}%`,
+      top: `${selectorPosition * (100 / items.length)}%`,
+      height: `${100 / items.length}%`,
     }),
-    [selectorPosition]
+    [selectorPosition, items.length]
   );
 
   return (
@@ -114,7 +120,7 @@ const AboutCompany = memo(({}: { onLearnMore?: (page: string) => void }) => {
                 color: 'var(--content-primary)',
               }}
             >
-              Our Company
+              {heading}
             </h2>
           </div>
 
@@ -148,7 +154,7 @@ const AboutCompany = memo(({}: { onLearnMore?: (page: string) => void }) => {
                 ))}
               </div>
 
-              {ABOUT_PANEL_ITEMS.map((item, index) => (
+              {items.map((item, index) => (
                 <GridNavButton
                   key={item.key}
                   item={item}

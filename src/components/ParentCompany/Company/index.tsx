@@ -5,6 +5,8 @@ import ExecutiveProfile from './ExecutiveProfile';
 import ExecutiveComingSoon from './ExecutiveComingSoon';
 import {
   AboutCompanyPage,
+  DirectionPage,
+  GovernancePage,
   ExecutivesPage,
   InvestorsPage,
 } from './subpages/pages';
@@ -34,6 +36,13 @@ const Company = ({ activeSubtab }: CompanyProps) => {
 
   /* Phase: 'idle' → 'fade-out' → swap → 'fade-in' → 'idle' */
   const [phase, setPhase] = useState<'idle' | 'fade-out' | 'fade-in'>('idle');
+
+  /* ── Preload the Direction "Vision" banner so it's already cached when the
+     subtab opens, instead of streaming in and popping after the fade-in. ── */
+  useEffect(() => {
+    const img = new Image();
+    img.src = '/banner-2.jpg';
+  }, []);
 
   /* ── Scroll helper (works with/without ScrollSmoother) ── */
   const scrollToTop = useCallback(() => {
@@ -202,6 +211,8 @@ const Company = ({ activeSubtab }: CompanyProps) => {
 
   const renderPage = () => {
     switch (displayedSubtab) {
+      case 'company-direction':    return <DirectionPage />;
+      case 'company-governance':   return <GovernancePage />;
       case 'company-executives':   return <ExecutivesPage />;
       case 'company-investors':    return <InvestorsPage />;
       case 'company-about':

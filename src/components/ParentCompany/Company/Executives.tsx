@@ -15,6 +15,16 @@ const openExecutiveInline = (slug: string) => (e: React.MouseEvent) => {
   window.dispatchEvent(new CustomEvent('executive-open', { detail: { slug } }));
 };
 
+/* Collapse the (now multi-paragraph) bio into a short card preview, cut on a
+   word boundary so the "… Learn more." tail reads cleanly. */
+const bioPreview = (bio: string, max = 180) => {
+  const flat = bio.replace(/\s+/g, ' ').trim();
+  if (flat.length <= max) return flat;
+  const cut = flat.slice(0, max);
+  const lastSpace = cut.lastIndexOf(' ');
+  return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).replace(/[.,;:—-]+$/, '').trim();
+};
+
 /* ─────────────────────────────────────────
    EXECUTIVE CAROUSEL — landing banner
 ───────────────────────────────────────── */
@@ -55,7 +65,6 @@ const ExecCarousel = memo(() => {
       {FOUNDERS.map((f, i) => (
         <div key={f.id} className={`exec-slide${i === index ? ' exec-active' : ''}`} aria-hidden={i !== index}>
           <div className="exec-slide-content">
-            <div className="exec-anim exec-eyebrow"><span className="exec-eyebrow-dot" />{f.codename} · Since {f.since}</div>
             <h3 className="exec-anim exec-name">{f.name}</h3>
             <p className="exec-anim exec-title">{f.title}</p>
             <span className="exec-anim exec-role">{f.role}</span>
@@ -93,14 +102,6 @@ const ExecCarousel = memo(() => {
             </button>
           ))}
         </div>
-        <div className="exec-arrows">
-          <button className="exec-arrow" onClick={prev} aria-label="Previous executive">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="m15 18-6-6 6-6" /></svg>
-          </button>
-          <button className="exec-arrow" onClick={next} aria-label="Next executive">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="m9 18 6-6-6-6" /></svg>
-          </button>
-        </div>
       </div>
     </div>
   );
@@ -117,11 +118,6 @@ const Executives = () => {
   return (
     <>
       <style>{`
-
-        @keyframes epulse {
-          0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(227,27,84,.5);}
-          50%{opacity:.7;box-shadow:0 0 0 5px rgba(227,27,84,0);}
-        }
 
         .teams-root{
           position:relative;background:var(--gradient-section);color:var(--content-primary);
@@ -198,12 +194,6 @@ const Executives = () => {
         .exec-slide.exec-active .exec-anim:nth-child(4){animation-delay:.28s;}
         .exec-slide.exec-active .exec-anim:nth-child(5){animation-delay:.34s;}
         .exec-slide.exec-active .exec-anim:nth-child(6){animation-delay:.40s;}
-        .exec-eyebrow{
-          display:inline-flex;align-items:center;gap:.5rem;align-self:flex-start;
-          font-family:ui-monospace,Menlo,monospace;font-size:.65rem;letter-spacing:.22em;
-          text-transform:uppercase;font-weight:700;color:#E31B54;margin-bottom:1.2rem;
-        }
-        .exec-eyebrow-dot{width:5px;height:5px;border-radius:50%;background:#E31B54;flex-shrink:0;animation:epulse 2s ease-in-out infinite;}
         .exec-name{
           font-size:clamp(1.9rem,4.2vw,3.4rem);font-weight:700;letter-spacing:-.03em;line-height:1.05;
           background:linear-gradient(135deg,#f1f5f9 0%,rgba(241,245,249,.6) 100%);
@@ -283,14 +273,6 @@ const Executives = () => {
         .exec-dot-fill{display:block;width:100%;height:100%;background:#E31B54;transform:scaleX(0);transform-origin:left;}
         .exec-dot.exec-active .exec-dot-fill{animation:exec-progress 6.5s linear forwards;}
         .exec-carousel.exec-paused .exec-dot-fill{animation-play-state:paused;}
-        .exec-arrows{display:flex;gap:.6rem;flex-shrink:0;}
-        .exec-arrow{
-          width:42px;height:42px;border-radius:50%;
-          border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.03);color:rgba(255,255,255,.6);
-          display:inline-flex;align-items:center;justify-content:center;cursor:pointer;
-          transition:border-color .25s ease,color .25s ease,background .25s ease,transform .25s ease;
-        }
-        .exec-arrow:hover{border-color:rgba(227,27,84,.6);color:#fff;background:rgba(227,27,84,.12);transform:translateY(-1px);}
 
         @media(max-width:767px){
           .exec-carousel{height:100dvh;}
@@ -306,7 +288,6 @@ const Executives = () => {
           .exec-dots{gap:1rem;}
           .exec-dot-name{display:none;}
           .exec-dot-track{width:34px;}
-          .exec-arrow{width:38px;height:38px;}
           .exec-controls{padding:.85rem 1.2rem;}
         }
 
@@ -342,7 +323,15 @@ const Executives = () => {
         .exec-ov-bio{
           margin:1rem 0 0;padding-right:1.75rem;
           font-size:.85rem;line-height:1.9;color:rgba(255,255,255,.45);
+          text-align:justify;text-justify:inter-word;hyphens:auto;
         }
+        .exec-ov-more{
+          color:rgba(255,255,255,.85);font-weight:500;white-space:nowrap;
+          text-decoration:underline;text-underline-offset:2px;
+          transition:color .25s ease;
+        }
+        .exec-ov-card:hover .exec-ov-more,
+        .exec-ov-card:focus-visible .exec-ov-more{color:#fff;}
         /* Light mode — overview section follows the page theme
            (the banner above stays always-dark). */
         :root.light .exec-overview{background:#f8fafc;}
@@ -353,6 +342,7 @@ const Executives = () => {
         :root.light .exec-ov-portrait{background:linear-gradient(170deg,#e2e8f0 0%,#cbd5e1 100%);}
         :root.light .exec-ov-name{color:#0f172a;}
         :root.light .exec-ov-bio{color:rgba(0,0,0,.55);}
+        :root.light .exec-ov-more{color:rgba(0,0,0,.82);}
 
         @media(max-width:1023px){
           .exec-overview-grid{grid-template-columns:repeat(2,1fr);gap:2px;row-gap:3.5rem;}
@@ -396,7 +386,7 @@ const Executives = () => {
                   </div>
                   <span className="exec-ov-eyebrow">{f.title}</span>
                   <h3 className="exec-ov-name">{f.name}</h3>
-                  <p className="exec-ov-bio">{f.bio}</p>
+                  <p className="exec-ov-bio">{bioPreview(f.bio)}… <span className="exec-ov-more">Learn more.</span></p>
                 </Link>
               ))}
             </div>

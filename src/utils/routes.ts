@@ -21,7 +21,7 @@ export type RootTab = (typeof ROOT_TABS)[number];
 export const DEFAULT_SUBTABS: Partial<Record<RootTab, string>> = {
   company: 'company-about',
   technologies: 'technologies-civic-operations',
-  ventures: 'ventures-startups',
+  ventures: 'ventures-incubating',
 };
 
 export const isRootTab = (tab: string | null | undefined): tab is RootTab =>

@@ -3,9 +3,11 @@
 import { memo, type ReactNode } from "react";
 import PageHero from "./PageHero";
 import ExploreNext from "./ExploreNext";
-import WhatWeDoBentoSection from "../../Landing/BentoSection";
 import CompanyHeader from "../CompanyHeader";
-import AboutCompany from "../AboutCompany";
+import AboutStory from "../AboutStory";
+import SectorMissions from "../SectorMissions";
+import { StoryHero, StoryHeroStyles, type Story } from "../StoryHero";
+import Governance from "../Governance";
 import Executives from "../Executives";
 import Investors from "../Investors";
 import {
@@ -38,23 +40,53 @@ const RevealSection = ({ id, children }: { id: string; children: ReactNode }) =>
   );
 };
 
-export const AboutCompanyPage = memo(({ onLearnMore }: { onLearnMore?: (page: string) => void }) => {
+export const AboutCompanyPage = memo((_props: { onLearnMore?: (page: string) => void }) => {
   return (
     <>
-      {/* "Our Company" — the original brand header (NOTUS REGALIA + the Manila /
-          coordinates typing animation) followed by the company profile panel. */}
-      <div id="about-our-company">
-        <CompanyHeader />
-        <AboutCompany onLearnMore={onLearnMore} />
-      </div>
-      {/* "What we do" — capabilities */}
-      <RevealSection id="about-what-we-do">
-        <WhatWeDoBentoSection />
+      {/* Brand hero intro. */}
+      <CompanyHeader />
+      {/* The company story, told as a sequence of full-bleed hero banners:
+          Origin · What We Build · How We Operate (no sidebar tabs). */}
+      <AboutStory />
+      <RevealSection id="about-explore">
+        <ExploreNext current="company-about" />
       </RevealSection>
-      {/* "Roadmap" — where we're headed */}
+    </>
+  );
+});
+AboutCompanyPage.displayName = "AboutCompanyPage";
+
+/* ── Vision — the single corporate anchor ──
+   One vision for Notus Regalia as a whole; it anchors every sector.
+   The italic statement leads the banner, followed by the vision copy. */
+const VISION_STORY: Story = {
+  id: 'direction-vision',
+  index: '',
+  lead: true,
+  kicker: 'We are structured remnants of dying systems—brief coherence inside an indifferent universe.',
+  kickerStyle: 'statement',
+  title: 'Vision',
+  paragraphs: [
+    'A future in which human civilization operates with greater clarity, stability, and capability, where technology serves as a force multiplier for human judgment, coordination, and progress.',
+    'We build systems for the world’s most critical domains, public infrastructure, industry, and enterprise, designed to remain resilient under stress and governed with rigor, so that trust can scale alongside complexity.',
+    'Notus Regalia exists to serve that trajectory. It functions as an operational backbone for ventures that shape essential systems across Southeast Asia and beyond, enabling work that directly affects how societies function and evolve.',
+  ],
+  align: 'left',
+  variant: 'image',
+  bgImage: '/banner-2.jpg',
+};
+
+export const DirectionPage = memo(() => {
+  return (
+    <>
       <BlocksStyles />
+      <StoryHeroStyles />
+      {/* Vision (corporate anchor) → Sector Missions (operational). */}
+      <StoryHero story={VISION_STORY} />
+      <SectorMissions />
+      {/* "Roadmap" — the phased path toward that direction. */}
       <ContentSection
-        id="about-roadmap"
+        id="direction-roadmap"
         eyebrow="Where we're headed"
         title="Roadmap"
         subtitle="The phased path of how Notus Regalia scales its systems, sectors, and impact."
@@ -68,13 +100,33 @@ export const AboutCompanyPage = memo(({ onLearnMore }: { onLearnMore?: (page: st
           ]}
         />
       </ContentSection>
-      <RevealSection id="about-explore">
-        <ExploreNext current="company-about" />
+      <RevealSection id="direction-explore">
+        <ExploreNext current="company-direction" />
       </RevealSection>
     </>
   );
 });
-AboutCompanyPage.displayName = "AboutCompanyPage";
+DirectionPage.displayName = "DirectionPage";
+
+export const GovernancePage = memo(() => {
+  const tab = getCompanySubtab('company-governance');
+  return (
+    <>
+      <div id="governance-overview">
+        <PageHero {...tab.hero!} />
+      </div>
+      {/* Governance · Ethics & Responsibility · Commitments — editorial
+          "pillars" layout (no sidebar tabs). */}
+      <RevealSection id="governance-framework">
+        <Governance />
+      </RevealSection>
+      <RevealSection id="governance-explore">
+        <ExploreNext current="company-governance" />
+      </RevealSection>
+    </>
+  );
+});
+GovernancePage.displayName = "GovernancePage";
 
 export const ExecutivesPage = memo(() => {
   return (

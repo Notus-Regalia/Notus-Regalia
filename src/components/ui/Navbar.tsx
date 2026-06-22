@@ -75,6 +75,7 @@ const NAV_ITEMS: NavItem[] = [
     label: 'Ventures',
     icon: 'bi-diagram-3',
     subtabs: [
+      { id: 'ventures-incubating',   label: 'Incubating Ventures' },
       { id: 'ventures-startups',     label: 'Startups' },
       { id: 'ventures-subsidiaries', label: 'Subsidiaries' },
       { id: 'ventures-portfolio',    label: 'Portfolio Companies' },

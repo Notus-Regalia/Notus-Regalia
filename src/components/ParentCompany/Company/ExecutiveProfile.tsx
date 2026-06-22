@@ -143,7 +143,8 @@ export default function ExecutiveProfile({ founder, onBack }: { founder: Founder
           display:block;font-family:ui-monospace,Menlo,monospace;font-size:.6rem;
           text-transform:uppercase;letter-spacing:.22em;color:rgba(255,255,255,.30);margin-bottom:.85rem;
         }
-        .ep-bio{font-size:1.05rem;line-height:1.95;color:rgba(255,255,255,.62);margin:0;max-width:82ch;}
+        .ep-bio{font-size:1.05rem;line-height:1.95;color:rgba(255,255,255,.62);margin:0;max-width:82ch;text-align:justify;text-justify:inter-word;hyphens:auto;}
+        .ep-bio + .ep-bio{margin-top:1.25rem;}
         .ep-socials{display:flex;gap:.65rem;margin-top:1.6rem;flex-wrap:wrap;}
         /* Share / Download — the site's hero brand button, full-width + stacked.
            The gradient border follows the cursor via --mouse-x / --mouse-y. */
@@ -283,7 +284,9 @@ export default function ExecutiveProfile({ founder, onBack }: { founder: Founder
 
             <section>
               <span className="ep-section-label">About</span>
-              <p className="ep-bio">{founder.bio}</p>
+              {founder.bio.split('\n\n').map((paragraph, i) => (
+                <p key={i} className="ep-bio">{paragraph}</p>
+              ))}
             </section>
           </div>
         </div>

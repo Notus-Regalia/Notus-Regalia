@@ -417,6 +417,8 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
       title: 'Company',
       links: [
         { label: 'About Us', tabId: 'company', subtabId: 'company-about' },
+        { label: 'Direction',        tabId: 'company', subtabId: 'company-direction' },
+        { label: 'Governance',       tabId: 'company', subtabId: 'company-governance' },
         { label: 'Executives',       tabId: 'company', subtabId: 'company-executives' },
         { label: 'Investors',        tabId: 'company', subtabId: 'company-investors' },
         { label: 'Human Rights',     tabId: 'company', subtabId: 'company-human-rights' },
@@ -453,6 +455,7 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
     {
       title: 'Ventures',
       links: [
+        { label: 'Incubating Ventures', tabId: 'ventures', subtabId: 'ventures-incubating' },
         { label: 'Startups',           tabId: 'ventures', subtabId: 'ventures-startups' },
         { label: 'Subsidiaries',       tabId: 'ventures', subtabId: 'ventures-subsidiaries' },
         { label: 'Portfolio Companies', tabId: 'ventures', subtabId: 'ventures-portfolio' },
