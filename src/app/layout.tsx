@@ -4,9 +4,14 @@ import CursorClickPulse from "@/components/ui/CursorClickPulse";
 import "./globals.css";
 import "@/styles/About.module.css";
 import ConsentRuntime from "@/components/consent/ConsentRuntime";
-import { headers } from "next/headers";
 import { SITE_URL, SITE_NAME } from "@/utils/site";
 import { serializeJsonLd } from "@/components/seo/JsonLd";
+
+// Nonce-based CSP (see src/middleware.ts) requires per-request rendering:
+// Next.js can only stamp the per-request nonce onto its inline bootstrap
+// scripts when the page is rendered dynamically. Without this, statically
+// prerendered HTML ships nonce-less inline scripts that the CSP then blocks.
+export const dynamic = "force-dynamic";
 
 const SITE_DESCRIPTION =
   "Notus Regalia is a private technology holding and venture-building company engineering critical operational systems across defense, government, healthcare, enterprise, and energy.";
@@ -143,13 +148,11 @@ const structuredData = {
   ],
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Per-request CSP nonce from middleware; stamped onto the JSON-LD script below.
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       {/* NOTE: do NOT add a manual <head> here. A literal <head> in the App
@@ -164,7 +167,6 @@ export default async function RootLayout({
         {/* JSON-LD structured data (valid anywhere in the document). */}
         <script
           type="application/ld+json"
-          nonce={nonce}
           dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData) }}
         />
         <CursorClickPulse />
