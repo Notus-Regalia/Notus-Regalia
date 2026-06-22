@@ -625,7 +625,9 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
           display: flex;
           flex-direction: column;
           justify-content: center;
-          padding: 5rem clamp(2rem, 4vw, 7rem);
+          /* Match the main page content gutter so the panel text aligns with
+             the rest of the site (outer edges land on the content column). */
+          padding: 5rem var(--site-gutter-inline);
           overflow: hidden;
           height: 100%;
           z-index: 1;
@@ -824,7 +826,9 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
            MAIN FOOTER BAND — themed
         ───────────────────────────────────────────── */
         .nr-band3 {
-          padding: 4rem clamp(1rem, 5vw, 9rem);
+          /* Align the footer's nav columns, brand, social and bottom bar with
+             the main page content gutter. */
+          padding: 4rem var(--site-gutter-inline);
           background: var(--f-band3-bg);
           border-top: 1px solid var(--f-border);
           position: relative; isolation: isolate;

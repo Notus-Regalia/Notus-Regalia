@@ -193,6 +193,21 @@ html {
   cursor: var(--app-cursor-default), auto;
 }
 
+/* ── Shared content gutter ──
+   Single source of truth for the horizontal inset of page content. Home
+   sections (Industry/Releases/Mission/Bento) and Company subpages already
+   declare these same steps locally on their own root; defining them globally
+   lets the navbar and footer align their edges to that same content column.
+   Locally-scoped declarations still override within their subtree (identical
+   values), so this only fills in for elements that don't set their own. */
+:root {
+  --site-gutter-inline: 1.25rem;
+}
+@media (min-width: 640px)  { :root { --site-gutter-inline: 4rem;  } }
+@media (min-width: 768px)  { :root { --site-gutter-inline: 6rem;  } }
+@media (min-width: 1280px) { :root { --site-gutter-inline: 8rem;  } }
+@media (min-width: 1536px) { :root { --site-gutter-inline: 12rem; } }
+
 /* Promote #smooth-content to its own GPU layer so dashed borders
    are rasterised once and the texture is composited each frame
    instead of being re-rasterised (which causes sub-pixel flicker). */

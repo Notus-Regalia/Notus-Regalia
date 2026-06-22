@@ -342,6 +342,10 @@ input[type="checkbox"], input[type="radio"], select,
   align-items: stretch;
   height: 50px;
   overflow: hidden;
+  /* Inset the strip to the same content gutter as the main bar above, so the
+     collapse chevron / first tab lines up under the logo and the track's right
+     edge lines up with the controls. */
+  padding-inline: var(--site-gutter-inline);
   transform: translateY(-6px);
   opacity: 0;
   transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1) 0.06s,
@@ -612,6 +616,11 @@ input[type="checkbox"], input[type="radio"], select,
   align-items: stretch;
   transition: opacity 0.28s ease;
   pointer-events: none;
+  /* These layers are absolutely positioned, so they're sized against the
+     inner's padding box and ignore its padding-inline. Re-apply the content
+     gutter here so the Company strip lines up with the bar (and the other
+     strips) instead of going full-bleed. */
+  padding-inline: var(--site-gutter-inline);
 }
 .strip-crossfade-layer.strip-layer-visible {
   opacity: 1;

@@ -1154,8 +1154,10 @@ const Navbar = ({
 
   const barStyle = useMemo(() => ({
     height: isMobile ? '68px' : '84px',
-    paddingLeft:  isMobile ? '16px' : '36px',
-    paddingRight: isMobile ? '16px' : '36px',
+    // Align the navbar's left (logo) and right (controls) edges with the main
+    // page content column — same responsive gutter the home sections use.
+    paddingLeft:  'var(--site-gutter-inline)',
+    paddingRight: 'var(--site-gutter-inline)',
     gap: isMobile ? '10px' : '16px',
   }), [isMobile]);
 
