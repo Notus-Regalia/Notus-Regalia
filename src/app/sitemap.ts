@@ -24,7 +24,6 @@ const ROUTES: [string, number][] = [
 
   // Technologies
   ['/technologies/civic-operations', 0.7],
-  ['/technologies/defense', 0.7],
   ['/technologies/healthcare', 0.7],
   ['/technologies/enterprise', 0.7],
   ['/technologies/energy', 0.7],

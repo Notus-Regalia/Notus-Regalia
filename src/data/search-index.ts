@@ -43,7 +43,6 @@ export const ALL_SECTIONS: SectionItem[] = [
   { label: 'Portfolio Companies', tabId: 'ventures',     subtabId: 'ventures-portfolio',                           icon: 'bi-briefcase',       aka: 'Ventures, Strategic Stakes',                  keywords: ['ventures', 'portfolio', 'portfolio company', 'portfolio companies', 'stakes', 'partners'] },
 
   // Technologies
-  { label: 'Defense',           tabId: 'technologies', subtabId: 'defense',                                      icon: 'bi-shield',          aka: 'Military, Security, Intelligence',            keywords: ['defense', 'defence', 'military', 'security', 'intelligence', 'warfare', 'weapons', 'tactical', 'army', 'navy'] },
   { label: 'Healthcare',        tabId: 'technologies', subtabId: 'healthcare',                                   icon: 'bi-heart-pulse',     aka: 'Medical, Biotech, Health',                    keywords: ['healthcare', 'health', 'medical', 'biotech', 'pharma', 'hospital', 'clinical', 'patient', 'wellness'] },
   { label: 'Civic Operations',  tabId: 'technologies', subtabId: 'civic-operations',                             icon: 'bi-buildings',       aka: 'Government, Infrastructure, Public',          keywords: ['civic', 'operations', 'government', 'infrastructure', 'public', 'urban', 'city', 'municipal', 'community'] },
 ];

@@ -227,7 +227,7 @@ export async function generateMetadata({
   };
 }
 
-// Optional catch-all so clean paths like /company/sectors and /technologies/defense
+// Optional catch-all so clean paths like /company/sectors and /technologies/healthcare
 // all resolve server-side to the single-page app. "/" matches with no slug.
 // Literal sibling routes (/contact, /information, /sitemap, ...) take precedence.
 export default async function RootCatchAll({

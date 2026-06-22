@@ -62,7 +62,6 @@ const SITES: Site[] = [
         title: "Technologies",
         links: [
           { label: "Government",  href: "/technologies/civic-operations" },
-          { label: "Defense",     href: "/technologies/defense" },
           { label: "Healthcare",  href: "/technologies/healthcare" },
           { label: "Enterprise",  href: "/technologies/enterprise" },
           { label: "Energy",      href: "/technologies/energy" },

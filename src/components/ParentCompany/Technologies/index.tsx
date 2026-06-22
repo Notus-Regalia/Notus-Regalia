@@ -1,11 +1,9 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from 'react';
-import DefenseTab from './Defense';
 import CivicTab from './Civic';
 import HealthcareTab from './Healthcare';
 
 type TechnologiesSubtab =
-  | 'technologies-defense'
   | 'technologies-civic-operations'
   | 'technologies-healthcare'
   | 'technologies-enterprise'
@@ -15,22 +13,18 @@ interface TechnologiesProps {
   activeSubtab?: string;
 }
 
-type TechnologiesPanel = 'defense' | 'civic' | 'healthcare';
+type TechnologiesPanel = 'civic' | 'healthcare';
 
 const FADE_OUT_MS = 180;
 const FADE_IN_MS = 260;
 
 const getPanelFromSubtab = (subtab?: string): TechnologiesPanel => {
-  if (subtab === 'technologies-defense') {
-    return 'defense';
-  }
   if (subtab === 'technologies-healthcare') return 'healthcare';
   return 'civic';
 };
 
 const Technologies = ({ activeSubtab }: TechnologiesProps) => {
   const active: TechnologiesSubtab = (
-    activeSubtab === 'technologies-defense' ||
     activeSubtab === 'technologies-civic-operations' ||
     activeSubtab === 'technologies-healthcare' ||
     activeSubtab === 'technologies-enterprise' ||
@@ -83,7 +77,6 @@ const Technologies = ({ activeSubtab }: TechnologiesProps) => {
 
   return (
     <div style={transitionStyle}>
-      {displayedPanel === 'defense' && <DefenseTab />}
       {displayedPanel === 'civic' && <CivicTab />}
       {displayedPanel === 'healthcare' && <HealthcareTab />}
     </div>

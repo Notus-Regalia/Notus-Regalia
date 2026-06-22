@@ -88,7 +88,6 @@ const NAV_ITEMS: NavItem[] = [
     isSpecial: true,
     subtabs: [
       { id: 'technologies-civic-operations', label: 'Government' },
-      { id: 'technologies-defense',          label: 'Defense' },
       { id: 'technologies-healthcare',       label: 'Healthcare' },
       { id: 'technologies-enterprise',       label: 'Enterprise' },
       { id: 'technologies-energy',           label: 'Energy' },

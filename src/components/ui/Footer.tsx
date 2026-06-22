@@ -445,13 +445,6 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
       ]
     },
     {
-      title: 'Technologies',
-      links: [
-        { label: 'Megiddo', tabId: 'technologies', subtabId: 'technologies-defense' },
-        { label: 'Argos',   tabId: 'technologies', subtabId: 'technologies-defense' },
-      ]
-    },
-    {
       title: 'Ventures',
       links: [
         { label: 'Incubating Ventures', tabId: 'ventures', subtabId: 'ventures-incubating' },
