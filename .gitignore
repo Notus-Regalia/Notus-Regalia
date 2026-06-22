@@ -6,6 +6,9 @@
 .pnp.js
 .yarn/install-state.gz
 
+# Secrets — never commit
+src/utils/credentials.json
+
 # Testing
 /coverage
 
