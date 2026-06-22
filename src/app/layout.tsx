@@ -7,11 +7,11 @@ import ConsentRuntime from "@/components/consent/ConsentRuntime";
 import { SITE_URL, SITE_NAME } from "@/utils/site";
 import { serializeJsonLd } from "@/components/seo/JsonLd";
 
-// Nonce-based CSP (see src/middleware.ts) requires per-request rendering:
-// Next.js can only stamp the per-request nonce onto its inline bootstrap
-// scripts when the page is rendered dynamically. Without this, statically
-// prerendered HTML ships nonce-less inline scripts that the CSP then blocks.
-export const dynamic = "force-dynamic";
+// Pages render statically (the catch-all uses generateStaticParams). We do NOT
+// force dynamic rendering here: a force-dynamic layout overrides that static
+// generation and re-triggers the per-request Server Components render that
+// fails on Vercel's runtime. The CSP therefore allows inline scripts instead
+// of relying on a per-request nonce (see src/middleware.ts).
 
 const SITE_DESCRIPTION =
   "Notus Regalia is a private technology holding and venture-building company engineering critical operational systems across defense, government, healthcare, enterprise, and energy.";

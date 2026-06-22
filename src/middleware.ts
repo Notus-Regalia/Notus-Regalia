@@ -11,27 +11,25 @@ const CLEANUP_INTERVAL_MS = 5 * 60_000;
 
 const isDev = process.env.NODE_ENV === 'development';
 
-// CSP is generated here (not in next.config) because a strong policy needs a
-// fresh per-request nonce for inline scripts. Next.js reads the nonce from the
-// `Content-Security-Policy` REQUEST header we set below and stamps it onto its
-// own inline bootstrap scripts automatically; our JSON-LD scripts read it from
-// the `x-nonce` request header. No 'unsafe-inline' in script-src — an attacker
-// can't guess the nonce, so injected inline scripts are blocked.
+// CSP is generated here (not in next.config) so it ships on every response.
 //
-// 'self' covers Next's /_next/* chunk files; the explicit hosts cover Vercel
-// Analytics/Speed Insights (which inject their own <script src>). We avoid
-// 'strict-dynamic' precisely so those host allowlists stay active.
-const buildCsp = (nonce: string) =>
+// Pages are statically generated (the catch-all uses generateStaticParams), so
+// a per-request script nonce isn't viable: a nonce in the request CSP header
+// forces Next into dynamic rendering, which fails on Vercel's runtime. We
+// therefore allow inline scripts. 'self' covers Next's /_next/* chunk files;
+// the explicit hosts cover Vercel Analytics/Speed Insights (which inject their
+// own <script src>).
+const buildCsp = () =>
   [
     "default-src 'self'",
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
     "object-src 'none'",
-    // 'unsafe-eval' is only needed by webpack HMR in dev; never in production.
-    `script-src 'self' 'nonce-${nonce}'${isDev ? " 'unsafe-eval'" : ''} https://va.vercel-scripts.com https://vitals.vercel-insights.com`,
-    // Inline styles can't be nonced (CSS-in-JS / style= attrs). Style injection
-    // is low-risk compared to script injection, so 'unsafe-inline' stays here.
+    // Inline scripts must be allowed because static HTML can't carry a
+    // per-request nonce. 'unsafe-eval' is only needed by webpack HMR in dev.
+    `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''} https://va.vercel-scripts.com https://vitals.vercel-insights.com`,
+    // Inline styles (CSS-in-JS / style= attrs) are likewise allowed.
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data: https:",
@@ -127,18 +125,9 @@ export function middleware(request: NextRequest) {
     logSecurityEvent('large_query_string', request, { ip, queryLength });
   }
 
-  // Per-request nonce for CSP. base64-encoded UUID is unguessable and cheap.
-  const nonce = btoa(crypto.randomUUID());
-  const csp = buildCsp(nonce);
+  const csp = buildCsp();
 
-  // Forward the nonce to the rendered page. Next.js parses the nonce out of the
-  // request's Content-Security-Policy header to stamp its own inline scripts;
-  // our server components read x-nonce for JSON-LD scripts.
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-nonce', nonce);
-  requestHeaders.set('Content-Security-Policy', csp);
-
-  const response = NextResponse.next({ request: { headers: requestHeaders } });
+  const response = NextResponse.next();
 
   // Enforce in production; report-only in dev so the dev server (eval, etc.)
   // keeps working while still surfacing violations.
