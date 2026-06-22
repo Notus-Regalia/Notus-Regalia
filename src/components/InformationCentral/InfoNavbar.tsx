@@ -2,7 +2,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
-import { useTheme } from '@/context/ThemeContext';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { NAVBAR_CSS } from '@/components/ui/navbar-styles';
 import SearchModal from '@/components/ui/SearchModal';
@@ -41,22 +40,6 @@ interface InfoNavbarProps {
   onLogoClick: () => void;
 }
 
-
-const StickyThemeTab = ({ visible, isMobile }: { visible: boolean; isMobile: boolean }) => {
-  const { isDark, toggleTheme } = useTheme();
-  return (
-    <button
-      className={`nav-theme-tab${visible ? ' tab-visible' : ''}`}
-      onClick={toggleTheme}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-    >
-      <span className="reveal-tab-icon" aria-hidden>
-        <i className={`bi ${isDark ? 'bi-sun' : 'bi-moon'}`} />
-      </span>
-      {!isMobile && <span>{isDark ? 'Light' : 'Dark'}</span>}
-    </button>
-  );
-};
 
 // ─────────────────────────────────────────────────────────────
 //  StripRow — copied verbatim from the main Navbar (content-switch)
@@ -232,6 +215,7 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpandedTab, setMobileExpandedTab] = useState<string | null>(null);
   const [navCollapsed, setNavCollapsed] = useState(false);
+  const [navLocked, setNavLocked] = useState(false);
 
   // ── Hover preview: peek a tab's subtab strip and blur the page behind ──
   const [previewTab, setPreviewTab] = useState<string | null>(null);
@@ -240,26 +224,63 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
   const navContainerRef = useRef<HTMLDivElement>(null);
   const navProgressRafRef = useRef<number | null>(null);
   const navCollapsedRef = useRef(false);
+  const navLockedRef = useRef(false);
   const manualOpenRef = useRef(false);
 
-  // ── Collapse / show nav (copied behavior) ──
-  const handleCollapseNav = useCallback(() => {
-    setNavCollapsed(true);
-    navCollapsedRef.current = true;
-    setStripOpen(false);
-    manualOpenRef.current = false;
-    let hasScrolledAway = window.scrollY > 10;
-    const restore = () => {
-      if (!hasScrolledAway) { if (window.scrollY > 10) hasScrolledAway = true; return; }
-      if (window.scrollY <= 10) { setNavCollapsed(false); navCollapsedRef.current = false; window.removeEventListener('scroll', restore); }
-    };
-    window.addEventListener('scroll', restore, { passive: true });
+  // ── Manual reveal (the "Show Nav" tab) ──
+  // ── Lock navigation ──
+  // When locked, the navbar is pinned visible and the scroll-direction auto-hide
+  // is disabled. Toggled from the Sefirah assistant; we echo the new state back
+  // so its button can reflect lock/unlock.
+  const handleToggleLock = useCallback(() => {
+    const next = !navLockedRef.current;
+    navLockedRef.current = next;
+    setNavLocked(next);
+    if (next) { setNavCollapsed(false); navCollapsedRef.current = false; }
+    window.dispatchEvent(new CustomEvent('nav-lock-changed', { detail: { locked: next } }));
   }, []);
 
-  const handleShowNav = useCallback(() => {
-    setNavCollapsed(false);
-    navCollapsedRef.current = false;
-    setStripOpen(true);
+  // ── Auto hide / show on scroll direction ──
+  // Scrolling down slides the navbar away; scrolling up (or returning near the
+  // top) brings it back. Disabled while locked.
+  useEffect(() => {
+    const readY = () => {
+      const sm = ScrollSmoother.get();
+      return sm ? sm.scrollTop() : window.scrollY;
+    };
+    let lastY = readY();
+    let ticking = false;
+
+    const evaluate = () => {
+      ticking = false;
+      const y = readY();
+      if (navLockedRef.current) { lastY = y; return; }
+      const delta = y - lastY;
+      if (y <= 80) {
+        if (navCollapsedRef.current) { setNavCollapsed(false); navCollapsedRef.current = false; }
+        lastY = y;
+      } else if (delta > 6) {            // scrolling down → hide
+        if (!navCollapsedRef.current) { setNavCollapsed(true); navCollapsedRef.current = true; manualOpenRef.current = false; }
+        lastY = y;
+      } else if (delta < -6) {           // scrolling up → show
+        if (navCollapsedRef.current) { setNavCollapsed(false); navCollapsedRef.current = false; }
+        lastY = y;
+      }
+    };
+
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(evaluate); } };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    const smoother = ScrollSmoother.get() as {
+      scrollTrigger?: {
+        addEventListener?: (event: string, cb: () => void) => void;
+        removeEventListener?: (event: string, cb: () => void) => void;
+      };
+    } | null;
+    smoother?.scrollTrigger?.addEventListener?.('update', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      smoother?.scrollTrigger?.removeEventListener?.('update', onScroll);
+    };
   }, []);
 
   // ── Hover preview (desktop only) — mirrors the main Navbar ──
@@ -380,14 +401,17 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
       const d = (e as CustomEvent).detail as { tabId: string; subtabId?: string };
       if (d?.tabId) handleSearchNavigate(d.tabId, d.subtabId);
     };
-    const onCollapse = () => handleCollapseNav();
+    const onToggle = () => handleToggleLock();
+    const onQuery  = () => window.dispatchEvent(new CustomEvent('nav-lock-changed', { detail: { locked: navLockedRef.current } }));
     window.addEventListener('sefirah-navigate', onNav);
-    window.addEventListener('nav-collapse', onCollapse);
+    window.addEventListener('nav-toggle-lock', onToggle);
+    window.addEventListener('nav-lock-query', onQuery);
     return () => {
       window.removeEventListener('sefirah-navigate', onNav);
-      window.removeEventListener('nav-collapse', onCollapse);
+      window.removeEventListener('nav-toggle-lock', onToggle);
+      window.removeEventListener('nav-lock-query', onQuery);
     };
-  }, [handleSearchNavigate, handleCollapseNav]);
+  }, [handleSearchNavigate, handleToggleLock]);
 
   // ── Mobile ──
   const closeMobile = useCallback(() => { setMobileOpen(false); setMobileExpandedTab(null); }, []);
@@ -412,7 +436,7 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
     const SELECTORS = [
       '.tab-item-border', '.tab-label-btn', '.tab-arrow-btn', '.strip-tab', '.strip-collapse',
       '.logo-mark', '.mob-tab-btn', '.mob-subtab-btn', '.mob-close', '.mob-search',
-      '.nav-reveal-tab', '.nav-theme-tab', '.mobile-burger',
+      '.mobile-burger',
     ].join(', ');
     const onPointerDown = (e: PointerEvent) => {
       const target = (e.target as Element).closest(SELECTORS);
@@ -451,18 +475,6 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
 
       {/* ══ HOVER-PREVIEW BACKDROP — blurs the page behind the peeked strip ══ */}
       <div className={`nav-preview-backdrop${previewTab ? ' active' : ''}`} aria-hidden />
-
-      {/* ══ STICKY REVEAL TAB ══ */}
-      <button
-        className={`nav-reveal-tab${navCollapsed ? ' tab-visible' : ''}`}
-        onClick={handleShowNav}
-        aria-label="Show navigation bar"
-      >
-        <i className="bi bi-eye reveal-tab-icon" style={{ fontSize: '0.9rem' }} />
-        {!isMobile && <span>Show Nav</span>}
-      </button>
-
-      <StickyThemeTab visible={navCollapsed} isMobile={isMobile} />
 
       <nav ref={navContainerRef} className={`glass-navbar${navCollapsed ? ' nav-collapsed' : ''}`}>
         {/* ══ MAIN BAR ROW ══ */}

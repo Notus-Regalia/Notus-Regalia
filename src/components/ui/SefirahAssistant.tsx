@@ -70,6 +70,7 @@ export default function SefirahAssistant() {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState('');
   const [placeholder, setPlaceholder] = useState('Search');
+  const [navLocked, setNavLocked] = useState(false);
 
   // Draggable FAB with magnetic edge-snap.
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -139,9 +140,18 @@ export default function SefirahAssistant() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
   };
 
-  const lockNavigation = useCallback(() => {
-    window.dispatchEvent(new CustomEvent('nav-collapse'));
-    setOpen(false);
+  // Lock navigation: toggles whether the navbar is pinned visible (disabling its
+  // scroll-direction auto-hide). The active navbar owns the state and echoes it
+  // back via `nav-lock-changed`; we query it on mount so the pill reflects it.
+  const toggleNavLock = useCallback(() => {
+    window.dispatchEvent(new CustomEvent('nav-toggle-lock'));
+  }, []);
+
+  useEffect(() => {
+    const onChanged = (e: Event) => setNavLocked(!!(e as CustomEvent).detail?.locked);
+    window.addEventListener('nav-lock-changed', onChanged);
+    window.dispatchEvent(new CustomEvent('nav-lock-query'));
+    return () => window.removeEventListener('nav-lock-changed', onChanged);
   }, []);
 
   // ── FAB drag + magnetic edge-snap ──
@@ -211,8 +221,14 @@ export default function SefirahAssistant() {
     const dock = () => {
       if (manuallyPlaced.current || drag.current.active) return;
       if (window.innerWidth < 640) return; // mobile → CSS default (bottom-right)
+      // While the nav is hidden (scroll-direction auto-hide), freeze the FAB —
+      // it should stay put, not ride the bar as it slides off-screen.
+      if (nav.classList.contains('nav-collapsed')) return;
       const w = el.offsetWidth, h = el.offsetHeight;
-      const bottom = nav.getBoundingClientRect().bottom;
+      // offsetTop/offsetHeight are transform-independent, so the FAB docks to the
+      // bar's resting bottom line even mid-slide (getBoundingClientRect would
+      // follow the translateY animation and drag the FAB along with it).
+      const bottom = nav.offsetTop + nav.offsetHeight;
       setFabPos({
         x: window.innerWidth - w - FAB_MARGIN,
         y: Math.round(bottom - h / 2), // centre the icon on the border line
@@ -301,9 +317,14 @@ export default function SefirahAssistant() {
               <i className={`bi ${isDark ? 'bi-sun' : 'bi-moon'}`} />
               <span>Switch theme</span>
             </button>
-            <button type="button" className="sefirah-action" onClick={lockNavigation}>
-              <i className="bi bi-lock" />
-              <span>Lock navigation</span>
+            <button
+              type="button"
+              className={cn('sefirah-action', navLocked && 'is-on')}
+              onClick={toggleNavLock}
+              aria-pressed={navLocked}
+            >
+              <i className={`bi ${navLocked ? 'bi-lock-fill' : 'bi-unlock'}`} />
+              <span>{navLocked ? 'Navigation locked' : 'Lock navigation'}</span>
             </button>
             <button type="button" className="sefirah-action" title="Coming soon">
               <i className="bi bi-translate" />
@@ -541,6 +562,12 @@ const SEFIRAH_CSS = `
 .sefirah-action:hover { color: var(--content-primary); background: var(--hover-bg-strong); border-color: var(--content-faint); }
 .sefirah-action:active { transform: scale(0.96); }
 .sefirah-action i { font-size: 0.8rem; }
+/* Active/locked state — green accent so the lock toggle reads as "on". */
+.sefirah-action.is-on {
+  color: #04140e; background: rgba(0,255,166,0.92);
+  border-color: rgba(0,255,166,0.92);
+}
+.sefirah-action.is-on:hover { color: #04140e; background: rgba(0,255,166,1); border-color: rgba(0,255,166,1); }
 
 /* ── Live search results ── */
 .sefirah-results { display: flex; flex-direction: column; gap: 2px; }

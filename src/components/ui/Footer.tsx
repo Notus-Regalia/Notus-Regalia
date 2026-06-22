@@ -1057,7 +1057,6 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
           <div className="split-panel-nl-bg" ref={nlBgRef} />
           <div className="split-panel-content">
             <div style={{ textAlign: 'left' }}>
-              <p className="sp-eyebrow"><span className="sp-eyebrow-dot" />Get in Touch</p>
               <h2 className="sp-title">Contact Us</h2>
               <p className="sp-sub">
                 Reach out directly — whether it&apos;s a question, a proposal, or a conversation worth having. We read everything.
@@ -1095,7 +1094,6 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
           />
           <div className="split-panel-content" style={{ width: '100%', maxWidth: '100%' }}>
             <div style={{ textAlign: 'right' }}>
-              <p className="sp-eyebrow" style={{ justifyContent: 'flex-end' }}><span className="sp-eyebrow-dot" />Notus Regalia Signal</p>
               <h2 className="sp-title">Newsletter</h2>
               <p className="sp-sub" style={{ width: '100%' }}>
                 Curated insights on emerging ideas, ventures, and moments that matter — delivered sparingly, always with intent. No noise. No algorithms. Just signal.

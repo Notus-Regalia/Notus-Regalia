@@ -1,10 +1,8 @@
 "use client";
 
-import { memo, useCallback, useRef } from "react";
+import { memo, useRef } from "react";
 import { StarfieldBackground } from "@/components/ui/starfield-background";
-import { ScrollSmoother } from "gsap/ScrollSmoother";
 import { useReveal } from "@/hooks/useScrollReveal";
-import { trackBrandGlow } from "./subpages/blocks";
 
 /* ─────────────────────────────────────────────────────────────
    About Us — full modern hero.
@@ -15,25 +13,12 @@ import { trackBrandGlow } from "./subpages/blocks";
    faint grid, and a bottom fade that blends into the company panel).
    ───────────────────────────────────────────────────────────── */
 
-const NAVBAR_OFFSET = 96; // fixed navbar (~84px) + breathing room
-
 const CompanyHeader = memo(() => {
   const sectionRef = useRef<HTMLElement>(null);
 
   const eyebrowReveal = useReveal("fade-up", { threshold: 0.2, duration: 700 });
   const titleReveal = useReveal("fade-up", { threshold: 0.2, duration: 800, cssDelay: 100 });
   const subReveal = useReveal("fade-up", { threshold: 0.2, duration: 800, cssDelay: 220 });
-  const ctaReveal = useReveal("fade-up", { threshold: 0.2, duration: 800, cssDelay: 340 });
-
-  /* Scroll past the hero into the company profile panel below it. */
-  const scrollToContent = useCallback(() => {
-    const el = sectionRef.current;
-    if (!el) return;
-    const target = el.getBoundingClientRect().bottom + window.scrollY - NAVBAR_OFFSET;
-    const sm = typeof window !== "undefined" ? ScrollSmoother.get?.() : null;
-    if (sm) sm.scrollTo(target, true);
-    else window.scrollTo({ top: target, behavior: "smooth" });
-  }, []);
 
   return (
     <section
@@ -183,61 +168,8 @@ const CompanyHeader = memo(() => {
             healthcare, and the public sector — built for the moments that
             cannot fail.
           </p>
-
-          {/* CTA */}
-          <div
-            ref={ctaReveal.ref}
-            style={{ marginTop: "2.2rem", display: "flex", ...ctaReveal.style }}
-          >
-            <button
-              type="button"
-              className="brand-btn"
-              onClick={scrollToContent}
-              onMouseMove={trackBrandGlow}
-            >
-              <span>Explore the company</span>
-              <i className="bi bi-arrow-down" />
-            </button>
-          </div>
         </div>
-
-        {/* ── Scroll cue ── */}
-        <button
-          type="button"
-          aria-label="Scroll to company profile"
-          onClick={scrollToContent}
-          style={{
-            position: "absolute",
-            bottom: "clamp(1.5rem, 4vh, 2.5rem)",
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 10,
-            display: "inline-flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: "0.4rem",
-            background: "transparent",
-            border: 0,
-            cursor: "pointer",
-            color: "rgba(190,190,200,0.55)",
-            fontFamily: "var(--font-mono, monospace)",
-            fontSize: "0.62rem",
-            letterSpacing: "0.2em",
-            textTransform: "uppercase",
-            animation: "heroScrollBob 2.4s ease-in-out infinite",
-          }}
-        >
-          Scroll
-          <i className="bi bi-chevron-double-down" style={{ fontSize: "0.85rem" }} />
-        </button>
       </div>
-
-      <style>{`
-        @keyframes heroScrollBob {
-          0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.55; }
-          50% { transform: translateX(-50%) translateY(6px); opacity: 1; }
-        }
-      `}</style>
     </section>
   );
 });

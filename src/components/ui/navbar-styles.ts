@@ -39,13 +39,15 @@ input[type="checkbox"], input[type="radio"], select,
   box-shadow:
     0 8px 32px var(--glass-shadow-1), 0 12px 48px var(--glass-shadow-2),
     inset 0 1px 1px var(--glass-inset-top), inset 0 -1px 1px var(--glass-inset-bottom);
-  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
-  will-change: transform, opacity;
+  /* Slide back down briskly when scrolling up / unhiding. */
+  transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }
 .glass-navbar.nav-collapsed {
+  /* Slide up out of view on scroll-down (pure slide, no fade). */
   transform: translateY(-100%);
-  opacity: 0;
   pointer-events: none;
+  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .glass-navbar::before {
   content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 1px;
@@ -94,44 +96,6 @@ input[type="checkbox"], input[type="radio"], select,
   overflow: hidden;
 }
 .logo-text { font-size: 1.18rem; font-weight: 800; letter-spacing: -0.03em; color: var(--content-primary); line-height: 1; }
-
-/* ── Sticky reveal + theme tabs ── */
-.nav-reveal-tab,
-.nav-theme-tab {
-  position: fixed; right: 0; z-index: 59;
-  display: flex; align-items: center; gap: 7px;
-  padding: 9px 14px 9px 12px;
-  border-radius: 10px 0 0 10px;
-  background: var(--glass-bg, rgba(15,15,15,0.85));
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border-color); border-right: none;
-  color: var(--content-faint); font-size: 0.8rem; font-weight: 600;
-  letter-spacing: 0.02em; cursor: pointer;
-  box-shadow: -4px 4px 24px rgba(0,0,0,0.25);
-  opacity: 0; pointer-events: none; transform: translateX(100%);
-  transition:
-    opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 0.38s cubic-bezier(0.34, 1.18, 0.64, 1),
-    color 0.15s ease, box-shadow 0.2s ease;
-}
-.nav-reveal-tab { top: 16px; }
-.nav-theme-tab  { top: calc(16px + 38px + 6px); }
-.nav-reveal-tab, .nav-theme-tab { min-width: 118px; justify-content: flex-start; }
-.nav-reveal-tab.tab-visible,
-.nav-theme-tab.tab-visible  { opacity: 1; pointer-events: auto; transform: translateX(0); }
-.nav-reveal-tab:hover,
-.nav-theme-tab:hover { color: var(--content-primary); box-shadow: -6px 4px 28px rgba(0,0,0,0.35); }
-.nav-reveal-tab:hover .reveal-tab-icon,
-.nav-theme-tab:hover  .reveal-tab-icon { transform: translateX(-2px); }
-.reveal-tab-icon { font-size: 0.82rem; transition: transform 0.2s cubic-bezier(0.34,1.18,0.64,1); }
-
-.nav-reveal-tab::before,
-.nav-theme-tab::before {
-  content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; width: 2.5px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, rgba(220,20,60,1) 0%, rgba(200,15,50,0.9) 50%, rgba(180,10,40,0.75) 100%);
-  opacity: 0.9; box-shadow: 0 0 6px rgba(220,20,60,0.6);
-}
 
 /* ── Tooltip (bottom) ── */
 .nav-icon-btn-wrap { position: relative; }
@@ -343,7 +307,7 @@ input[type="checkbox"], input[type="radio"], select,
   height: 50px;
   overflow: hidden;
   /* Inset the strip to the same content gutter as the main bar above, so the
-     collapse chevron / first tab lines up under the logo and the track's right
+     first tab lines up under the logo and the collapse chevron on the right
      edge lines up with the controls. */
   padding-inline: var(--site-gutter-inline);
   transform: translateY(-6px);
@@ -390,6 +354,11 @@ input[type="checkbox"], input[type="radio"], select,
   border-left: 1px solid var(--border-color);
   border-right: 1px solid var(--border-color);
 }
+
+/* Close off the ends of the strip: the leftmost tab gets a left border and the
+   rightmost a right border so the row of tabs reads as one complete unit. */
+.strip-tabs-track .strip-tab:first-child { border-left: 1px solid var(--border-color); }
+.strip-tabs-track .strip-tab:last-child { border-right: 1px solid var(--border-color); }
 
 /* ── Sliding active indicator (pill bg + underline) ──
    Lives absolutely inside .strip-tabs-track so it slides
@@ -650,13 +619,14 @@ input[type="checkbox"], input[type="radio"], select,
 
 /* ── Collapse chevron at the far left of strip ── */
 .strip-collapse {
-  order: -1;
   display: inline-flex; align-items: center; justify-content: center;
   padding: 0 20px;
   border: none; background: transparent;
   color: var(--content-muted); cursor: pointer; flex-shrink: 0;
   transition: color 0.14s ease, background 0.14s ease;
+  border-left: 1px solid var(--border-color);
   border-right: 1px solid var(--border-color);
+  margin-left: auto;
 }
 .strip-collapse:hover { color: var(--content-primary); background: rgba(255,255,255,0.03); }
 .strip-collapse i { font-size: 0.7rem; transition: transform 0.22s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -782,8 +752,6 @@ input[type="checkbox"], input[type="radio"], select,
 .mob-subtab-btn,
 .mob-close,
 .mob-search,
-.nav-reveal-tab,
-.nav-theme-tab,
 .mobile-burger { transform-origin: center; }
 
 .tab-item-border:active,
@@ -796,9 +764,7 @@ input[type="checkbox"], input[type="radio"], select,
 .mob-tab-btn:active,
 .mob-subtab-btn:active,
 .mob-close:active,
-.mob-search:active,
-.nav-reveal-tab:active,
-.nav-theme-tab:active   { animation: tabPress 0.26s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.mob-search:active   { animation: tabPress 0.26s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
 /* ── Mobile ── */
 @media (max-width: 640px) {
@@ -806,8 +772,6 @@ input[type="checkbox"], input[type="radio"], select,
   .tab-sep, .tab-arrow-btn { display: none; }
   .tab-label-btn { padding: 6px 11px; font-size: 0.84rem; }
   .collapse-btn-desktop { display: none !important; }
-  .nav-reveal-tab { top: 12px; padding: 7px 11px 7px 10px; font-size: 0.74rem; }
-  .nav-theme-tab  { top: calc(12px + 34px + 5px); padding: 7px 11px 7px 10px; font-size: 0.74rem; }
   .nav-icon-btn-wrap::after { display: none; }
   .strip-tab { padding: 0 20px; min-width: 96px; font-size: 0.82rem; }
   .strip-collapse { padding: 0 14px; }

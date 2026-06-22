@@ -1,7 +1,6 @@
 "use client";
 
 import { memo, type ReactNode } from "react";
-import PageHero from "./PageHero";
 import ExploreNext from "./ExploreNext";
 import CompanyHeader from "../CompanyHeader";
 import AboutStory from "../AboutStory";
@@ -13,7 +12,6 @@ import {
   BlocksStyles,
   CtaLink,
 } from "./blocks";
-import { getCompanySubtab } from "@/data/company-nav";
 import { useReveal } from "@/hooks/useScrollReveal";
 
 /* ─────────────────────────────────────────────────────────────
@@ -104,12 +102,11 @@ export const ExecutivesPage = memo(() => {
 ExecutivesPage.displayName = "ExecutivesPage";
 
 export const InvestorsPage = memo(() => {
-  const tab = getCompanySubtab('company-investors');
   return (
     <>
-      <div id="investors-overview">
-        <PageHero {...tab.hero!} />
-      </div>
+      {/* The carousel hero inside <Investors/> is the landing/overview now; the
+          standalone PageHero banner was removed. Anchor kept for the breadcrumb scrollspy. */}
+      <div id="investors-overview" />
       <RevealSection id="investors-capital">
         <Investors />
       </RevealSection>

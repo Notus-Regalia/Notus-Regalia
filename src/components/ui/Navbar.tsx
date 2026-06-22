@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { Fragment, useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import SearchModal from './SearchModal';
 import ThemeToggle from './ThemeToggle';
-import { useTheme } from '@/context/ThemeContext';
 import { NAVBAR_CSS } from './navbar-styles';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import {
@@ -101,25 +100,6 @@ const NAV_ITEMS: NavItem[] = [
     external: '/information',
   },
 ];
-
-const StickyThemeTab = ({ visible, isMobile }: { visible: boolean; isMobile: boolean }) => {
-  const { isDark, toggleTheme } = useTheme();
-
-  return (
-    <button
-      className={`nav-theme-tab${visible ? ' tab-visible' : ''}`}
-      onClick={toggleTheme}
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-    >
-      <span className="reveal-tab-icon" aria-hidden>
-        <i className={`bi ${isDark ? 'bi-sun' : 'bi-moon'}`} />
-      </span>
-      {!isMobile && (
-        <span>{isDark ? 'Light' : 'Dark'}</span>
-      )}
-    </button>
-  );
-};
 
 
 // ─────────────────────────────────────────────────────────────
@@ -555,6 +535,7 @@ const Navbar = ({
   const [mobileOpen, setMobileOpen]               = useState(false);
   const [mobileExpandedTab, setMobileExpandedTab] = useState<string | null>(null);
   const [navCollapsed, setNavCollapsed]           = useState(false);
+  const [navLocked, setNavLocked]                 = useState(false);
 
   const navContainerRef          = useRef<HTMLDivElement>(null);
   const navProgressRafRef        = useRef<number | null>(null);
@@ -562,6 +543,7 @@ const Navbar = ({
   const navProgressUpdateRef     = useRef<(() => void) | null>(null);
   const touchRef                 = useRef<{ startX: number; startY: number } | null>(null);
   const navCollapsedRef          = useRef(false);
+  const navLockedRef             = useRef(false);
   const manualOpenRef            = useRef(false);
   const isProgrammaticScrollRef  = useRef(false);
   const programmaticScrollTimer  = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -643,31 +625,74 @@ const Navbar = ({
       : [],
   }), [companyExecutive]);
 
-  // ── Collapse / show nav ──
-  const handleCollapseNav = useCallback(() => {
-    setNavCollapsed(true);
-    navCollapsedRef.current = true;
-    setStripOpen(false);
-    manualOpenRef.current = false;
-    let hasScrolledAway = window.scrollY > 10;
-    const restore = () => {
-      if (!hasScrolledAway) { if (window.scrollY > 10) hasScrolledAway = true; return; }
-      if (window.scrollY <= 10) { setNavCollapsed(false); navCollapsedRef.current = false; window.removeEventListener('scroll', restore); }
-    };
-    window.addEventListener('scroll', restore, { passive: true });
+  // ── Lock navigation ──
+  // When locked, the navbar is pinned visible and the scroll-direction auto-hide
+  // below is disabled. Toggled from the Sefirah assistant's "Lock navigation"
+  // action; we echo the new state back so its button can reflect lock/unlock.
+  const handleToggleLock = useCallback(() => {
+    const next = !navLockedRef.current;
+    navLockedRef.current = next;
+    setNavLocked(next);
+    if (next) { setNavCollapsed(false); navCollapsedRef.current = false; }
+    window.dispatchEvent(new CustomEvent('nav-lock-changed', { detail: { locked: next } }));
   }, []);
 
-  const handleShowNav = useCallback(() => {
-    setNavCollapsed(false);
-    navCollapsedRef.current = false;
-  }, []);
-
-  // The Sefirah assistant ("Lock navigation" action) collapses the nav via event.
   useEffect(() => {
-    const onCollapse = () => handleCollapseNav();
-    window.addEventListener('nav-collapse', onCollapse);
-    return () => window.removeEventListener('nav-collapse', onCollapse);
-  }, [handleCollapseNav]);
+    const onToggle = () => handleToggleLock();
+    // A freshly-mounted assistant asks for the current state on mount.
+    const onQuery  = () => window.dispatchEvent(new CustomEvent('nav-lock-changed', { detail: { locked: navLockedRef.current } }));
+    window.addEventListener('nav-toggle-lock', onToggle);
+    window.addEventListener('nav-lock-query', onQuery);
+    return () => {
+      window.removeEventListener('nav-toggle-lock', onToggle);
+      window.removeEventListener('nav-lock-query', onQuery);
+    };
+  }, [handleToggleLock]);
+
+  // ── Auto hide / show on scroll direction ──
+  // Scrolling down slides the navbar away; scrolling up (or returning near the
+  // top) brings it back. Disabled while locked or during a programmatic scroll
+  // (tab/section jumps drive the page down without it being a "read" gesture).
+  useEffect(() => {
+    const readY = () => {
+      const sm = ScrollSmoother.get();
+      return sm ? sm.scrollTop() : window.scrollY;
+    };
+    let lastY = readY();
+    let ticking = false;
+
+    const evaluate = () => {
+      ticking = false;
+      const y = readY();
+      if (navLockedRef.current || isProgrammaticScrollRef.current) { lastY = y; return; }
+      const delta = y - lastY;
+      if (y <= 80) {
+        if (navCollapsedRef.current) { setNavCollapsed(false); navCollapsedRef.current = false; }
+        lastY = y;
+      } else if (delta > 6) {            // scrolling down → hide
+        if (!navCollapsedRef.current) { setNavCollapsed(true); navCollapsedRef.current = true; manualOpenRef.current = false; }
+        lastY = y;
+      } else if (delta < -6) {           // scrolling up → show
+        if (navCollapsedRef.current) { setNavCollapsed(false); navCollapsedRef.current = false; }
+        lastY = y;
+      }
+      // |delta| <= 6: keep lastY so slow movement accumulates to the threshold.
+    };
+
+    const onScroll = () => { if (!ticking) { ticking = true; requestAnimationFrame(evaluate); } };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    const smoother = ScrollSmoother.get() as {
+      scrollTrigger?: {
+        addEventListener?: (event: string, cb: () => void) => void;
+        removeEventListener?: (event: string, cb: () => void) => void;
+      };
+    } | null;
+    smoother?.scrollTrigger?.addEventListener?.('update', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      smoother?.scrollTrigger?.removeEventListener?.('update', onScroll);
+    };
+  }, []);
 
   // ── Hover preview ──
   // Peek a tab's strip on hover (desktop only). A short close delay lets the
@@ -1126,7 +1151,7 @@ const Navbar = ({
       '.tab-item-border', '.tab-label-btn', '.tab-arrow-btn',
       '.strip-tab', '.strip-anchor', '.strip-crumb', '.strip-collapse',
       '.logo-mark', '.mob-brand', '.mob-tab-btn', '.mob-subtab-btn',
-      '.mob-close', '.mob-search', '.nav-reveal-tab', '.nav-theme-tab', '.mobile-burger',
+      '.mob-close', '.mob-search', '.mobile-burger',
     ].join(', ');
 
     const onPointerDown = (e: PointerEvent) => {
@@ -1178,19 +1203,6 @@ const Navbar = ({
 
       {/* ══ HOVER-PREVIEW BACKDROP — blurs the page behind the peeked strip ══ */}
       <div className={`nav-preview-backdrop${previewTab ? ' active' : ''}`} aria-hidden />
-
-      {/* ══ STICKY REVEAL TAB ══ */}
-      <button
-        className={`nav-reveal-tab${navCollapsed ? ' tab-visible' : ''}`}
-        onClick={handleShowNav}
-        aria-label="Show navigation bar"
-      >
-        <i className="bi bi-eye reveal-tab-icon" style={{ fontSize: '0.9rem' }} />
-        {!isMobile && <span>Show Nav</span>}
-      </button>
-
-      {/* ══ STICKY THEME TOGGLE TAB ══ */}
-      <StickyThemeTab visible={navCollapsed} isMobile={isMobile} />
 
       <nav ref={navContainerRef} className={`glass-navbar${navCollapsed ? ' nav-collapsed' : ''}`}>
 

@@ -512,3 +512,101 @@ export const CAPITAL_STATS: CapitalStat[] = [
   { value: 'Confidential', label: 'Raised in Phase I', accent: true  },
   { value: '2025',         label: 'Active Since',      accent: false },
 ];
+
+// ── Confidential investor grid ────────────────────────────────────────────────
+// The public-facing investors section mirrors a conventional "backed by" wall —
+// a grid of partner logos and a grid of named operators/advisors — but every
+// identity is withheld under disclosure agreements. Each group renders a number
+// of redacted slots instead of real names, logos, or photographs.
+
+export interface CapitalGroup {
+  id: string;
+  /** Group heading */
+  title: string;
+  /** Short supporting line */
+  description: string;
+  /** 'logos'  → square partner/firm tiles · 'people' → avatar + name tiles */
+  layout: 'logos' | 'people';
+  /** Number of redacted slots to render */
+  slots: number;
+}
+
+export const CAPITAL_GROUPS: CapitalGroup[] = [
+  {
+    id: 'institutional',
+    title: 'Institutional & Strategic Backers',
+    description:
+      'Founders and early institutional partners backing foundational development, system architecture, and first deployments. Identities withheld pending disclosure.',
+    layout: 'logos',
+    slots: 9,
+  },
+  {
+    id: 'angels',
+    title: 'Angels & Advisors',
+    description:
+      'Operators, founders, and domain experts advising the Notus continuum. Names released only with prior written consent.',
+    layout: 'people',
+    slots: 8,
+  },
+];
+
+// ── Investor updates (carousel hero) ──────────────────────────────────────────
+// Non-confidential capital news surfaced in the investors landing banner —
+// phase milestones, outlooks, and disclosure posture. Investor identities are
+// never named here; these are operating updates about the capital programme.
+
+export interface InvestorUpdate {
+  id: string;
+  /** Category eyebrow, e.g. 'Capital Update' */
+  category: string;
+  /** Status pill, e.g. 'Phase I · Closed' */
+  status: string;
+  /** Headline */
+  title: string;
+  /** Short body */
+  summary: string;
+  /** Display date, e.g. 'June 2026' */
+  date: string;
+  /** Optional CTA — defaults to viewing the capital structure below */
+  ctaLabel?: string;
+  ctaHref?: string;
+}
+
+export const INVESTOR_UPDATES: InvestorUpdate[] = [
+  {
+    id: 'IU-001',
+    category: 'Foundational Capital',
+    status: 'Phase I · Closed',
+    title: 'Phase I foundational capital secured',
+    summary:
+      'Initial seed capital from founders and early institutional partners has been committed — funding system architecture, shared infrastructure, and the first deployments across the Notus continuum.',
+    date: '2025',
+  },
+  {
+    id: 'IU-002',
+    category: 'Strategic Capital',
+    status: 'Phase II · Upcoming',
+    title: 'Series A — strategic capital opens January 2027',
+    summary:
+      'Selective external participation in structured growth funding to support product scaling, operational expansion, and early market deployment across the portfolio.',
+    date: 'January 2027',
+  },
+  {
+    id: 'IU-003',
+    category: 'Institutional Capital',
+    status: 'Phase III · Outlook',
+    title: 'Institutional capital roadmap set for October 2027',
+    summary:
+      'Institutional investors and structured funds to back large-scale expansion, infrastructure development, and long-term market growth as the continuum matures.',
+    date: 'October 2027',
+  },
+  {
+    id: 'IU-004',
+    category: 'Investor Relations',
+    status: 'Ongoing',
+    title: 'Every investor identity is held under disclosure agreement',
+    summary:
+      'Investor names, logos, and related information are released only with prior written consent, in accordance with governing agreements and applicable confidentiality obligations.',
+    date: 'Updated June 2026',
+  },
+];

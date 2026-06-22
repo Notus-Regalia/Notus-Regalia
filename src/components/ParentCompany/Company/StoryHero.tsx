@@ -83,9 +83,12 @@ const STORY_CSS = `
 
 .sh-title {
   margin: 0 0 clamp(2.25rem, 5vw, 3.5rem);
-  font-size: clamp(2.6rem, 7vw, 5rem); line-height: 1.02; letter-spacing: -0.03em; font-weight: 700;
+  font-size: clamp(2.6rem, 7vw, 5rem); line-height: 1.1; letter-spacing: -0.03em; font-weight: 700;
   background: linear-gradient(180deg, #ffffff 0%, #d8d8de 50%, #9a9aa2 100%);
   -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+  /* descenders (e.g. the 'g' in "Origin") were clipped by the tight line box;
+     pad the glyph-painting region so they render in full. */
+  padding-bottom: 0.12em;
 }
 .sh-body p { margin: 0 0 1.15rem; font-size: clamp(1rem, 1.5vw, 1.18rem); line-height: 1.78; color: rgba(196,198,206,0.85); }
 .sh-body p:last-child { margin-bottom: 0; }
