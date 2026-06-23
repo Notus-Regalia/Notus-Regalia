@@ -27,6 +27,7 @@ const ROUTES: [string, number][] = [
   ['/technologies/healthcare', 0.7],
   ['/technologies/enterprise', 0.7],
   ['/technologies/energy', 0.7],
+  ['/technologies/defense', 0.7],
 
   // Ventures
   ['/ventures', 0.7],
@@ -63,13 +64,13 @@ const ROUTES: [string, number][] = [
   ['/information/legals/acceptable-use', 0.4],
   ['/information/legals/vulnerability-disclosure', 0.4],
   ['/information/legals/licenses', 0.4],
-  ['/information/legals/brand-guidelines', 0.4],
 
   // Information Central — Documents
   ['/information/documents/docs-governance', 0.4],
   ['/information/documents/docs-social', 0.4],
   ['/information/documents/docs-environmental', 0.4],
   ['/information/documents/media-assets', 0.4],
+  ['/information/documents/brand-guidelines', 0.4],
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {

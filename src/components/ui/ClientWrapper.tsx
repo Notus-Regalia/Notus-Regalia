@@ -10,7 +10,7 @@ import SefirahTutorial from './SefirahTutorial';
 import SmoothScroller from './SmoothScroller';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { DEFAULT_SUBTABS, isRootTab, parseRootPath, rootHref, type RootTab } from '@/utils/routes';
-import { hasConsentDecision, CONSENT_EVENT } from '@/utils/consent';
+import { hasConsentDecision, CONSENT_EVENT, SEFIRAH_TUTORIAL_KEY } from '@/utils/consent';
 
 const gsapScrollToTop = (smooth = true) => {
   const sm = typeof window !== 'undefined' ? ScrollSmoother.get?.() : null;
@@ -26,8 +26,6 @@ const ClientWrapper = () => {
   const [loading, setLoading]                   = useState(true);
   const [showTutorial, setShowTutorial]         = useState(false);
 
-  const TUTORIAL_KEY = 'nr-sefirah-tutorial-seen';
-
   const handleLoadingComplete = useCallback(() => {
     setLoading(false);
   }, []);
@@ -37,7 +35,7 @@ const ClientWrapper = () => {
   useEffect(() => {
     if (loading) return;
     let seen = false;
-    try { seen = localStorage.getItem(TUTORIAL_KEY) === '1'; } catch { /* private mode */ }
+    try { seen = localStorage.getItem(SEFIRAH_TUTORIAL_KEY) === '1'; } catch { /* private mode */ }
     if (seen) return;
 
     let timer: ReturnType<typeof setTimeout>;
@@ -56,7 +54,7 @@ const ClientWrapper = () => {
 
   const dismissTutorial = useCallback(() => {
     setShowTutorial(false);
-    try { localStorage.setItem(TUTORIAL_KEY, '1'); } catch { /* private mode */ }
+    try { localStorage.setItem(SEFIRAH_TUTORIAL_KEY, '1'); } catch { /* private mode */ }
   }, []);
 
   // Sync state from the current path (initial mount + browser back/forward).

@@ -54,7 +54,6 @@ const INFO_FOOTER_SECTIONS: FooterSection[] = [
       { label: 'Acceptable Use Policy',    tabId: 'legals', subtabId: 'acceptable-use' },
       { label: 'Vulnerability Disclosure', tabId: 'legals', subtabId: 'vulnerability-disclosure' },
       { label: 'Licenses',                 tabId: 'legals', subtabId: 'licenses' },
-      { label: 'Brand Guidelines',         tabId: 'legals', subtabId: 'brand-guidelines' },
     ],
   },
   {
@@ -64,6 +63,7 @@ const INFO_FOOTER_SECTIONS: FooterSection[] = [
       { label: 'Social',        tabId: 'documents', subtabId: 'docs-social' },
       { label: 'Environmental', tabId: 'documents', subtabId: 'docs-environmental' },
       { label: 'Media Assets',  tabId: 'documents', subtabId: 'media-assets' },
+      { label: 'Brand Guidelines', tabId: 'documents', subtabId: 'brand-guidelines' },
     ],
   },
   {
@@ -129,6 +129,18 @@ const InformationCentral = () => {
     window.history.pushState({ tab, subtab }, '', infoHref(tab, subtab));
     gsapScrollToTop(false);
   }, []);
+
+  // In-app navigation requested from within content (e.g. the careers hero CTA
+  // linking to the Recruitment Process sub-page).
+  useEffect(() => {
+    const onNav = (e: Event) => {
+      const d = (e as CustomEvent).detail as { tabId?: string; subtabId?: string };
+      if (isValidSubtab(d?.subtabId ?? null)) navigate(SUBTAB_PARENT[d.subtabId!], d.subtabId!);
+      else if (isValidTab(d?.tabId ?? null)) navigate(d.tabId!, DEFAULT_SUBTAB[d.tabId!]);
+    };
+    window.addEventListener('info-navigate', onNav);
+    return () => window.removeEventListener('info-navigate', onNav);
+  }, [navigate]);
 
   const handleTabClick = useCallback((tabId: string) => navigate(tabId, DEFAULT_SUBTAB[tabId]), [navigate]);
   const handleSubtabClick = useCallback((tabId: string, subtabId: string) => navigate(tabId, subtabId), [navigate]);

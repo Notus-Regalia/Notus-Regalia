@@ -8,6 +8,8 @@
 
 const CONSENT_KEY = 'nr-cookie-consent';
 const PREFS_KEY = 'nr-preferences';
+/** Flag marking that the first-run Sefirah tutorial has been seen. */
+export const SEFIRAH_TUTORIAL_KEY = 'nr-sefirah-tutorial-seen';
 export const CONSENT_EVENT = 'nr-consent-change';
 
 export interface Consent {
@@ -127,10 +129,19 @@ export function applyPreferences(prefs: Preferences): void {
   root.classList.toggle('high-contrast', prefs.highContrast);
 }
 
+// ── Sefirah tutorial ─────────────────────────────────────────
+/** Reset the first-run Sefirah tutorial so it plays again on the main site. */
+export function clearSefirahTutorial(): void {
+  if (!isBrowser()) return;
+  localStorage.removeItem(SEFIRAH_TUTORIAL_KEY);
+}
+
 // ── Cache ────────────────────────────────────────────────────
 /** Clear Cache Storage, session storage, and any registered service workers. */
 export async function clearSiteCache(): Promise<void> {
   if (!isBrowser()) return;
+  // Clearing cached data also brings back the first-run Sefirah tutorial.
+  clearSefirahTutorial();
   try {
     sessionStorage.clear();
   } catch {

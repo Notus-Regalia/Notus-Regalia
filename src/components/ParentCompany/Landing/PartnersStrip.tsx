@@ -4,23 +4,25 @@ import { memo } from "react";
 import { InfiniteSlider } from "@/components/ui/infinite-slider";
 
 /* ─────────────────────────────────────────────────────────────
-   Partners strip — sits directly below the video hero.
+   Principles strip — sits directly below the video hero.
 
-   A continuously scrolling marquee of partner / customer wordmarks,
-   with a progressive-blur fade at each edge so logos dissolve into
-   the section background. Wordmarks are rendered as text (rather than
-   external logo files) so the strip stays theme-aware and has no
-   broken-asset risk.
+   A continuously scrolling marquee of our operating principles, with
+   a fade at each edge so the words dissolve into the section
+   background. Until partner / customer announcements are ready, this
+   strip carries our ethos rather than third-party wordmarks — keeping
+   the design intact without implying partnerships we don't yet have.
+   Rendered as text (not logo files) so it stays theme-aware and has
+   no broken-asset risk.
    ───────────────────────────────────────────────────────────── */
 
-const PARTNERS = [
-  "AEGIS DYNAMICS",
-  "NORTHWIND SYSTEMS",
-  "MERIDIAN DEFENSE",
-  "VANTAGE AEROSPACE",
-  "SENTINEL LABS",
-  "ATLAS FEDERAL",
-  "HELIX ROBOTICS",
+const PRINCIPLES = [
+  "MISSION-CRITICAL",
+  "SOVEREIGN BY DESIGN",
+  "SECURE BY DEFAULT",
+  "ENGINEERED TO ENDURE",
+  "OPERATOR-FIRST",
+  "RELENTLESSLY RELIABLE",
+  "PRECISION AT SCALE",
 ];
 
 const PartnersStrip = memo(() => {
@@ -38,7 +40,7 @@ const PartnersStrip = memo(() => {
         marginBottom: "-2px",
         paddingBottom: "2px",
       }}
-      aria-label="Our partners"
+      aria-label="Our operating principles"
     >
       {/* ── Soft tech grid — anchored to the top, fades out downward so it
           dissolves before reaching the marquee / lower black gradient. ── */}
@@ -105,7 +107,7 @@ const PartnersStrip = memo(() => {
             duration={36}
             gap={80}
           >
-            {PARTNERS.map((name) => (
+            {PRINCIPLES.map((name) => (
               <div
                 key={name}
                 className="flex items-center justify-center whitespace-nowrap"

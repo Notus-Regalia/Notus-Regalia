@@ -475,7 +475,6 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
         { label: 'Acceptable Use Policy',  external: '/information/legals/acceptable-use' },
         { label: 'Vulnerability Disclosure', external: '/information/legals/vulnerability-disclosure' },
         { label: 'Licenses',               external: '/information/legals/licenses' },
-        { label: 'Brand Guidelines',       external: '/information/legals/brand-guidelines' },
       ]
     },
   ];

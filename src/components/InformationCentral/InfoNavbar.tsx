@@ -5,7 +5,7 @@ import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { NAVBAR_CSS } from '@/components/ui/navbar-styles';
 import SearchModal from '@/components/ui/SearchModal';
-import { INFO_TABS, type InfoTab, type InfoSubtab } from './data';
+import { INFO_TABS, SUBTAB_SUBPAGES, type InfoTab, type InfoSubtab } from './data';
 
 /* ── GSAP-aware scroll helpers (mirrors main Navbar) ───────────── */
 const gsapScrollToTop = (smooth = true) => {
@@ -42,7 +42,10 @@ interface InfoNavbarProps {
 
 
 // ─────────────────────────────────────────────────────────────
-//  StripRow — copied verbatim from the main Navbar (content-switch)
+//  StripRow — morphing-pill subtab strip (mirrors the main Navbar)
+//  The active subtab springs its burger open and expands into a
+//  rounded pill (burger + label); siblings glide along the flex row.
+//  No sliding box indicator — the pill itself marks the active page.
 // ─────────────────────────────────────────────────────────────
 interface StripRowProps {
   item: InfoTab;
@@ -51,18 +54,19 @@ interface StripRowProps {
   onSubtabClick: (sub: InfoSubtab) => void;
   onCollapse: () => void;
   isMobile?: boolean;
+  // When set, the strip renders a breadcrumb ("<anchor> › <crumb>") instead of
+  // the subtab pills — used when viewing a hidden sub-page.
+  breadcrumb?: { anchorLabel: string; crumbLabel: string; onAnchor: () => void };
 }
 
-const StripRow = memo(({ item, isVisible, activeSubtabId, onSubtabClick, onCollapse, isMobile }: StripRowProps) => {
+const StripRow = memo(({ item, isVisible, activeSubtabId, onSubtabClick, onCollapse, isMobile, breadcrumb }: StripRowProps) => {
   const btnRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const trackRef = useRef<HTMLDivElement | null>(null);
 
-  const [indStyle, setIndStyle] = useState<{ left: number; width: number } | null>(null);
-  const [animate, setAnimate] = useState(false);
   const [entering, setEntering] = useState(false);
-  const hasPlacedRef = useRef(false);
   const [atEnd, setAtEnd] = useState(false);
 
+  // Track scroll position to determine arrow direction (mobile overflow)
   const updateScrollState = useCallback(() => {
     const track = trackRef.current;
     if (!track) return;
@@ -79,6 +83,7 @@ const StripRow = memo(({ item, isVisible, activeSubtabId, onSubtabClick, onColla
     return () => track.removeEventListener('scroll', handler);
   }, [isVisible, updateScrollState]);
 
+  // Auto-scroll the active subtab pill into center view (mobile overflow)
   useEffect(() => {
     if (!activeSubtabId || !isVisible) return;
     const idx = item.subtabs.findIndex(s => s.id === activeSubtabId);
@@ -86,6 +91,7 @@ const StripRow = memo(({ item, isVisible, activeSubtabId, onSubtabClick, onColla
     const btn = btnRefs.current[idx];
     const track = trackRef.current;
     if (!btn || !track) return;
+    // Wait a frame for layout (the pill morph) to settle
     requestAnimationFrame(() => {
       const trackRect = track.getBoundingClientRect();
       const btnRect = btn.getBoundingClientRect();
@@ -95,59 +101,13 @@ const StripRow = memo(({ item, isVisible, activeSubtabId, onSubtabClick, onColla
     });
   }, [activeSubtabId, isVisible, item.subtabs]);
 
-  const place = useCallback((shouldAnimate: boolean) => {
-    if (!activeSubtabId) return;
-    const idx = item.subtabs.findIndex(s => s.id === activeSubtabId);
-    if (idx < 0) return;
-    const btn = btnRefs.current[idx];
-    const track = trackRef.current;
-    if (!btn || !track) return;
-
-    let left = 0;
-    let el: HTMLElement | null = btn;
-    while (el && el !== track) {
-      left += el.offsetLeft;
-      el = el.offsetParent as HTMLElement | null;
-    }
-    const width = btn.offsetWidth;
-
-    if (!shouldAnimate) {
-      setAnimate(false);
-      setIndStyle({ left, width });
-      requestAnimationFrame(() => setAnimate(true));
-    } else {
-      setAnimate(true);
-      setIndStyle({ left, width });
-    }
-    hasPlacedRef.current = true;
-  }, [activeSubtabId, item.subtabs]);
-
+  // Staggered entrance the first frame the strip opens
   useEffect(() => {
-    place(hasPlacedRef.current);
-  }, [activeSubtabId]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  useEffect(() => {
-    if (!isVisible) {
-      hasPlacedRef.current = false;
-      setAnimate(false);
-      setIndStyle(null);
-      setEntering(false);
-      return;
-    }
+    if (!isVisible) { setEntering(false); return; }
     setEntering(true);
-    const enterTimer = setTimeout(() => setEntering(false), 400);
-    const t = setTimeout(() => place(false), 40);
-    return () => { clearTimeout(t); clearTimeout(enterTimer); };
-  }, [isVisible]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const indicatorCSSStyle: React.CSSProperties = {
-    left: indStyle?.left ?? 0,
-    width: indStyle?.width ?? 0,
-    opacity: indStyle ? 1 : 0,
-    transition: animate
-      ? 'left 0.32s cubic-bezier(0.4, 0, 0.2, 1), width 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease'
-      : 'none',
-  };
+    const t = setTimeout(() => setEntering(false), 400);
+    return () => clearTimeout(t);
+  }, [isVisible]);
 
   const handleArrowClick = useCallback(() => {
     if (isMobile && trackRef.current) {
@@ -171,25 +131,65 @@ const StripRow = memo(({ item, isVisible, activeSubtabId, onSubtabClick, onColla
       <div className="subtab-strip-clip">
         <div className="subtab-strip-inner">
           <div className="strip-tabs-track" ref={trackRef}>
-            <div className="strip-indicator" style={indicatorCSSStyle} aria-hidden>
-              <div className="strip-indicator-bg" />
-              <div className="strip-indicator-corner tl" />
-              <div className="strip-indicator-corner tr" />
-              <div className="strip-indicator-corner bl" />
-              <div className="strip-indicator-corner br" />
-            </div>
-            {item.subtabs.map((sub, idx) => (
-              <button
-                key={sub.id}
-                ref={el => { btnRefs.current[idx] = el; }}
-                className={`strip-tab${activeSubtabId === sub.id ? ' strip-tab-active' : ''}`}
-                style={{ '--si': idx, ...(sub.external ? { display: 'inline-flex', alignItems: 'center', gap: '0.4rem' } : null) } as React.CSSProperties}
-                onClick={() => onSubtabClick(sub)}
-              >
-                {sub.label}
-                {sub.external && <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.7rem' }} />}
-              </button>
-            ))}
+            {breadcrumb ? (
+              <>
+                {/* Anchor — returns to the parent subtab page */}
+                <button
+                  className="strip-anchor"
+                  onClick={breadcrumb.onAnchor}
+                  aria-label={`Back to ${breadcrumb.anchorLabel}`}
+                  title={`Back to ${breadcrumb.anchorLabel}`}
+                >
+                  <span className="strip-anchor-burger" aria-hidden>
+                    <span /><span /><span />
+                  </span>
+                  <span className="strip-anchor-label">{breadcrumb.anchorLabel}</span>
+                  <i className="bi bi-x-lg strip-anchor-close" aria-hidden />
+                </button>
+                <span className="strip-crumb-sep" aria-hidden>
+                  <i className="bi bi-chevron-right" />
+                </span>
+                <button className="strip-crumb strip-crumb-active" aria-current="page">
+                  {breadcrumb.crumbLabel}
+                </button>
+              </>
+            ) : item.subtabs.map((sub, idx) => {
+              const isActive = activeSubtabId === sub.id;
+              // External items just open a link, so they stay plain tabs.
+              if (sub.external) {
+                return (
+                  <button
+                    key={sub.id}
+                    ref={el => { btnRefs.current[idx] = el; }}
+                    className={`strip-tab strip-tab-external${isActive ? ' strip-tab-active' : ''}`}
+                    style={{ '--si': idx, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' } as React.CSSProperties}
+                    onClick={() => onSubtabClick(sub)}
+                  >
+                    {sub.label}
+                    <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.7rem' }} />
+                  </button>
+                );
+              }
+              // Same morphing button as the main Navbar's strip: the active page
+              // springs the burger open and expands into the breadcrumb-title
+              // pill. Only a class toggles (the keyed element is reused), so
+              // width/padding/icons animate smoothly as the active page changes.
+              return (
+                <button
+                  key={sub.id}
+                  ref={el => { btnRefs.current[idx] = el; }}
+                  className={`strip-tab strip-tab-morph${isActive ? ' strip-tab-pill' : ''}`}
+                  style={{ '--si': idx } as React.CSSProperties}
+                  onClick={() => onSubtabClick(sub)}
+                  aria-label={sub.label}
+                >
+                  <span className="strip-morph-burger" aria-hidden>
+                    <span /><span /><span />
+                  </span>
+                  <span className="strip-morph-label">{sub.label}</span>
+                </button>
+              );
+            })}
           </div>
           <button
             className="strip-collapse"
@@ -376,6 +376,15 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
     onSubtabClick(tabId, sub.id);
   }, [onSubtabClick, clearPreview]);
 
+  // Breadcrumb anchor on a hidden sub-page → return to its parent subtab.
+  const handleSubPageBack = useCallback((tabId: string, parentSubtabId: string) => {
+    clearPreview();
+    onSubtabClick(tabId, parentSubtabId);
+  }, [onSubtabClick, clearPreview]);
+
+  // The active subtab may be a hidden sub-page (e.g. Recruitment Process).
+  const activeSubPage = SUBTAB_SUBPAGES[activeSubtab];
+
   // ── Search (⌘K) ──
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -455,8 +464,10 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
 
   const barStyle = useMemo(() => ({
     height: isMobile ? '68px' : '84px',
-    paddingLeft: isMobile ? '16px' : '36px',
-    paddingRight: isMobile ? '16px' : '36px',
+    // Align the navbar's left (logo) and right (controls) edges with the main
+    // page content column — same responsive gutter the main site navbar uses.
+    paddingLeft:  'var(--site-gutter-inline)',
+    paddingRight: 'var(--site-gutter-inline)',
     gap: isMobile ? '10px' : '16px',
   }), [isMobile]);
 
@@ -563,6 +574,15 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
               onSubtabClick={(sub) => handleStripSubtabClick(item.id, sub)}
               onCollapse={() => { manualOpenRef.current = false; setStripOpen(false); }}
               isMobile={isMobile}
+              breadcrumb={
+                activeSubPage && activeSubPage.tabId === item.id && item.id === activeTab && !previewTab
+                  ? {
+                      anchorLabel: activeSubPage.parentSubtabLabel,
+                      crumbLabel: activeSubPage.label,
+                      onAnchor: () => handleSubPageBack(item.id, activeSubPage.parentSubtabId),
+                    }
+                  : undefined
+              }
             />
           </div>
         ))}

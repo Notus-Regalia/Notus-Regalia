@@ -4,11 +4,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { statements, type Statement } from '@/data/information-data';
 import styles from '@/styles/ui.module.css';
 import type {
-  ContentBlock, CardItem, DocItem, StatItem, PersonItem, PublicationItem,
+  ContentBlock, CardItem, DocItem, StatItem, PersonItem, PublicationItem, RoleItem,
 } from '../data';
+import { CAREER_PROGRAMS } from '../data';
 import {
   getConsent, setConsent, getPreferences, setPreferences,
-  clearConsent, clearPreferences, clearSiteCache,
+  clearConsent, clearPreferences, clearSiteCache, clearSefirahTutorial,
 } from '@/utils/consent';
 
 // ─────────────────────────────────────────────────────────────
@@ -585,9 +586,14 @@ const HeroFeature = ({ stories }: { stories: PublicationItem[] }) => {
         style={{ background: 'radial-gradient(ellipse at 80% 10%, rgba(235,17,67,0.10) 0%, transparent 55%)' }}
       />
 
-      {/* ── Top: split hero (text left · media right) ── */}
-      <div className="relative z-10 flex-1 flex items-center px-4 sm:px-8 lg:px-16 pt-28 lg:pt-24 pb-10">
-        <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center lg:h-[460px]">
+      {/* ── Top: split hero (text left · media right) ──
+          Horizontal inset = global brand gutter so the text edge lines up with
+          the navbar logo, the footer, and the rest of the site. */}
+      <div
+        className="relative z-10 flex-1 flex items-center pt-28 lg:pt-24 pb-10"
+        style={{ paddingLeft: 'var(--site-gutter-inline)', paddingRight: 'var(--site-gutter-inline)' }}
+      >
+        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center lg:h-[460px]">
 
           {/* LEFT — text (graceful swap) */}
           <div className="flex flex-col justify-center lg:h-full">
@@ -674,19 +680,28 @@ const HeroFeature = ({ stories }: { stories: PublicationItem[] }) => {
         </div>
       </div>
 
-      {/* ── Bottom: story selector strip ── */}
+      {/* ── Bottom: story selector strip ──
+          Tabs are spaced cards (no dividers) inset to the brand gutter so they
+          line up with the hero text above. */}
       <div className="relative z-10 w-full" style={{ borderTop: '1px solid var(--border-color)' }}>
-        <div className="flex overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        <div
+          className="flex gap-3 sm:gap-4 overflow-x-auto py-5 sm:py-6"
+          style={{
+            scrollbarWidth: 'none',
+            paddingLeft: 'var(--site-gutter-inline)',
+            paddingRight: 'var(--site-gutter-inline)',
+          }}
+        >
           {stories.map((st, i) => {
             const isActive = i === active;
             return (
               <button
                 key={i}
                 onClick={() => setActive(i)}
-                className="relative flex-shrink-0 lg:flex-1 text-left px-5 py-5 transition-colors duration-200"
+                className="relative flex-shrink-0 lg:flex-1 text-left px-5 py-4 overflow-hidden transition-all duration-200"
                 style={{
-                  minWidth: '180px',
-                  borderRight: '1px solid var(--border-color)',
+                  minWidth: '200px',
+                  borderTop: `1px solid ${isActive ? 'transparent' : 'var(--border-color)'}`,
                   background: isActive ? 'var(--hover-bg)' : 'transparent',
                 }}
               >
@@ -718,10 +733,15 @@ const HeroFeature = ({ stories }: { stories: PublicationItem[] }) => {
 // ─────────────────────────────────────────────────────────────
 const PublicationGridBlock = ({ heading, items }: { heading?: string; items: PublicationItem[] }) => (
   <section
-    className="px-4 sm:px-8 lg:px-20 py-16 sm:py-24"
-    style={{ background: 'var(--gradient-section)', borderTop: '1px solid var(--border-color)' }}
+    className="py-16 sm:py-24"
+    style={{
+      background: 'var(--gradient-section)',
+      borderTop: '1px solid var(--border-color)',
+      paddingLeft: 'var(--site-gutter-inline)',
+      paddingRight: 'var(--site-gutter-inline)',
+    }}
   >
-    <div className="max-w-6xl mx-auto">
+    <div className="w-full">
       {heading && <BlockHeading>{heading}</BlockHeading>}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
         {items.map((pub, i) => {
@@ -915,6 +935,7 @@ const PreferencesBlock = () => {
   const handleResetConsent = () => {
     clearConsent();
     clearPreferences();
+    clearSefirahTutorial();
     setState((s) => {
       const next = { ...s };
       PREF_GROUPS.forEach((g) => g.rows.forEach((r) => { next[r.id] = r.default; }));
@@ -922,7 +943,7 @@ const PreferencesBlock = () => {
       return next;
     });
     setSaved(false);
-    setCacheMsg('Cookie and site preferences reset. The cookie banner will reappear on the main site.');
+    setCacheMsg('Cookie and site preferences reset. The cookie banner and Sefirah tutorial will reappear on the main site.');
   };
 
   return (
@@ -1017,6 +1038,138 @@ const PreferencesBlock = () => {
 };
 
 // ─────────────────────────────────────────────────────────────
+//  Careers — search + program filter over a single column of roles
+// ─────────────────────────────────────────────────────────────
+const isInternal = (href: string) => href.startsWith('/') && !href.startsWith('/documents');
+
+const RoleRow = ({ role }: { role: RoleItem }) => (
+  <div
+    className="rounded-2xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 transition-all duration-300 hover:-translate-y-0.5"
+    style={{ background: 'var(--surface-elevated)', border: '1px solid var(--border-color)' }}
+  >
+    {/* Left — title, description, location */}
+    <div className="min-w-0 flex-1">
+      <h4 className="font-semibold text-lg sm:text-xl leading-snug" style={{ color: 'var(--content-primary)' }}>
+        {role.title}
+      </h4>
+      <p className="mt-2 text-sm sm:text-base leading-relaxed" style={{ color: 'var(--content-muted)' }}>
+        {role.description}
+      </p>
+      <div className="mt-3 inline-flex items-center gap-1.5 text-xs sm:text-sm" style={{ color: 'var(--content-muted)' }}>
+        <i className="bi bi-geo-alt" />
+        {role.location}
+      </div>
+    </div>
+
+    {/* Right — apply (primary brand CTA) + learn more (secondary brand button), stacked */}
+    <div className="flex flex-shrink-0 flex-col items-stretch gap-3">
+      <a
+        href={role.applyHref}
+        target={isInternal(role.applyHref) ? undefined : '_blank'}
+        rel={isInternal(role.applyHref) ? undefined : 'noopener noreferrer'}
+        className="brand-btn brand-btn-sm"
+        onMouseMove={handleBtnMouseMove}
+        // White CTA surface — mirrors the home hero's "Get Started" button.
+        style={{
+          '--btn-surface': 'radial-gradient(ellipse at bottom, rgba(255,255,255,1) 0%, rgba(226,229,233,1) 48%)',
+          '--btn-text': 'rgba(0,0,0,0.66)',
+          '--btn-text-hover': 'rgba(0,0,0,1)',
+          '--btn-inset': 'rgba(0,0,0,0.12)',
+          '--btn-line': 'linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 50%, rgba(0,0,0,0) 100%)',
+        } as React.CSSProperties}
+      >
+        <span>Apply</span>
+        <i className="bi bi-arrow-up-right-square" style={{ fontSize: '0.8rem' }} />
+      </a>
+      <a
+        href={role.learnMoreHref}
+        target={isInternal(role.learnMoreHref) ? undefined : '_blank'}
+        rel={isInternal(role.learnMoreHref) ? undefined : 'noopener noreferrer'}
+        className="brand-btn brand-btn-sm"
+        onMouseMove={handleBtnMouseMove}
+      >
+        <span>Learn more</span>
+      </a>
+    </div>
+  </div>
+);
+
+const CareersBlock = ({ roles }: { roles: RoleItem[] }) => {
+  const [query, setQuery] = useState('');
+  const [program, setProgram] = useState<string>('all');
+
+  const q = query.trim().toLowerCase();
+  const filtered = roles.filter((r) => {
+    const matchesProgram = program === 'all' || r.program === program;
+    const matchesQuery =
+      !q ||
+      r.title.toLowerCase().includes(q) ||
+      r.description.toLowerCase().includes(q) ||
+      r.location.toLowerCase().includes(q);
+    return matchesProgram && matchesQuery;
+  });
+
+  return (
+    <div>
+      {/* Search + filter — one row */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <i
+            className="bi bi-search absolute left-4 top-1/2 -translate-y-1/2 text-sm"
+            style={{ color: 'var(--content-muted)' }}
+          />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search open roles…"
+            aria-label="Search open roles"
+            className="w-full rounded-xl pl-11 pr-4 py-3 text-sm sm:text-base outline-none transition-colors focus:border-[var(--content-secondary)]"
+            style={{ background: 'var(--surface-elevated)', border: '1px solid var(--border-color)', color: 'var(--content-primary)' }}
+          />
+        </div>
+        <div className="relative sm:w-72">
+          <i
+            className="bi bi-funnel absolute left-4 top-1/2 -translate-y-1/2 text-sm pointer-events-none"
+            style={{ color: 'var(--content-muted)' }}
+          />
+          <select
+            value={program}
+            onChange={(e) => setProgram(e.target.value)}
+            aria-label="Filter by program"
+            className="w-full appearance-none rounded-xl pl-11 pr-10 py-3 text-sm sm:text-base outline-none cursor-pointer transition-colors focus:border-[var(--content-secondary)]"
+            style={{ background: 'var(--surface-elevated)', border: '1px solid var(--border-color)', color: 'var(--content-primary)' }}
+          >
+            <option value="all">All Programs</option>
+            {CAREER_PROGRAMS.map((p) => (
+              <option key={p.id} value={p.id}>{p.label}</option>
+            ))}
+          </select>
+          <i
+            className="bi bi-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-xs pointer-events-none"
+            style={{ color: 'var(--content-muted)' }}
+          />
+        </div>
+      </div>
+
+      {/* Open roles — one column of rows */}
+      <div className="mt-6 sm:mt-8 space-y-4">
+        {filtered.length > 0 ? (
+          filtered.map((role, i) => <RoleRow key={i} role={role} />)
+        ) : (
+          <div
+            className="rounded-2xl p-8 text-center text-sm sm:text-base"
+            style={{ background: 'var(--hover-bg)', border: '1px dashed var(--border-dashed)', color: 'var(--content-muted)' }}
+          >
+            No open roles match your search.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────
 //  Dispatcher
 // ─────────────────────────────────────────────────────────────
 const BlockRenderer = ({ block }: { block: ContentBlock }) => {
@@ -1031,6 +1184,7 @@ const BlockRenderer = ({ block }: { block: ContentBlock }) => {
     case 'hero':      return <HeroFeature stories={block.stories} />;
     case 'publicationGrid': return <PublicationGridBlock heading={block.heading} items={block.items} />;
     case 'note':      return <NoteBlock text={block.text} />;
+    case 'careers':   return <CareersBlock roles={block.roles} />;
     case 'preferences': return <PreferencesBlock />;
     default:          return null;
   }

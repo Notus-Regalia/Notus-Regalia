@@ -65,6 +65,7 @@ const SITES: Site[] = [
           { label: "Healthcare",  href: "/technologies/healthcare" },
           { label: "Enterprise",  href: "/technologies/enterprise" },
           { label: "Energy",      href: "/technologies/energy" },
+          { label: "Defense",     href: "/technologies/defense" },
         ],
       },
       {
@@ -122,7 +123,6 @@ const SITES: Site[] = [
           { label: "Acceptable Use Policy",  href: "/information/legals/acceptable-use" },
           { label: "Vulnerability Disclosure", href: "/information/legals/vulnerability-disclosure" },
           { label: "Licenses",               href: "/information/legals/licenses" },
-          { label: "Brand Guidelines",       href: "/information/legals/brand-guidelines" },
         ],
       },
       {
@@ -132,6 +132,7 @@ const SITES: Site[] = [
           { label: "Social",        href: "/information/documents/docs-social" },
           { label: "Environmental", href: "/information/documents/docs-environmental" },
           { label: "Media Assets",  href: "/information/documents/media-assets" },
+          { label: "Brand Guidelines", href: "/information/documents/brand-guidelines" },
         ],
       },
       {

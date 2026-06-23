@@ -4,6 +4,40 @@ import SubtabHeader from './SubtabHeader';
 import { SubtabBody } from './sections/Blocks';
 import { SUBTAB_CONTENT, INFO_TABS, SUBTAB_PARENT } from './data';
 
+// ── Always-dark investor grid background (copied from company → investors) ──
+const GRID_BG_STYLE: React.CSSProperties = {
+  backgroundImage:
+    'repeating-linear-gradient(90deg, rgba(255,255,255,0.12) 0 1px, transparent 1px 112px),' +
+    'repeating-linear-gradient(0deg, rgba(255,255,255,0.12) 0 1px, transparent 1px 112px),' +
+    'repeating-linear-gradient(45deg, transparent 0 38px, rgba(255,255,255,0.04) 38px 40px, transparent 40px 78px),' +
+    'repeating-linear-gradient(-45deg, transparent 0 38px, rgba(255,255,255,0.04) 38px 40px, transparent 40px 78px),' +
+    'radial-gradient(circle, rgba(255,255,255,0.84) 0 1.4px, transparent 1.5px)',
+  backgroundSize: '112px 112px',
+  backgroundPosition: 'center',
+  opacity: 0.7,
+};
+const GRID_VIGNETTE_STYLE: React.CSSProperties = {
+  background:
+    'radial-gradient(circle at center, transparent 22%, rgba(0,0,0,0.34) 100%),' +
+    'linear-gradient(180deg, rgba(0,0,0,0.16) 0%, rgba(0,0,0,0.48) 100%)',
+};
+
+// Force the dark token set so content reads on the always-black grid (even in light mode).
+const GRID_SECTION_CSS = `
+.info-grid-section, :root.light .info-grid-section {
+  background: #000000;
+  --surface-primary: #000000;
+  --surface-elevated: rgba(15, 15, 15, 0.75);
+  --content-primary: #ffffff;
+  --content-secondary: #d4d4d4;
+  --content-muted: rgb(163, 163, 163);
+  --content-faint: rgba(255, 255, 255, 0.6);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-dashed: rgba(255, 255, 255, 0.18);
+  --hover-bg: rgba(255, 255, 255, 0.05);
+}
+`;
+
 const SubtabView = memo(({ subtabId }: { subtabId: string }) => {
   const content = SUBTAB_CONTENT[subtabId];
   if (!content) return null;
@@ -18,19 +52,40 @@ const SubtabView = memo(({ subtabId }: { subtabId: string }) => {
 
   return (
     <div>
+      {content.gridBg && <style>{GRID_SECTION_CSS}</style>}
       <SubtabHeader
         eyebrow={content.header.eyebrow}
         title={content.header.title}
         description={content.header.description}
         icon={tabIcon}
+        link={content.header.link}
+        cta={content.header.cta}
+        hero={content.heroHeader}
       />
       <div
-        className="relative"
-        style={{ background: 'var(--gradient-section)' }}
+        id={content.heroHeader ? 'careers-open-roles' : undefined}
+        className={`relative scroll-mt-20 ${content.gridBg ? 'info-grid-section' : ''}`}
+        style={content.gridBg ? undefined : { background: 'var(--gradient-section)' }}
       >
-        <div className="px-4 sm:px-8 lg:px-20 pt-14 sm:pt-20 pb-14 sm:pb-20">
-          {/* Legal documents render fully justified for a formal, print-like reading texture */}
-          <div className="max-w-6xl mx-auto" style={content.justify ? { textAlign: 'justify', hyphens: 'auto' } : undefined}>
+        {/* Always-dark investor grid background (mirrors the company → investors banner) */}
+        {content.gridBg && (
+          <>
+            <div className="pointer-events-none absolute inset-0 z-0" style={GRID_BG_STYLE} />
+            <div className="pointer-events-none absolute inset-0 z-0" style={GRID_VIGNETTE_STYLE} />
+          </>
+        )}
+        {/* Horizontal inset = global brand gutter (--site-gutter-inline), so content
+            edges line up with the navbar/footer and the rest of the site. */}
+        <div
+          className="relative z-10 pt-14 sm:pt-20 pb-14 sm:pb-20"
+          style={{ paddingLeft: 'var(--site-gutter-inline)', paddingRight: 'var(--site-gutter-inline)' }}
+        >
+          {/* Hero/grid pages fill the gutter column edge-to-edge (like the home sections);
+              text-heavy pages keep a readable max-width. Legal docs render justified. */}
+          <div
+            className={content.heroHeader ? '' : 'max-w-6xl mx-auto'}
+            style={content.justify ? { textAlign: 'justify', hyphens: 'auto' } : undefined}
+          >
             <SubtabBody blocks={content.blocks} />
           </div>
         </div>

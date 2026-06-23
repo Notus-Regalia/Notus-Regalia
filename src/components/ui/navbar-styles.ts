@@ -287,17 +287,21 @@ input[type="checkbox"], input[type="radio"], select,
   grid-template-rows: 0fr;
   opacity: 0;
   pointer-events: none;
-  border-top: 1px solid transparent;
+  /* Separator line drawn as an inset shadow rather than a border so a collapsed
+     strip occupies zero layout height. A transparent 1px border still reserves
+     1px per row, and the stacked inactive strips pushed the navbar's bottom
+     border below the visible strip — leaving a slim empty band beneath it. */
+  box-shadow: inset 0 1px 0 0 transparent;
   transition:
     grid-template-rows 0.44s cubic-bezier(0.22, 1, 0.36, 1),
     opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-    border-top-color 0.3s ease;
+    box-shadow 0.3s ease;
   will-change: grid-template-rows, opacity;
 }
 .subtab-strip-outer.strip-visible {
   grid-template-rows: 1fr;
   opacity: 1;
-  border-top-color: var(--border-color);
+  box-shadow: inset 0 1px 0 0 var(--border-color);
   pointer-events: auto;
 }
 .subtab-strip-clip { overflow: hidden; min-height: 0; }

@@ -55,6 +55,26 @@ export interface PublicationItem {
   href?: string;
 }
 
+// ── Careers ──────────────────────────────────────────────────
+// Program a role belongs to; drives the careers filter.
+export type CareerProgram = 'corporate' | 'internship' | 'sefirah';
+
+export interface RoleItem {
+  title: string;
+  description: string;
+  location: string;
+  program: CareerProgram;
+  applyHref: string;
+  learnMoreHref: string;
+}
+
+// Filter options surfaced in the careers Program dropdown.
+export const CAREER_PROGRAMS: { id: CareerProgram; label: string }[] = [
+  { id: 'corporate',  label: 'Corporate (Notus Regalia)' },
+  { id: 'internship', label: 'Internship' },
+  { id: 'sefirah',    label: 'Project Sefirah' },
+];
+
 export type ContentBlock =
   | { type: 'text'; heading?: string; paragraphs: string[] }
   | { type: 'releases' }                                          // accordion of `statements`
@@ -66,6 +86,7 @@ export type ContentBlock =
   | { type: 'hero'; stories: PublicationItem[] }
   | { type: 'publicationGrid'; heading?: string; items: PublicationItem[] }
   | { type: 'note'; text: string }
+  | { type: 'careers'; roles: RoleItem[] }                        // search + program filter over open roles
   | { type: 'preferences' };                                      // cookie + user preference toggles
 
 export interface SubtabContent {
@@ -73,11 +94,19 @@ export interface SubtabContent {
     eyebrow: string;
     title: string;
     description: string;
+    /** Optional secondary link rendered below the description. */
+    link?: { label: string; href: string };
+    /** Optional primary CTA. `scrollTo` smooth-scrolls to the element id; otherwise `href`. */
+    cta?: { label: string; href?: string; scrollTo?: string };
   };
   /** When true the landing header is omitted (used for the home/landing page). */
   hideHeader?: boolean;
   /** When true, body text is justified (used for formal legal documents). */
   justify?: boolean;
+  /** When true, the body renders on the always-dark investor grid background. */
+  gridBg?: boolean;
+  /** When true, the header renders as a split hero (text left · animated bg right). */
+  heroHeader?: boolean;
   blocks: ContentBlock[];
 }
 
@@ -131,7 +160,6 @@ export const INFO_TABS: InfoTab[] = [
       { id: 'acceptable-use', label: 'Acceptable Use Policy' },
       { id: 'vulnerability-disclosure', label: 'Vulnerability Disclosure' },
       { id: 'licenses', label: 'Licenses' },
-      { id: 'brand-guidelines', label: 'Brand Guidelines' },
     ],
   },
   {
@@ -143,6 +171,7 @@ export const INFO_TABS: InfoTab[] = [
       { id: 'docs-social',        label: 'Social' },
       { id: 'docs-environmental', label: 'Environmental' },
       { id: 'media-assets',       label: 'Media Assets' },
+      { id: 'brand-guidelines',   label: 'Brand Guidelines' },
     ],
   },
   {
@@ -166,12 +195,32 @@ export const DEFAULT_SUBTAB: Record<string, string> = {
   settings:  'preferences',
 };
 
-// subtab id → parent tab id (for eyebrow + url integrity)
+// ── Hidden sub-pages ─────────────────────────────────────────
+// Pages that aren't listed in the subtab strip but are reachable from within a
+// parent subtab (e.g. a CTA). On a sub-page the strip swaps to a breadcrumb:
+// "<parent subtab> › <sub-page>". They route like any other subtab id.
+export interface SubPage {
+  label: string;
+  tabId: string;            // parent tab (drives which strip is active)
+  parentSubtabId: string;   // the subtab the breadcrumb anchors back to
+  parentSubtabLabel: string;
+}
+export const SUBTAB_SUBPAGES: Record<string, SubPage> = {
+  'recruitment-process': {
+    label: 'Recruitment Process',
+    tabId: 'newsroom',
+    parentSubtabId: 'careers',
+    parentSubtabLabel: 'Careers',
+  },
+};
+
+// subtab id → parent tab id (for eyebrow + url integrity). Includes sub-pages.
 export const SUBTAB_PARENT: Record<string, string> = (() => {
   const map: Record<string, string> = {};
   for (const tab of INFO_TABS) for (const sub of tab.subtabs) {
     if (!sub.external) map[sub.id] = tab.id; // external subtabs have no in-page content
   }
+  for (const [id, sp] of Object.entries(SUBTAB_SUBPAGES)) map[id] = sp.tabId;
   return map;
 })();
 
@@ -184,7 +233,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
     header: {
       eyebrow: 'Newsroom',
       title: 'Announcements',
-      description: 'Official statements, notices, and public disclosures issued by Notus Regalia and its portfolio ventures.',
+      description: 'Official statements, notices, and public disclosures issued by Notus Regalia on the development of Project Sefirah.',
     },
     blocks: [
       { type: 'releases' },
@@ -203,30 +252,30 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         type: 'hero',
         stories: [
           {
-            title: 'Building Companies Like Systems',
+            title: 'Building the Foundation First: An Introduction to Project Sefirah',
             category: 'Editorial',
             date: 'May 2025',
             readTime: '9 min read',
-            excerpt: 'Why we treat ventures as instances of a shared operating system — repeatable infrastructure, disciplined governance, and founder–operator alignment that compound execution across an entire portfolio.',
-            href: '/documents/building-companies-like-systems.pdf',
+            excerpt: 'Why Notus Regalia is investing in a single infrastructural and technical foundation — Project Sefirah — before anything is built on top of it, and what that foundation is designed to carry.',
+            href: '/documents/introducing-project-sefirah.pdf',
           },
-          { title: 'The Stealth Venture-Studio Playbook', category: 'Research', date: 'April 2025', readTime: '12 min read', excerpt: 'A field guide to pre-seed validation: stage-gates, capital efficiency, and knowing when to kill or scale a venture.', href: '/documents/venture-studio-playbook.pdf' },
-          { title: 'On Asymmetric Opportunity', category: 'Essay', date: 'March 2025', readTime: '7 min read', excerpt: 'How we identify bets where the downside is bounded and the upside is structurally uncapped.', href: '/documents/asymmetric-opportunity.pdf' },
-          { title: 'Shared Infrastructure as Compounding Advantage', category: 'Technical', date: 'February 2025', readTime: '10 min read', excerpt: 'The architecture behind our centralized platform — APIs, data pipelines, and security primitives reused across ventures.', href: '/documents/shared-infrastructure.pdf' },
+          { title: 'Inside Sefirah’s Architecture', category: 'Technical', date: 'April 2025', readTime: '12 min read', excerpt: 'The data layer, service orchestration, and assistant that make up the core platform — and the design decisions behind each.', href: '/documents/sefirah-architecture.pdf' },
+          { title: 'Security as a First Principle', category: 'Technical', date: 'March 2025', readTime: '7 min read', excerpt: 'How Project Sefirah treats access control, auditability, and data protection as foundational requirements rather than later additions.', href: '/documents/sefirah-security.pdf' },
+          { title: 'Designing the Sefirah Assistant', category: 'Product', date: 'February 2025', readTime: '10 min read', excerpt: 'The reasoning behind Sefirah’s conversational surface — search, navigation, and the path toward a unified operating layer.', href: '/documents/sefirah-assistant.pdf' },
           { title: 'Governance Without Bureaucracy', category: 'Operations', date: 'January 2025', readTime: '6 min read', excerpt: 'Designing oversight that preserves operational speed while enforcing institutional discipline.', href: '/documents/governance-without-bureaucracy.pdf' },
-          { title: 'Carbon Capture at Pilot Scale', category: 'Field Note', date: 'December 2024', readTime: '8 min read', excerpt: 'Lessons from deploying IoT-enabled carbon monitoring across three industrial facilities.', href: '/documents/carbon-capture-pilot.pdf' },
+          { title: 'Building Companies Like Systems', category: 'Essay', date: 'December 2024', readTime: '8 min read', excerpt: 'Why Notus Regalia treats engineering, infrastructure, and governance as one system — and builds the platform before the product.', href: '/documents/building-companies-like-systems.pdf' },
         ],
       },
       {
         type: 'publicationGrid',
         heading: 'Latest Publications',
         items: [
-          { title: 'The Stealth Venture-Studio Playbook', category: 'Research', date: 'April 2025', readTime: '12 min read', excerpt: 'A field guide to pre-seed validation: stage-gates, capital efficiency, and knowing when to kill or scale a venture.', href: '/documents/venture-studio-playbook.pdf' },
-          { title: 'On Asymmetric Opportunity', category: 'Essay', date: 'March 2025', readTime: '7 min read', excerpt: 'How we identify bets where the downside is bounded and the upside is structurally uncapped.', href: '/documents/asymmetric-opportunity.pdf' },
-          { title: 'Shared Infrastructure as Compounding Advantage', category: 'Technical', date: 'February 2025', readTime: '10 min read', excerpt: 'The architecture behind our centralized platform — APIs, data pipelines, and security primitives reused across ventures.', href: '/documents/shared-infrastructure.pdf' },
+          { title: 'Inside Sefirah’s Architecture', category: 'Technical', date: 'April 2025', readTime: '12 min read', excerpt: 'The data layer, service orchestration, and assistant that make up the core platform — and the design decisions behind each.', href: '/documents/sefirah-architecture.pdf' },
+          { title: 'Security as a First Principle', category: 'Technical', date: 'March 2025', readTime: '7 min read', excerpt: 'How Project Sefirah treats access control, auditability, and data protection as foundational requirements rather than later additions.', href: '/documents/sefirah-security.pdf' },
+          { title: 'Designing the Sefirah Assistant', category: 'Product', date: 'February 2025', readTime: '10 min read', excerpt: 'The reasoning behind Sefirah’s conversational surface — search, navigation, and the path toward a unified operating layer.', href: '/documents/sefirah-assistant.pdf' },
           { title: 'Governance Without Bureaucracy', category: 'Operations', date: 'January 2025', readTime: '6 min read', excerpt: 'Designing oversight that preserves operational speed while enforcing institutional discipline.', href: '/documents/governance-without-bureaucracy.pdf' },
-          { title: 'Carbon Capture at Pilot Scale', category: 'Field Note', date: 'December 2024', readTime: '8 min read', excerpt: 'Lessons from deploying IoT-enabled carbon monitoring across three industrial facilities.', href: '/documents/carbon-capture-pilot.pdf' },
-          { title: 'Designing for Offline-First Healthcare', category: 'Case Study', date: 'November 2024', readTime: '11 min read', excerpt: 'How our telemedicine venture delivers diagnostics in low-connectivity regions.', href: '/documents/offline-first-healthcare.pdf' },
+          { title: 'Building Companies Like Systems', category: 'Essay', date: 'December 2024', readTime: '8 min read', excerpt: 'Why Notus Regalia treats engineering, infrastructure, and governance as one system — and builds the platform before the product.', href: '/documents/building-companies-like-systems.pdf' },
+          { title: 'Building the Foundation First: An Introduction to Project Sefirah', category: 'Editorial', date: 'May 2025', readTime: '9 min read', excerpt: 'Why Notus Regalia is investing in a single infrastructural and technical foundation before anything is built on top of it.', href: '/documents/introducing-project-sefirah.pdf' },
         ],
       },
     ],
@@ -243,20 +292,13 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         type: 'text',
         heading: 'Press & Coverage',
         paragraphs: [
-          'Notus Regalia operates in a pre-seed, stealth phase. Selected coverage, feature stories, and interviews with our operating team are catalogued here as they are published.',
-          'For interview requests, briefings, or commentary on systems engineering, venture building, and critical-infrastructure technology, reach our communications desk at info@notusregalia.tech.',
+          'Notus Regalia operates in a pre-seed, stealth phase. Our work is currently focused on a single project — Project Sefirah, the infrastructural and technical foundation of the company. Selected coverage and interviews will be catalogued here as they are published.',
+          'For interview requests, briefings, or commentary on systems engineering and critical-infrastructure technology, reach our communications desk at info@notusregalia.tech.',
         ],
       },
       {
-        type: 'cards',
-        heading: 'Recent Coverage',
-        columns: 2,
-        items: [
-          { tag: 'Feature', icon: 'bi-newspaper', title: 'Building Companies Like Systems', meta: 'Operator Quarterly · 2025', body: 'A look inside the shared operating platform that lets the holding entity validate ventures with unusual capital efficiency.' },
-          { tag: 'Interview', icon: 'bi-mic', title: 'On Asymmetric Opportunity', meta: 'The Build Podcast · 2025', body: 'Our founding operators discuss stage-gate validation, founder–operator alignment, and long-term ownership.' },
-          { tag: 'Analysis', icon: 'bi-bar-chart', title: 'The Stealth Venture Studio Model', meta: 'Frontier Markets Review · 2024', body: 'How centralized infrastructure compounds execution across healthcare, fintech, cleantech, and edtech bets.' },
-          { tag: 'Mention', icon: 'bi-megaphone', title: 'Carbon Capture Pilots Expand', meta: 'CleanTech Wire · 2024', body: 'Coverage of the Smart Carbon Capture pilot reaching three industrial facilities.' },
-        ],
+        type: 'note',
+        text: 'Notus Regalia is in stealth. There is no press coverage to publish yet — this page will be updated as Project Sefirah moves toward public milestones. For early briefings, contact info@notusregalia.tech.',
       },
       {
         type: 'cards',
@@ -273,33 +315,50 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   careers: {
     header: {
-      eyebrow: 'Newsroom',
-      title: 'Careers',
-      description: 'We hire operators who build systems, not just projects. Explore open roles and how we work.',
+      eyebrow: '',
+      title: 'Find Your Future',
+      description: 'Notus Regalia is looking for exceptional people ready to take on hard problems across our programs and ventures. We bring together engineers, operators, and builders to do their best work — with real ownership, room to grow, and the support to make a lasting impact.',
+      cta: { label: 'View Open Roles', scrollTo: 'careers-open-roles' },
+      link: { label: 'Recruitment Process', href: '/information/newsroom/recruitment-process' },
     },
+    heroHeader: true,
+    gridBg: true,
+    blocks: [
+      {
+        type: 'careers',
+        roles: [
+          { program: 'corporate', title: 'Founding Platform Engineer', description: 'Own the core technical platform behind Project Sefirah — APIs, data pipelines, and security protocols at the foundation of the company.', location: 'Remote · Full-time', applyHref: '/contact', learnMoreHref: '/contact' },
+          { program: 'corporate', title: 'Security & Compliance Lead', description: 'Drive information security, data protection, and compliance posture across Project Sefirah and company operations.', location: 'Remote · Full-time', applyHref: '/contact', learnMoreHref: '/contact' },
+          { program: 'corporate', title: 'Operations Lead', description: 'Stand up the operating disciplines — governance, process, and execution — that Project Sefirah is built on.', location: 'Hybrid · Full-time', applyHref: '/contact', learnMoreHref: '/contact' },
+          { program: 'internship', title: 'Engineering Intern', description: 'Ship real features alongside the platform team while you learn how we build and operate systems.', location: 'Remote · Internship', applyHref: '/contact', learnMoreHref: '/contact' },
+          { program: 'internship', title: 'Operations Intern', description: 'Support Project Sefirah operations and research with hands-on, scoped projects.', location: 'Hybrid · Internship', applyHref: '/contact', learnMoreHref: '/contact' },
+          { program: 'sefirah', title: 'Sefirah Systems Engineer', description: 'Build and harden the core infrastructure behind Project Sefirah’s assistant and data layer.', location: 'Remote · Full-time', applyHref: '/contact', learnMoreHref: '/contact' },
+          { program: 'sefirah', title: 'Applied AI Researcher', description: 'Prototype and evaluate retrieval, reasoning, and orchestration approaches for Project Sefirah.', location: 'Remote · Full-time', applyHref: '/contact', learnMoreHref: '/contact' },
+          { program: 'sefirah', title: 'Product Designer — Sefirah', description: 'Shape the conversational and visual surfaces of Project Sefirah end to end.', location: 'Remote · Contract', applyHref: '/contact', learnMoreHref: '/contact' },
+        ],
+      },
+    ],
+  },
+
+  // Hidden sub-page of Careers — reached via the careers hero CTA.
+  'recruitment-process': {
+    header: {
+      eyebrow: 'Careers',
+      title: 'Recruitment Process',
+      description: 'How we evaluate and hire — a candid, paid, and fast process designed to respect your time and show you how we actually work.',
+    },
+    gridBg: true,
     blocks: [
       {
         type: 'text',
-        heading: 'Why Notus Regalia',
+        heading: 'What to expect',
         paragraphs: [
-          'We are a holding and venture-building entity that develops, stewards, and scales early-stage systems across multiple industries. You will work close to the metal — shipping shared infrastructure and validating ventures under real-world constraints.',
-          'We optimize for systems-first thinking, capital efficiency, and founder–operator alignment with genuine long-term ownership. The people who thrive here are comfortable with ambiguity, bias toward action, and care about durable institutional discipline.',
+          'Our process is deliberately short and high-signal. You will speak with the people you would actually work with, do real (paid) work rather than abstract puzzles, and get a transparent decision quickly.',
         ],
       },
       {
         type: 'cards',
-        heading: 'Open Roles',
-        columns: 2,
-        items: [
-          { tag: 'Engineering', icon: 'bi-cpu', title: 'Founding Platform Engineer', meta: 'Remote · Full-time', body: 'Own the shared technical platform — APIs, data pipelines, and security protocols spanning every venture.', cta: 'Apply', href: '/contact' },
-          { tag: 'Engineering', icon: 'bi-shield-lock', title: 'Security & Compliance Lead', meta: 'Remote · Full-time', body: 'Drive HIPAA, KYC/AML, and infosec posture across regulated venture operations.', cta: 'Apply', href: '/contact' },
-          { tag: 'Operations', icon: 'bi-diagram-3', title: 'Venture Operator', meta: 'Hybrid · Full-time', body: 'Stand up new ventures from validation through stage-gate advancement.', cta: 'Apply', href: '/contact' },
-          { tag: 'Design', icon: 'bi-bezier2', title: 'Product Designer', meta: 'Remote · Contract', body: 'Shape product surfaces for ventures in healthcare, fintech, and edtech.', cta: 'Apply', href: '/contact' },
-        ],
-      },
-      {
-        type: 'cards',
-        heading: 'How We Hire',
+        heading: 'The Steps',
         columns: 3,
         items: [
           { icon: 'bi-chat-dots', title: '1 · Conversation', body: 'A candid talk about your work, what you want to own, and how we operate.' },
@@ -309,7 +368,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
       },
       {
         type: 'note',
-        text: "Don't see your role? We are always interested in exceptional operators. Write to info@notusregalia.tech.",
+        text: "Questions about the process or accommodations? Reach us at [info@notusregalia.tech](mailto:info@notusregalia.tech).",
       },
     ],
   },
@@ -319,7 +378,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
     header: {
       eyebrow: 'Investors',
       title: 'Investor News',
-      description: 'Portfolio milestones, capital updates, and disclosures relevant to current and prospective investors.',
+      description: 'Project milestones, capital updates, and disclosures relevant to current and prospective investors.',
     },
     blocks: [
       {
@@ -327,10 +386,10 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: 'Latest Updates',
         columns: 2,
         items: [
-          { tag: 'Capital', icon: 'bi-cash-coin', title: 'Pre-Seed Operating Framework Established', meta: 'January 2025', body: 'The holding entity formalizes a centralized platform for capital-efficient experimentation and validation.' },
-          { tag: 'Portfolio', icon: 'bi-rocket-takeoff', title: 'Healthcare & FinTech Ventures Reach Beta', meta: 'December 2024', body: 'AI Telemedicine and Micro-Lending Blockchain ventures transition to private beta and pilot.' },
-          { tag: 'Governance', icon: 'bi-bank', title: 'Governance Framework Published', meta: 'November 2024', body: 'Decision-making protocols, resource allocation, and venture oversight mechanisms formalized.' },
-          { tag: 'Milestone', icon: 'bi-wind', title: 'CleanTech Pilot With Industrial Partners', meta: 'October 2024', body: 'Smart Carbon Capture advances to pilot deployment across three facilities.' },
+          { tag: 'Capital', icon: 'bi-cash-coin', title: 'Pre-Seed Operating Framework Established', meta: 'January 2025', body: 'Notus Regalia formalizes its operating framework and commits initial capital to Project Sefirah.' },
+          { tag: 'Project', icon: 'bi-rocket-takeoff', title: 'Project Sefirah Enters Active Development', meta: 'December 2024', body: 'Work begins on the core platform — the data layer, service orchestration, and the Sefirah assistant.' },
+          { tag: 'Governance', icon: 'bi-bank', title: 'Governance Framework Published', meta: 'November 2024', body: 'Decision-making protocols, resource allocation, and oversight mechanisms formalized.' },
+          { tag: 'Milestone', icon: 'bi-diagram-3', title: 'Foundation Architecture Defined', meta: 'October 2024', body: 'The architectural blueprint for Project Sefirah — the company’s technical foundation — is set.' },
         ],
       },
       {
@@ -352,8 +411,8 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: 'Upcoming',
         columns: 2,
         items: [
-          { tag: 'Briefing', icon: 'bi-calendar-event', title: 'Q2 Portfolio Briefing', meta: 'Virtual · By invitation', body: 'Quarterly walk-through of venture progress, key milestones, and forward priorities.', cta: 'Request Invite', href: '/contact' },
-          { tag: 'Update', icon: 'bi-broadcast-pin', title: 'Annual Operating Review', meta: 'Virtual · By invitation', body: 'Year-in-review covering capital allocation, validation outcomes, and the operating platform.', cta: 'Request Invite', href: '/contact' },
+          { tag: 'Briefing', icon: 'bi-calendar-event', title: 'Q2 Project Briefing', meta: 'Virtual · By invitation', body: 'Quarterly walk-through of Project Sefirah progress, key milestones, and forward priorities.', cta: 'Request Invite', href: '/contact' },
+          { tag: 'Update', icon: 'bi-broadcast-pin', title: 'Annual Operating Review', meta: 'Virtual · By invitation', body: 'Year-in-review covering capital allocation, engineering progress, and the operating platform.', cta: 'Request Invite', href: '/contact' },
         ],
       },
       {
@@ -361,8 +420,8 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: 'Presentations',
         columns: 3,
         items: [
-          { icon: 'bi-file-earmark-slides', title: 'Investor Deck', body: 'Current overview of the thesis, structure, and portfolio.', cta: 'Download', href: '/documents/investor-deck.pdf' },
-          { icon: 'bi-file-earmark-bar-graph', title: 'Portfolio Snapshot', body: 'Stage and status across active ventures.', cta: 'Download', href: '/documents/portfolio-snapshot.pdf' },
+          { icon: 'bi-file-earmark-slides', title: 'Investor Deck', body: 'Current overview of the thesis, structure, and Project Sefirah.', cta: 'Download', href: '/documents/investor-deck.pdf' },
+          { icon: 'bi-file-earmark-bar-graph', title: 'Project Snapshot', body: 'Stage and status of Project Sefirah.', cta: 'Download', href: '/documents/project-snapshot.pdf' },
           { icon: 'bi-film', title: 'Recorded Briefing', body: 'Replay of the most recent quarterly briefing.', cta: 'Watch', href: '/contact' },
         ],
       },
@@ -385,8 +444,8 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: 'At a Glance',
         items: [
           { value: 'Pre-Seed', label: 'Operating Stage', sub: 'Stealth phase' },
-          { value: '6+', label: 'Active Ventures', sub: 'Across 4 sectors' },
-          { value: '35–40%', label: 'Faster to Production', sub: 'Shared platform' },
+          { value: '1', label: 'Active Project', sub: 'Project Sefirah' },
+          { value: 'Foundation', label: 'Current Focus', sub: 'Technical & infrastructural' },
           { value: 'Quarterly', label: 'Investor Cadence', sub: 'Disclosure rhythm' },
         ],
       },
@@ -394,7 +453,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         type: 'text',
         heading: 'Capital Allocation',
         paragraphs: [
-          'As a pre-seed, stealth-phase holding entity, our financial disclosures reflect our current stage and long-term value-creation strategy. Capital is deployed against asymmetric opportunities and shared infrastructure that compounds across the portfolio.',
+          'As a pre-seed, stealth-phase company, our financial disclosures reflect our current stage and long-term value-creation strategy. Capital is concentrated on Project Sefirah — the infrastructural and technical foundation on which everything we build will stand.',
           'Periodic financial updates and capital-allocation summaries are made available to accredited investors and stakeholders in accordance with applicable securities regulations.',
         ],
       },
@@ -403,7 +462,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: 'Reports',
         columns: 3,
         items: [
-          { icon: 'bi-file-earmark-text', title: 'Q4 2024 Venture Update', meta: 'PDF', cta: 'Download', href: '/documents/q4-2024-venture-update.pdf' },
+          { icon: 'bi-file-earmark-text', title: 'Q4 2024 Project Update', meta: 'PDF', cta: 'Download', href: '/documents/q4-2024-project-update.pdf' },
           { icon: 'bi-file-earmark-text', title: 'Capital Allocation Summary', meta: 'PDF', cta: 'Download', href: '/documents/capital-allocation-summary.pdf' },
           { icon: 'bi-file-earmark-text', title: 'Risk Disclosure Statement', meta: 'PDF', cta: 'Download', href: '/documents/risk-disclosure.pdf' },
         ],
@@ -426,17 +485,17 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         type: 'text',
         heading: 'Governance Framework',
         paragraphs: [
-          'Our governance framework establishes a clear delineation between holding-entity responsibilities and individual venture operations — ensuring institutional discipline while preserving operational flexibility.',
-          'It defines decision-making protocols, resource-allocation methodologies, stage-gate advancement criteria, and risk-management practices applied consistently across the portfolio.',
+          'Our governance framework establishes clear lines of responsibility and oversight for Project Sefirah — ensuring institutional discipline while preserving the operational flexibility an early-stage build requires.',
+          'It defines decision-making protocols, resource-allocation methodologies, milestone criteria, and risk-management practices applied consistently to the project.',
         ],
       },
       {
         type: 'people',
         heading: 'Advisory Board',
         items: [
-          { name: 'Industry Veterans', role: 'Sector Guidance', bio: 'Domain expertise across healthcare technology, financial systems, sustainable infrastructure, and education.' },
-          { name: 'Academic Researchers', role: 'Research & Validation', bio: 'External perspective on market assumptions and technical direction.' },
-          { name: 'Operational Experts', role: 'Execution Oversight', bio: 'Hands-on review of portfolio performance and resource allocation.' },
+          { name: 'Industry Veterans', role: 'Domain Guidance', bio: 'Deep expertise in systems engineering, critical infrastructure, and platform security.' },
+          { name: 'Academic Researchers', role: 'Research & Validation', bio: 'External perspective on technical direction and architectural decisions.' },
+          { name: 'Operational Experts', role: 'Execution Oversight', bio: 'Hands-on review of project progress and resource allocation.' },
         ],
       },
       {
@@ -444,9 +503,9 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: 'Committees & Charters',
         columns: 3,
         items: [
-          { icon: 'bi-bank', title: 'Audit & Risk', body: 'Oversight of compliance, controls, and risk posture across ventures.' },
+          { icon: 'bi-bank', title: 'Audit & Risk', body: 'Oversight of compliance, controls, and risk posture for the project.' },
           { icon: 'bi-people', title: 'Nomination', body: 'Advisory composition and founder–operator alignment.' },
-          { icon: 'bi-cash-stack', title: 'Capital', body: 'Allocation discipline and stage-gate funding decisions.' },
+          { icon: 'bi-cash-stack', title: 'Capital', body: 'Allocation discipline and milestone-based funding decisions.' },
         ],
       },
     ],
@@ -464,7 +523,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: 'Overview',
         paragraphs: [
           'Notus Regalia is committed to transparent, open communication with its investor community. This section provides access to financial disclosures, performance updates, and investor resources.',
-          'As a pre-seed, stealth-phase holding entity, our investor materials reflect our current stage of development and long-term value-creation strategy.',
+          'As a pre-seed, stealth-phase company building a single project — Project Sefirah — our investor materials reflect our current stage of development and long-term value-creation strategy.',
         ],
       },
       {
@@ -473,7 +532,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         columns: 2,
         items: [
           { icon: 'bi-file-earmark-slides', title: 'Pitch Decks & Diligence', body: 'Pitch decks, due-diligence materials, and cap-table summaries for registered investors.' },
-          { icon: 'bi-graph-up', title: 'Performance Reports', body: 'Venture performance reports and quarterly portfolio updates.' },
+          { icon: 'bi-graph-up', title: 'Progress Reports', body: 'Project Sefirah progress reports and quarterly updates.' },
         ],
       },
       {
@@ -492,7 +551,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
     header: {
       eyebrow: 'Research',
       title: 'Case Studies',
-      description: 'Real-world deployments and outcomes from across the Notus Regalia portfolio.',
+      description: 'Engineering deep-dives and design notes from the build of Project Sefirah.',
     },
     blocks: [
       {
@@ -500,10 +559,10 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: 'Selected Case Studies',
         columns: 2,
         items: [
-          { tag: 'Healthcare', icon: 'bi-heart-pulse', title: 'Offline-First Telemedicine in Low-Connectivity Regions', meta: 'AI Telemedicine Platform', body: 'How controlled deployment with select partners delivered diagnostics with real-time sync and offline capability.', cta: 'Read case study', href: '/documents/case-study-telemedicine.pdf' },
-          { tag: 'FinTech', icon: 'bi-cash-coin', title: 'Blockchain Microfinance Across Three Emerging Markets', meta: 'Micro-Lending Blockchain', body: 'Smart-contract audits, pilot lending programs, and the path from beta to production.', cta: 'Read case study', href: '/documents/case-study-microfinance.pdf' },
-          { tag: 'CleanTech', icon: 'bi-wind', title: 'Carbon Capture at Industrial Pilot Scale', meta: 'Smart Carbon Capture', body: 'IoT-enabled monitoring across three facilities with measurable emissions reductions.', cta: 'Read case study', href: '/documents/case-study-carbon.pdf' },
-          { tag: 'EdTech', icon: 'bi-mortarboard', title: 'Adaptive STEM Learning for 500+ Students', meta: 'Adaptive STEM Learning', body: 'Personalized learning paths with online and offline modes across three regions.', cta: 'Read case study', href: '/documents/case-study-edtech.pdf' },
+          { tag: 'Architecture', icon: 'bi-diagram-3', title: 'Designing Sefirah’s Data Layer', meta: 'Project Sefirah', body: 'How the foundational data model and access patterns were chosen to stay consistent, auditable, and extensible.', cta: 'Read case study', href: '/documents/case-study-sefirah-data-layer.pdf' },
+          { tag: 'Security', icon: 'bi-shield-lock', title: 'Access Control From First Principles', meta: 'Project Sefirah', body: 'Building role-based authorization and audit logging into the foundation rather than bolting them on later.', cta: 'Read case study', href: '/documents/case-study-sefirah-security.pdf' },
+          { tag: 'Platform', icon: 'bi-cpu', title: 'Service Orchestration at the Core', meta: 'Project Sefirah', body: 'The orchestration layer that lets new capabilities plug into the platform without rework.', cta: 'Read case study', href: '/documents/case-study-sefirah-orchestration.pdf' },
+          { tag: 'Product', icon: 'bi-chat-dots', title: 'Building the Sefirah Assistant', meta: 'Project Sefirah', body: 'Turning the platform into a conversational surface for search, navigation, and operations.', cta: 'Read case study', href: '/documents/case-study-sefirah-assistant.pdf' },
         ],
       },
     ],
@@ -519,11 +578,11 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
       {
         type: 'documents',
         items: [
-          { title: 'Shared Platform Architecture', year: '2025', filename: 'tr-platform-architecture.pdf' },
-          { title: 'Carbon Capture Methodology', year: '2025', filename: 'tr-carbon-methodology.pdf' },
-          { title: 'Offline Sync Protocol Benchmark', year: '2025', filename: 'tr-offline-sync.pdf' },
-          { title: 'Smart-Contract Security Audit', year: '2024', filename: 'tr-smart-contract-audit.pdf' },
-          { title: 'Model Evaluation Framework', year: '2025', filename: 'tr-model-evaluation.pdf' },
+          { title: 'Sefirah Platform Architecture', year: '2025', filename: 'tr-platform-architecture.pdf' },
+          { title: 'Data Layer Design & Schema', year: '2025', filename: 'tr-data-layer.pdf' },
+          { title: 'Service Orchestration Benchmark', year: '2025', filename: 'tr-orchestration.pdf' },
+          { title: 'Access Control & Authorization Model', year: '2024', filename: 'tr-access-control.pdf' },
+          { title: 'Assistant Evaluation Framework', year: '2025', filename: 'tr-assistant-evaluation.pdf' },
           { title: 'Data Pipeline Performance', year: '2025', filename: 'tr-data-pipeline.pdf' },
           { title: 'Security Threat Model', year: '2024', filename: 'tr-threat-model.pdf' },
           { title: 'Reliability & Uptime Study', year: '2025', filename: 'tr-reliability.pdf' },
@@ -543,7 +602,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         type: 'text',
         heading: 'Developer Resources',
         paragraphs: [
-          'Our shared platform exposes consistent APIs, SDKs, and data pipelines reused across ventures. The documentation below covers getting started, core concepts, and integration patterns.',
+          'Project Sefirah exposes consistent APIs, SDKs, and data pipelines as the company’s technical foundation. The documentation below covers getting started, core concepts, and integration patterns.',
         ],
       },
       {
@@ -566,33 +625,33 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
     header: {
       eyebrow: 'Research',
       title: 'Field Testing',
-      description: 'Pilot programs, controlled deployments, and the real-world results that validate our ventures.',
+      description: 'Internal testing and validation of Project Sefirah as it is built toward production readiness.',
     },
     blocks: [
       {
         type: 'stats',
-        heading: 'Field Program Snapshot',
+        heading: 'Validation Snapshot',
         items: [
-          { value: '3', label: 'Active Pilots', sub: 'Across 3 sectors' },
-          { value: '500+', label: 'Test Participants', sub: 'EdTech cohort' },
-          { value: '40–50%', label: 'Emissions Cut', sub: 'CleanTech pilot' },
-          { value: '3', label: 'Markets', sub: 'FinTech pilot' },
+          { value: '1', label: 'Project in Test', sub: 'Project Sefirah' },
+          { value: 'Internal', label: 'Testing Stage', sub: 'Pre-deployment' },
+          { value: 'Continuous', label: 'Integration', sub: 'CI on every change' },
+          { value: 'Foundation', label: 'Focus', sub: 'Platform & data layer' },
         ],
       },
       {
         type: 'cards',
-        heading: 'Programs in the Field',
+        heading: 'In Test',
         columns: 2,
         items: [
-          { tag: 'Healthcare', icon: 'bi-heart-pulse', title: 'Telemedicine Controlled Deployment', meta: 'Ongoing', body: 'Diagnostic accuracy and sync reliability with select healthcare partners.' },
-          { tag: 'CleanTech', icon: 'bi-wind', title: 'Carbon Capture Pilot Sites', meta: 'Ongoing', body: 'Real-time monitoring and capture across three industrial facilities.' },
-          { tag: 'FinTech', icon: 'bi-cash-coin', title: 'Microfinance Lending Pilots', meta: 'Ongoing', body: 'Small-business borrower programs in three emerging markets.' },
-          { tag: 'EdTech', icon: 'bi-mortarboard', title: 'Adaptive Learning Trials', meta: 'Ongoing', body: 'Engagement and comprehension testing with 500+ students.' },
+          { tag: 'Platform', icon: 'bi-cpu', title: 'Core Platform Validation', meta: 'Ongoing', body: 'Correctness and reliability testing across Sefirah’s service orchestration layer.' },
+          { tag: 'Data', icon: 'bi-database-check', title: 'Data Layer Integrity', meta: 'Ongoing', body: 'Consistency, migration, and audit-trail testing of the foundational data model.' },
+          { tag: 'Security', icon: 'bi-shield-lock', title: 'Access Control Hardening', meta: 'Ongoing', body: 'Authorization and audit-logging tests against the platform threat model.' },
+          { tag: 'Product', icon: 'bi-chat-dots', title: 'Assistant Evaluation', meta: 'Ongoing', body: 'Quality and reliability testing of the Sefirah assistant’s search and navigation.' },
         ],
       },
       {
         type: 'note',
-        text: 'Field-testing results are published as case studies and technical reports once validated.',
+        text: 'Validation results are published as case studies and technical reports once they are confirmed.',
       },
     ],
   },
@@ -616,10 +675,10 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: 'Repositories',
         columns: 3,
         items: [
-          { icon: 'bi-github', title: 'nr-platform-sdk', tag: 'TypeScript', body: 'Client SDK for the shared platform APIs.', cta: 'View on GitHub', href: 'https://github.com' },
-          { icon: 'bi-github', title: 'nr-data-pipelines', tag: 'Python', body: 'Reusable data-pipeline components and connectors.', cta: 'View on GitHub', href: 'https://github.com' },
+          { icon: 'bi-github', title: 'sefirah-sdk', tag: 'TypeScript', body: 'Client SDK for the Project Sefirah platform APIs.', cta: 'View on GitHub', href: 'https://github.com' },
+          { icon: 'bi-github', title: 'sefirah-data-pipelines', tag: 'Python', body: 'Reusable data-pipeline components and connectors.', cta: 'View on GitHub', href: 'https://github.com' },
           { icon: 'bi-github', title: 'nr-ui-kit', tag: 'React', body: 'Shared design-system components.', cta: 'View on GitHub', href: 'https://github.com' },
-          { icon: 'bi-github', title: 'nr-carbon-toolkit', tag: 'Python', body: 'Carbon monitoring and reporting utilities.', cta: 'View on GitHub', href: 'https://github.com' },
+          { icon: 'bi-github', title: 'sefirah-cli', tag: 'Go', body: 'Command-line tooling for working with the Sefirah platform.', cta: 'View on GitHub', href: 'https://github.com' },
           { icon: 'bi-github', title: 'nr-security-baseline', tag: 'Config', body: 'Hardening baselines and security policies.', cta: 'View on GitHub', href: 'https://github.com' },
           { icon: 'bi-git', title: 'Contribution Guide', body: 'How to contribute, report issues, and propose changes.', cta: 'Read guide', href: '/documents/open-source-contributing.pdf' },
         ],
@@ -1075,7 +1134,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: '5. Intellectual Property',
         paragraphs: [
           'The Services and all content on them — including text, graphics, logos, marks, software, page designs, and multimedia — are owned by or licensed to Notus Regalia and are protected by Philippine and international intellectual-property laws, including Republic Act No. 8293 (the Intellectual Property Code of the Philippines) and applicable treaties.',
-          'We grant you a limited, revocable, non-exclusive, non-transferable license to access and view the Services for your internal, non-commercial use. Except as expressly permitted — for instance, brand assets downloaded from [Media Assets](/information/documents/media-assets) and used in accordance with our [Brand Guidelines](/information/legals/brand-guidelines) — you may not reproduce, modify, distribute, publicly display, or create derivative works from our content without prior written permission. All rights not expressly granted are reserved.',
+          'We grant you a limited, revocable, non-exclusive, non-transferable license to access and view the Services for your internal, non-commercial use. Except as expressly permitted — for instance, brand assets downloaded from [Media Assets](/information/documents/media-assets) and used in accordance with our [Brand Guidelines](/information/documents/brand-guidelines) — you may not reproduce, modify, distribute, publicly display, or create derivative works from our content without prior written permission. All rights not expressly granted are reserved.',
           '"Notus Regalia", the NR mark, and our venture and product names are trademarks of Notus Regalia. Nothing in these Terms grants any right to use them except as allowed by the Brand Guidelines or separate written consent.',
         ],
       },
@@ -1416,16 +1475,17 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
           { icon: 'bi-megaphone', title: 'Whistleblower Policy', body: 'Confidential channels for reporting concerns.' },
           { icon: 'bi-people', title: 'Conflict of Interest', body: 'How we identify and manage conflicts.' },
           { icon: 'bi-lock', title: 'Information Security', body: 'Controls protecting data and systems.' },
-          { icon: 'bi-bank2', title: 'Anti-Money Laundering', body: 'KYC/AML framework across regulated ventures.' },
+          { icon: 'bi-bank2', title: 'Anti-Money Laundering', body: 'KYC/AML framework for regulated operations.' },
           { icon: 'bi-diagram-2', title: 'Third-Party Vendor', body: 'Diligence and standards for vendors.' },
         ],
       },
     ],
   },
 
+  // ══ DOCUMENTS ═════════════════════════════════════════════
   'brand-guidelines': {
     header: {
-      eyebrow: 'Legals',
+      eyebrow: 'Documents',
       title: 'Brand Guidelines',
       description: 'How to use the Notus Regalia name, logo, and visual identity correctly.',
     },
@@ -1458,7 +1518,6 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
     ],
   },
 
-  // ══ DOCUMENTS ═════════════════════════════════════════════
   'docs-governance': {
     header: {
       eyebrow: 'Documents',
@@ -1470,7 +1529,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         type: 'text',
         heading: 'Corporate Governance',
         paragraphs: [
-          'These documents establish how Notus Regalia is formed, governed, and held accountable — from our founding charters to the policies that guide day-to-day conduct across every venture.',
+          'These documents establish how Notus Regalia is formed, governed, and held accountable — from our founding charters to the policies that guide day-to-day conduct across the company.',
           'We maintain a transparent governance posture, publishing the frameworks and compliance records that define our oversight, ethics, and regulatory standing.',
         ],
       },
@@ -1494,15 +1553,15 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
     header: {
       eyebrow: 'Documents',
       title: 'Social',
-      description: 'Our commitments to people, communities, and responsible operations across the portfolio.',
+      description: 'Our commitments to people, communities, and responsible operations.',
     },
     blocks: [
       {
         type: 'text',
         heading: 'Social Responsibility',
         paragraphs: [
-          'Several ventures under the Notus Regalia umbrella are built to serve underserved regions — from offline-capable telemedicine to adaptive STEM learning and blockchain-based microfinance.',
-          'We hold ourselves to clear standards on data protection, fair access, and the responsible deployment of technology in sensitive contexts.',
+          'Project Sefirah is built as the technical and infrastructural foundation for systems that operate in high-stakes, sensitive contexts. We treat responsible engineering — fair access, data protection, and human oversight — as a requirement of the foundation itself, not an afterthought.',
+          'We hold ourselves to clear standards on data protection, fair access, and the responsible deployment of technology.',
         ],
       },
       {
@@ -1510,8 +1569,8 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         items: [
           { title: 'Code of Conduct', year: '2024', filename: 'code-of-conduct.pdf', description: 'Ethical standards expected across the organization.' },
           { title: 'Human Rights Statement', year: '2025', filename: 'human-rights-statement.pdf', description: 'Our commitment to dignity and fair treatment.' },
-          { title: 'Diversity & Inclusion Policy', year: '2025', filename: 'diversity-inclusion.pdf', description: 'Building equitable, inclusive teams and ventures.' },
-          { title: 'Community Impact Summary', year: '2025', filename: 'community-impact.pdf', description: 'How our work serves underserved communities.' },
+          { title: 'Diversity & Inclusion Policy', year: '2025', filename: 'diversity-inclusion.pdf', description: 'Building an equitable, inclusive team.' },
+          { title: 'Community Impact Summary', year: '2025', filename: 'community-impact.pdf', description: 'How our work is intended to serve the communities it reaches.' },
           { title: 'Supplier Standards', year: '2025', filename: 'supplier-standards.pdf', description: 'Responsible sourcing and partner expectations.' },
           { title: 'Data Protection Commitment', year: '2025', filename: 'data-protection.pdf', description: 'Safeguards for user privacy and sensitive data.' },
         ],
@@ -1523,25 +1582,23 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
     header: {
       eyebrow: 'Documents',
       title: 'Environmental',
-      description: 'Environmental commitments, sustainability reporting, and our CleanTech initiatives.',
+      description: 'Environmental commitments and the sustainability principles behind how we build and operate.',
     },
     blocks: [
       {
         type: 'text',
         heading: 'Sustainability',
         paragraphs: [
-          'Our Smart Carbon Capture initiative pairs IoT-enabled monitoring with real-time analytics, with pilot data indicating meaningful emissions reductions at participating industrial facilities.',
-          'We are establishing tradeable carbon-credit generation protocols in partnership with verification agencies, and we report on environmental impact as ventures mature.',
+          'As an early-stage company building a single project — Project Sefirah — our environmental footprint is concentrated in the infrastructure we run. We design the platform for efficient, responsible use of compute and energy from the start.',
+          'We will report on environmental impact in greater depth as Project Sefirah matures and our operations grow.',
         ],
       },
       {
         type: 'documents',
         items: [
           { title: 'Environmental Policy', year: '2025', filename: 'environmental-policy.pdf', description: 'Our principles for responsible operations.' },
-          { title: 'CleanTech Pilot Report', year: '2024', filename: 'cleantech-pilot-report.pdf', description: 'Results from Smart Carbon Capture deployments.' },
-          { title: 'Carbon Methodology', year: '2025', filename: 'carbon-methodology.pdf', description: 'How we measure and verify emissions impact.' },
-          { title: 'Sustainability Summary', year: '2025', filename: 'sustainability-summary.pdf', description: 'Portfolio-wide environmental progress at a glance.' },
-          { title: 'Energy Efficiency Report', year: '2025', filename: 'energy-efficiency.pdf', description: 'Efficiency gains across facilities and ventures.' },
+          { title: 'Infrastructure Efficiency Notes', year: '2025', filename: 'infrastructure-efficiency.pdf', description: 'How we keep Sefirah’s compute and energy use efficient.' },
+          { title: 'Sustainability Summary', year: '2025', filename: 'sustainability-summary.pdf', description: 'Our environmental commitments at a glance.' },
         ],
       },
     ],

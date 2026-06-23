@@ -2,24 +2,27 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import CivicTab from './Civic';
 import HealthcareTab from './Healthcare';
+import DefenseTab from './Defense';
 
 type TechnologiesSubtab =
   | 'technologies-civic-operations'
   | 'technologies-healthcare'
   | 'technologies-enterprise'
-  | 'technologies-energy';
+  | 'technologies-energy'
+  | 'technologies-defense';
 
 interface TechnologiesProps {
   activeSubtab?: string;
 }
 
-type TechnologiesPanel = 'civic' | 'healthcare';
+type TechnologiesPanel = 'civic' | 'healthcare' | 'defense';
 
 const FADE_OUT_MS = 180;
 const FADE_IN_MS = 260;
 
 const getPanelFromSubtab = (subtab?: string): TechnologiesPanel => {
   if (subtab === 'technologies-healthcare') return 'healthcare';
+  if (subtab === 'technologies-defense') return 'defense';
   return 'civic';
 };
 
@@ -28,7 +31,8 @@ const Technologies = ({ activeSubtab }: TechnologiesProps) => {
     activeSubtab === 'technologies-civic-operations' ||
     activeSubtab === 'technologies-healthcare' ||
     activeSubtab === 'technologies-enterprise' ||
-    activeSubtab === 'technologies-energy'
+    activeSubtab === 'technologies-energy' ||
+    activeSubtab === 'technologies-defense'
   ) ? activeSubtab : 'technologies-civic-operations';
 
   const targetPanel = useMemo(() => getPanelFromSubtab(active), [active]);
@@ -79,6 +83,7 @@ const Technologies = ({ activeSubtab }: TechnologiesProps) => {
     <div style={transitionStyle}>
       {displayedPanel === 'civic' && <CivicTab />}
       {displayedPanel === 'healthcare' && <HealthcareTab />}
+      {displayedPanel === 'defense' && <DefenseTab />}
     </div>
   );
 };

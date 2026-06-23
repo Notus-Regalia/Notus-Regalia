@@ -45,6 +45,7 @@ export const ALL_SECTIONS: SectionItem[] = [
   // Technologies
   { label: 'Healthcare',        tabId: 'technologies', subtabId: 'healthcare',                                   icon: 'bi-heart-pulse',     aka: 'Medical, Biotech, Health',                    keywords: ['healthcare', 'health', 'medical', 'biotech', 'pharma', 'hospital', 'clinical', 'patient', 'wellness'] },
   { label: 'Civic Operations',  tabId: 'technologies', subtabId: 'civic-operations',                             icon: 'bi-buildings',       aka: 'Government, Infrastructure, Public',          keywords: ['civic', 'operations', 'government', 'infrastructure', 'public', 'urban', 'city', 'municipal', 'community'] },
+  { label: 'Defense',           tabId: 'technologies', subtabId: 'defense',                                      icon: 'bi-shield-shaded',   aka: 'National Security, Military, Defense',        keywords: ['defense', 'defence', 'military', 'security', 'national', 'aerospace', 'tactical', 'intelligence'] },
 ];
 
 export const TRENDING: SectionItem[] = ALL_SECTIONS.filter(i =>
