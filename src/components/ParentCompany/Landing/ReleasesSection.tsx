@@ -129,9 +129,9 @@ export default function ReleasesSection() {
         /* ── Reveal helper (lives on WRAPPERS only, never on hover targets, so it
               never delays the hover transitions) ── */
         .rl-reveal {
-          opacity: 0; transform: translateY(22px);
-          transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1) var(--rl-delay, 0ms),
-                      transform 0.6s cubic-bezier(0.16,1,0.3,1) var(--rl-delay, 0ms);
+          opacity: 0; transform: translateY(32px);
+          transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1) var(--rl-delay, 0ms),
+                      transform 0.7s cubic-bezier(0.16,1,0.3,1) var(--rl-delay, 0ms);
         }
         .releases-root.revealed .rl-reveal { opacity: 1; transform: translateY(0); }
 
@@ -247,10 +247,11 @@ export default function ReleasesSection() {
           border: 1px solid var(--rl-line);
           color: var(--content-secondary, rgba(255,255,255,0.5));
           flex-shrink: 0;
-          transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+          transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
         }
         .release-row:hover .release-row-arrow {
-          color: #fff; background: var(--accent); border-color: var(--accent);
+          color: #fff; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.85);
+          box-shadow: 0 0 14px rgba(255,255,255,0.55), 0 0 4px rgba(255,255,255,0.4);
         }
 
         /* ── Footer CTA → Information Central ── */

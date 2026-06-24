@@ -141,12 +141,6 @@ const nextConfig: NextConfig = {
 
   // Compress responses
   compress: true,
-
-  // Environment variables for additional control
-  env: {
-    // Set to 'false' in production to completely hide executive data
-    NEXT_PUBLIC_SHOW_EXECUTIVES: process.env.NEXT_PUBLIC_SHOW_EXECUTIVES || 'true',
-  },
 };
 
 export default nextConfig;

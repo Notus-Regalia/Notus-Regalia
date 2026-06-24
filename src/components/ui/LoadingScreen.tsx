@@ -28,13 +28,14 @@ const LoadingScreen = ({ duration = 3000, onComplete }: LoadingScreenProps) => {
       className={`nr-loading-screen${phase === 'done' ? ' nr-loading-exit' : ''}`}
       aria-hidden={phase === 'done'}
     >
+      <div className="nr-loading-grid" />
       <div className="nr-loading-content">
         <h1 className="nr-loading-title" aria-label="Notus Regalia">
           <span className="nr-loading-text">Notus</span>
           {' '}
           <span className="nr-loading-text nr-loading-accent">Regalia</span>
         </h1>
-        <div className="nr-loading-tagline">Beyond Perception. Beyond Form. Beyond Fate.</div>
+        <div className="nr-loading-tagline">At the Core of Critical Operations</div>
       </div>
 
       <style>{`
@@ -54,7 +55,31 @@ const LoadingScreen = ({ duration = 3000, onComplete }: LoadingScreenProps) => {
           pointer-events: none;
         }
 
+        /* Grid background, faded radially so it only shows behind the text */
+        .nr-loading-grid {
+          position: absolute;
+          inset: 0;
+          background-image:
+            linear-gradient(to right, rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+          background-size: 44px 44px;
+          background-position: center center;
+          -webkit-mask-image: radial-gradient(ellipse 40% 45% at center, #000 0%, rgba(0, 0, 0, 0.4) 45%, transparent 75%);
+          mask-image: radial-gradient(ellipse 40% 45% at center, #000 0%, rgba(0, 0, 0, 0.4) 45%, transparent 75%);
+          pointer-events: none;
+          opacity: 0;
+          animation: gridFade ${duration || 3000}ms ease forwards;
+          animation-delay: 0.2s;
+        }
+
+        @keyframes gridFade {
+          0%   { opacity: 0; }
+          100% { opacity: 1; }
+        }
+
         .nr-loading-content {
+          position: relative;
+          z-index: 1;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -116,14 +141,15 @@ const LoadingScreen = ({ duration = 3000, onComplete }: LoadingScreenProps) => {
           letter-spacing: 0.18em;
           text-transform: uppercase;
           color: rgba(255, 255, 255, 0);
+          margin-top: -0.85rem;
           animation: taglineFade ${duration || 3000}ms ease forwards;
           animation-delay: 0.8s;
         }
 
         @keyframes taglineFade {
           0%   { color: rgba(255, 255, 255, 0); }
-          40%  { color: rgba(255, 255, 255, 0.15); }
-          100% { color: rgba(255, 255, 255, 0.25); }
+          40%  { color: rgba(255, 255, 255, 0.28); }
+          100% { color: rgba(255, 255, 255, 0.45); }
         }
       `}</style>
     </div>

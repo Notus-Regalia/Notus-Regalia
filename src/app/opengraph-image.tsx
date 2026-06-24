@@ -33,7 +33,6 @@ export default function OpengraphImage() {
         }}
       >
         {/* Logo */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={logoSrc} width={140} height={140} alt="" style={{ marginBottom: "44px" }} />
 
         {/* Wordmark */}

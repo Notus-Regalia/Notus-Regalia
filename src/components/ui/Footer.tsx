@@ -458,7 +458,6 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
       links: [
         { label: 'Contact & Support', href: '/contact' },
         { label: 'Feedback',          href: '/contact' },
-        { label: 'Preferences',       external: '/information/settings/preferences' },
         { label: 'Sitemap',           external: '/sitemap' },
         { label: 'Status',            external: '/status' },
         { label: 'Request a Demo',    href: '/contact' },
@@ -1255,10 +1254,31 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
 
         {/* Social — left side, above the divider */}
         <div className="flex items-center justify-center sm:justify-start gap-2.5 mb-8">
-          {['bi-twitter-x', 'bi-discord', 'bi-linkedin'].map((icon, idx) => (
-            <a key={idx} href="#" className="nr-glass-btn" aria-label={icon.replace('bi-', '')}>
-              <i className={`bi ${icon} text-2xl`} />
-            </a>
+          {[
+            { icon: 'bi-twitter-x', href: '#', comingSoon: true },
+            { icon: 'bi-discord', href: '#', comingSoon: true },
+            { icon: 'bi-linkedin', href: 'https://www.linkedin.com/company/notusregalia', comingSoon: false },
+          ].map(({ icon, href, comingSoon }, idx) => (
+            <div key={idx} className="relative group">
+              <a
+                href={href}
+                className="nr-glass-btn"
+                aria-label={icon.replace('bi-', '')}
+                target={comingSoon ? undefined : '_blank'}
+                rel={comingSoon ? undefined : 'noopener noreferrer'}
+                onClick={comingSoon ? (e) => e.preventDefault() : undefined}
+              >
+                <i className={`bi ${icon} text-2xl`} />
+              </a>
+              {comingSoon && (
+                <span
+                  role="tooltip"
+                  className="pointer-events-none absolute left-1/2 bottom-full mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-black/85 px-2.5 py-1 text-xs font-medium text-white opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+                >
+                  Coming soon
+                </span>
+              )}
+            </div>
           ))}
         </div>
 

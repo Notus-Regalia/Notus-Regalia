@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import InfoNavbar from './InfoNavbar';
 import SubtabView from './SubtabView';
 import InfoLoadingScreen from './InfoLoadingScreen';
@@ -69,7 +69,6 @@ const INFO_FOOTER_SECTIONS: FooterSection[] = [
   {
     title: 'Settings',
     links: [
-      { label: 'Preferences',       tabId: 'settings', subtabId: 'preferences' },
       { label: 'Sitemap',           external: '/sitemap' },
       { label: 'Status',            external: '/status' },
       { label: 'Contact & Support', external: '/contact' },
@@ -91,6 +90,11 @@ const INFO_FOOTER_SECTIONS: FooterSection[] = [
 const TAB_IDS = new Set(INFO_TABS.map((t) => t.id));
 const isValidTab = (id: string | null): id is string => !!id && TAB_IDS.has(id);
 const isValidSubtab = (id: string | null): id is string => !!id && id in SUBTAB_PARENT;
+
+/* ── Content transition timings (ms) — mirrors the Company executives ⟷ profile
+   cross-fade so subtab/sub-page swaps don't pop. ── */
+const FADE_OUT = 280;
+const FADE_IN  = 350;
 
 const gsapScrollToTop = (smooth = true) => {
   const sm = typeof window !== 'undefined' ? ScrollSmoother.get?.() : null;
@@ -123,12 +127,52 @@ const InformationCentral = () => {
     return () => window.removeEventListener('popstate', apply);
   }, [resolve]);
 
-  const navigate = useCallback((tab: string, subtab: string) => {
-    setActiveTab(tab);
-    setActiveSubtab(subtab);
-    window.history.pushState({ tab, subtab }, '', infoHref(tab, subtab));
-    gsapScrollToTop(false);
+  // Keep current route in refs so `navigate` can short-circuit no-op clicks.
+  const activeTabRef = useRef(activeTab);
+  const activeSubtabRef = useRef(activeSubtab);
+  activeTabRef.current = activeTab;
+  activeSubtabRef.current = activeSubtab;
+
+  // ── Cross-fade engine: fade out → swap content (while invisible) → fade in ──
+  const [phase, setPhase] = useState<'idle' | 'fade-out' | 'fade-in'>('idle');
+  const phaseRef = useRef(phase);
+  phaseRef.current = phase;
+
+  const runTransition = useCallback((apply: () => void) => {
+    // Mid-transition clicks apply instantly so route/state never desync.
+    if (phaseRef.current !== 'idle') { apply(); return; }
+    setPhase('fade-out');
+    window.setTimeout(() => {
+      apply();
+      gsapScrollToTop(false);          // jump to top while the content is invisible
+      requestAnimationFrame(() => {
+        setPhase('fade-in');
+        window.setTimeout(() => setPhase('idle'), FADE_IN);
+      });
+    }, FADE_OUT);
   }, []);
+
+  const navigate = useCallback((tab: string, subtab: string) => {
+    // Re-selecting the current page just scrolls up — no fade.
+    if (tab === activeTabRef.current && subtab === activeSubtabRef.current) {
+      gsapScrollToTop();
+      return;
+    }
+    // Push the URL immediately; swap the visible content + navbar after fade-out.
+    window.history.pushState({ tab, subtab }, '', infoHref(tab, subtab));
+    runTransition(() => { setActiveTab(tab); setActiveSubtab(subtab); });
+  }, [runTransition]);
+
+  // Drives the content wrapper's fade/slide (matches Company's transition style).
+  const wrapStyle: React.CSSProperties = {
+    opacity: phase === 'fade-out' ? 0 : 1,
+    transform: phase === 'fade-out' ? 'translateY(12px)' : 'translateY(0)',
+    transition: phase === 'fade-out'
+      ? `opacity ${FADE_OUT}ms ease, transform ${FADE_OUT}ms ease`
+      : phase === 'fade-in'
+        ? `opacity ${FADE_IN}ms ease, transform ${FADE_IN}ms ease`
+        : 'none',
+  };
 
   // In-app navigation requested from within content (e.g. the careers hero CTA
   // linking to the Recruitment Process sub-page).
@@ -168,7 +212,9 @@ const InformationCentral = () => {
       <SmoothScroller>
         <div className="min-h-screen theme-transition" style={{ background: 'var(--surface-primary)', color: 'var(--content-primary)' }}>
           <main>
-            <SubtabView subtabId={activeSubtab} />
+            <div style={wrapStyle}>
+              <SubtabView subtabId={activeSubtab} onNavigate={navigate} />
+            </div>
           </main>
           <Footer onNavigate={handleFooterNavigate} sections={INFO_FOOTER_SECTIONS} logoHref="/" brandSubtitle="Information Central" />
         </div>

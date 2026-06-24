@@ -6,9 +6,6 @@ import MissionBanner from './MissionBanner';
 import AboutSection from './IndustrySection';
 import ReleasesSection from './ReleasesSection';
 import FaqSection from './FaqSection';
-import WhatWeDoBentoSection from './BentoSection';
-import FrameworkSection from './FrameworkSection';
-import ManifestoSection from './ManifestoSection';
 
 const Landing = () => {
   return (

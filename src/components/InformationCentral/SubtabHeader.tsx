@@ -68,11 +68,14 @@ const HeadingMark = ({ title }: { title: string }) => (
 // ── Split hero: text on the left, animated shader background on the right ──
 const HeroHeader = ({ title, description, link, cta }: Omit<SubtabHeaderProps, 'hero' | 'eyebrow' | 'icon'>) => (
   <section
-    className="relative w-full overflow-hidden flex items-center min-h-screen"
-    style={{ minHeight: '100svh', background: '#050505', borderBottom: '1px dashed var(--border-dashed)' }}
+    className="relative w-full overflow-hidden flex items-center min-h-[600px] md:min-h-[100svh]"
+    style={{ background: '#050505' }}
   >
-    {/* Right — animated shader background */}
-    <div className="absolute inset-y-0 right-0 w-full lg:w-3/5">
+    {/* Right — animated shader background.
+        `contain: paint` clips the WebGL canvas to this box so it can't leak past
+        the hero during GSAP ScrollSmoother's transform-based scroll (the canvas
+        is its own GPU layer and otherwise escapes the ancestor's overflow clip). */}
+    <div className="absolute inset-y-0 right-0 w-full lg:w-3/5 overflow-hidden" style={{ contain: 'paint' }}>
       <ShaderAnimation />
       {/* Fade the shader into the dark text side (and at the edges) */}
       <div
@@ -91,6 +94,16 @@ const HeroHeader = ({ title, description, link, cta }: Omit<SubtabHeaderProps, '
         style={{ background: 'linear-gradient(to top, transparent, #050505)' }}
       />
     </div>
+
+    {/* Black gradient shadow — smooths the seam into the open-roles section below.
+        Spans the full width above everything so the hero dissolves into pure black. */}
+    <div
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-40 sm:h-56"
+      style={{
+        background:
+          'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.8) 78%, #000000 100%)',
+      }}
+    />
 
     {/* Left — text. Inset = global brand gutter so it lines up with the navbar/content. */}
     <div
@@ -161,8 +174,11 @@ const SubtabHeader = memo(({ eyebrow, title, description, icon, link, cta, hero 
         borderBottom: '1px dashed var(--border-dashed)',
       }}
     >
-      {/* Animated shader-lines background */}
-      <ShaderAnimation />
+      {/* Animated shader-lines background — wrapped so `contain: paint` keeps the
+          WebGL canvas from leaking past the header during smooth-scroll transforms. */}
+      <div className="absolute inset-0 overflow-hidden" style={{ contain: 'paint' }}>
+        <ShaderAnimation />
+      </div>
 
       {/* Dark overlay for text legibility over the shader */}
       <div

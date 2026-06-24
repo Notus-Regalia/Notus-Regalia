@@ -171,7 +171,6 @@ const SectorMissions = memo(() => {
         <div aria-hidden className="sh-bg sh-grid-mesh" />
         <div aria-hidden className="sh-bg sh-vignette" />
         <div ref={reveal.ref} className="sm-inner sm-center" style={reveal.style}>
-          <span className="sm-eyebrow">Operational · Constrained</span>
           <h2 className="sh-title">Sector Missions</h2>
           <p className="sm-sub">
             One vision anchors the company. Within it, each industry has its own

@@ -493,8 +493,8 @@ const HeroSection = () => {
         className="absolute top-0 right-0 w-1/2 h-full z-10 cursor-pointer bg-transparent border-0 p-0"
       />
 
-      {/* Video controls — bottom right */}
-      <div className="absolute bottom-20 right-5 z-20 flex flex-col items-center gap-2">
+      {/* Video controls — mobile: top-right, side by side · desktop: bottom-right, stacked */}
+      <div className="absolute top-20 right-4 flex-row md:top-auto md:bottom-20 md:right-5 md:flex-col z-20 flex items-center gap-2">
         {/* Volume toggle */}
         <button
           type="button"

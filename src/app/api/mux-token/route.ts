@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import Mux from '@mux/mux-node';
 
 // Signed playback requires a fresh, short-lived JWT minted server-side with the
@@ -11,7 +11,20 @@ const playbackId = process.env.NEXT_PUBLIC_MUX_PLAYBACK_ID;
 const keyId = process.env.MUX_SIGNING_KEY_ID;
 const keySecret = process.env.MUX_SIGNING_PRIVATE_KEY;
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Only mint tokens for our own pages. Browsers stamp same-origin fetches with
+  // `Sec-Fetch-Site: same-origin`; a site hotlinking our hero video — or a
+  // direct hit on this endpoint — sends `cross-site`/`none` instead, so reject
+  // those. Fail open only when the header is absent (older browsers / proxies
+  // that strip it) so legitimate playback never breaks.
+  const site = request.headers.get('sec-fetch-site');
+  if (site && site !== 'same-origin') {
+    return NextResponse.json(
+      { error: 'forbidden' },
+      { status: 403, headers: { 'Cache-Control': 'private, no-store' } },
+    );
+  }
+
   if (!playbackId || !keyId || !keySecret) {
     return NextResponse.json(
       { error: 'Mux signing env vars are not configured' },

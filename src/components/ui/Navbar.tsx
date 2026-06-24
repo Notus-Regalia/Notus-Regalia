@@ -3,6 +3,7 @@ import Image from 'next/image';
 import { Fragment, useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import SearchModal from './SearchModal';
 import ThemeToggle from './ThemeToggle';
+import NavDropdown, { type DropItem } from './NavDropdown';
 import { NAVBAR_CSS } from './navbar-styles';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import {
@@ -521,6 +522,23 @@ const CompanyCrumbsLayer = memo(({
 });
 CompanyCrumbsLayer.displayName = 'CompanyCrumbsLayer';
 
+// Per-subtab icon + blurb shown in the hover dropdown panel (keyed by subtab id).
+const SUBTAB_META: Record<string, { icon: string; desc: string }> = {
+  'company-about':      { icon: 'bi-building',           desc: 'Our story, principles, and the world we are building toward' },
+  'company-direction':  { icon: 'bi-compass',            desc: 'The long-term vision and the missions driving us there' },
+  'company-executives': { icon: 'bi-people',             desc: 'Meet the leaders steering the company and its ventures' },
+  'company-investors':  { icon: 'bi-graph-up-arrow',     desc: 'Performance, capital strategy, and opportunities to invest' },
+  'ventures-incubating':   { icon: 'bi-lightbulb',       desc: 'Early-stage concepts we are researching and shaping in-house' },
+  'ventures-startups':     { icon: 'bi-rocket-takeoff',  desc: 'New companies we have founded and brought to market' },
+  'ventures-subsidiaries': { icon: 'bi-diagram-3',       desc: 'Wholly-owned arms operating under the Notus Regalia umbrella' },
+  'ventures-portfolio':    { icon: 'bi-briefcase',       desc: 'External companies we invest in and actively support' },
+  'technologies-civic-operations': { icon: 'bi-bank',            desc: 'Platforms modernizing government and public-sector operations' },
+  'technologies-healthcare':       { icon: 'bi-heart-pulse',     desc: 'Intelligence systems for clinical care and patient outcomes' },
+  'technologies-enterprise':       { icon: 'bi-buildings',       desc: 'Software powering business workflows and operations at scale' },
+  'technologies-energy':           { icon: 'bi-lightning-charge',desc: 'Smart-grid, storage, and energy-management infrastructure' },
+  'technologies-defense':          { icon: 'bi-shield-shaded',   desc: 'Secure systems built for national security and defense' },
+};
+
 // ─────────────────────────────────────────────────────────────
 //  Main component
 // ─────────────────────────────────────────────────────────────
@@ -553,8 +571,10 @@ const Navbar = ({
   // single "Executives › <name>" breadcrumb instead of the subtab nav.
   const [companyExecutive, setCompanyExecutive] = useState<{ name: string; slug: string } | null>(null);
 
-  // ── Hover preview: peek a tab's subtab strip and blur the page behind ──
+  // ── Hover preview: peek a tab's subtabs in the dropdown panel ──
   const [previewTab, setPreviewTab] = useState<string | null>(null);
+  // Viewport-x of the hovered tab's centre, so the panel + caret align to it.
+  const [previewX, setPreviewX] = useState<number | null>(null);
   const previewCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ── Company strip: dual mode (breadcrumbs ⟷ subtab nav) ──
@@ -1191,11 +1211,43 @@ const Navbar = ({
 
   // While hovering a tab, that tab's strip is the only one shown (peek mode);
   // otherwise the active tab's strip shows when opened.
+  // The hover preview now lives in the dropdown panel (which drops below the
+  // navbar), so previewing no longer touches the strips — the active tab's strip
+  // stays open the whole time.
   const stripVisibleFor = (id: string) =>
-    previewTab ? previewTab === id : (activeTab === id && stripOpen);
+    activeTab === id && stripOpen;
   // Peeking the Company strip from another tab → force the subtab nav layer
   // (breadcrumbs only make sense on the active Company page).
   const companyPreviewOnly = previewTab === 'company' && activeTab !== 'company';
+
+  // ── Dropdown panel data + click routing ──
+  const dropGetItems = useCallback((tabId: string): DropItem[] => {
+    const item = NAV_ITEMS.find(i => i.id === tabId);
+    return (item?.subtabs ?? []).map(s => ({
+      id: s.id,
+      label: s.label,
+      external: s.external,
+      icon: SUBTAB_META[s.id]?.icon ?? 'bi-dot',
+      desc: SUBTAB_META[s.id]?.desc ?? '',
+    }));
+  }, []);
+  const dropGetHeading = useCallback((tabId: string) =>
+    NAV_ITEMS.find(i => i.id === tabId)?.label ?? '', []);
+  const dropItemClick = useCallback((tabId: string, item: DropItem) => {
+    if (item.external) {
+      window.open(item.external, '_blank', 'noopener,noreferrer');
+      clearPreview();
+      return;
+    }
+    if (tabId === 'company') {
+      const sub = COMPANY_SUBTABS.find(s => s.id === item.id);
+      if (sub) handleCompanyNavigate(sub);
+      return;
+    }
+    const navItem = NAV_ITEMS.find(i => i.id === tabId);
+    const sub = navItem?.subtabs?.find(s => s.id === item.id);
+    if (sub) handleSubtabClick(tabId, sub);
+  }, [clearPreview, handleCompanyNavigate, handleSubtabClick]);
 
   return (
     <>
@@ -1240,7 +1292,11 @@ const Navbar = ({
                   <div
                     key={item.id}
                     className={`tab-item-border${active ? ' is-active' : ''}`}
-                    onMouseEnter={() => openPreview(item.id)}
+                    onMouseEnter={(e) => {
+                      openPreview(item.id);
+                      const r = e.currentTarget.getBoundingClientRect();
+                      setPreviewX(r.left + r.width / 2);
+                    }}
                     onMouseLeave={closePreviewSoon}
                   >
                     <div className={`tab-item${active ? ' is-active' : ''}`}>
@@ -1284,6 +1340,17 @@ const Navbar = ({
             </button>
           </div>
         </div>
+
+        {/* ══ HOVER DROPDOWN PANEL — Profound-style subtab preview (desktop) ══ */}
+        <NavDropdown
+          tab={isMobile ? null : previewTab}
+          pointerX={previewX}
+          getItems={dropGetItems}
+          getHeading={dropGetHeading}
+          onItemClick={dropItemClick}
+          onMouseEnter={cancelPreviewClose}
+          onMouseLeave={closePreviewSoon}
+        />
 
         {/* ══ SUBTAB STRIP — active tab only ══ */}
         {/* Company tab: single strip with crossfading inner layers

@@ -1,7 +1,6 @@
 "use client";
 
 import { memo, type ReactNode } from "react";
-import ExploreNext from "./ExploreNext";
 import CompanyHeader from "../CompanyHeader";
 import AboutStory from "../AboutStory";
 import SectorMissions from "../SectorMissions";
@@ -21,7 +20,6 @@ import { useReveal } from "@/hooks/useScrollReveal";
    breadcrumb strip can scrollspy against it:
      <subtab>-overview  → PageHero
      <subtab>-<content> → main content section
-     <subtab>-explore   → ExploreNext (link to the next page)
    Section ids must match COMPANY_SUBTABS[..].sections in
    src/data/company-nav.ts.
    ───────────────────────────────────────────────────────────── */
@@ -43,9 +41,6 @@ export const AboutCompanyPage = memo((_props: { onLearnMore?: (page: string) => 
       {/* The company story, told as a sequence of full-bleed hero banners:
           Origin · What We Build · How We Operate (no sidebar tabs). */}
       <AboutStory />
-      <RevealSection id="about-explore">
-        <ExploreNext current="company-about" />
-      </RevealSection>
     </>
   );
 });
@@ -79,9 +74,6 @@ export const DirectionPage = memo(() => {
       {/* Vision (corporate anchor) → Sector Missions (operational). */}
       <StoryHero story={VISION_STORY} />
       <SectorMissions />
-      <RevealSection id="direction-explore">
-        <ExploreNext current="company-direction" />
-      </RevealSection>
     </>
   );
 });
@@ -92,9 +84,6 @@ export const ExecutivesPage = memo(() => {
     <>
       <RevealSection id="executives-leadership">
         <Executives />
-      </RevealSection>
-      <RevealSection id="executives-explore">
-        <ExploreNext current="company-executives" />
       </RevealSection>
     </>
   );
@@ -109,9 +98,6 @@ export const InvestorsPage = memo(() => {
       <div id="investors-overview" />
       <RevealSection id="investors-capital">
         <Investors />
-      </RevealSection>
-      <RevealSection id="investors-explore">
-        <ExploreNext current="company-investors" />
       </RevealSection>
     </>
   );

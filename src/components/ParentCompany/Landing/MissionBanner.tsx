@@ -158,23 +158,6 @@ const MissionBanner = memo(() => {
           }}
         />
 
-        {/* ── Crimson ambient glow (matches the hero) ── */}
-        <div
-          aria-hidden
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "0%",
-            transform: "translateY(-50%)",
-            width: "min(700px, 80vw)",
-            height: "min(700px, 80vw)",
-            pointerEvents: "none",
-            background:
-              "radial-gradient(circle, rgba(229,43,80,0.18) 0%, rgba(229,43,80,0.05) 40%, transparent 70%)",
-            filter: "blur(8px)",
-          }}
-        />
-
         {/* ── Content ── */}
         <div
           className="relative z-10 mission-content"

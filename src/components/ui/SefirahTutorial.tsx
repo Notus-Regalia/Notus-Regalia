@@ -11,16 +11,16 @@ interface Spot { cx: number; cy: number; r: number; }
 // Coachmark steps — each reveals a little more of what Sefirah does.
 const STEPS = [
   {
-    title: 'Meet Sefirah',
-    body: 'This orb is your guide across Notus Regalia. It travels with you on every page — always one tap away.',
+    title: 'Your guide, everywhere',
+    body: 'This orb follows you on every page — always one tap away. Drag it anywhere you like.',
   },
   {
-    title: 'Ask or search, instantly',
-    body: 'Tap it to open Sefirah. Search for founders, releases, technologies, policies — anything — and jump straight there.',
+    title: 'Search anything',
+    body: 'Tap to find founders, releases, technologies or policies — then jump straight there.',
   },
   {
-    title: 'It bends to you',
-    body: 'Switch the theme, lock the navigation, or drag the orb anywhere on screen. Sefirah stays right where you leave it.',
+    title: 'Make it yours',
+    body: 'Switch the theme, change the language, or lock the navigation — all from one place.',
   },
 ];
 
@@ -100,7 +100,7 @@ const SefirahTutorial = ({ onClose }: SefirahTutorialProps) => {
       {/* Explanation card */}
       <div key={step} className={`sef-tut-card ${inBottomHalf ? 'from-bottom' : 'from-top'}`} style={cardStyle}>
         <div className="sef-tut-eyebrow">
-          <span className="sef-tut-dot" /> Sefirah · Guided tour
+          <span className="sef-tut-dot" /> Meet Sefirah
         </div>
         <h2 className="sef-tut-title">{STEPS[step].title}</h2>
         <p className="sef-tut-body">{STEPS[step].body}</p>

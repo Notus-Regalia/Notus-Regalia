@@ -320,8 +320,8 @@ export default function FaqSection() {
         .faq-plus-br { right: -11.5px; bottom: -12.5px; }
 
         /* reveal on scroll */
-        .faq-group { opacity: 0; transform: translateY(16px);
-          transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1); }
+        .faq-group { opacity: 0; transform: translateY(32px);
+          transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1); }
         .faq-root.revealed .faq-group { opacity: 1; transform: translateY(0); }
       `}</style>
 

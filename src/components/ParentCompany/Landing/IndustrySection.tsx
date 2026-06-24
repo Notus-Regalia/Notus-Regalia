@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
+import { useReveal } from "@/hooks/useScrollReveal";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import governmentCardPng from "./government-card.webp";
@@ -92,6 +93,10 @@ export default function IndustrySection() {
   const cardRefs = useRef<Array<HTMLElement | null>>([]);
   const progressFillRef = useRef<HTMLSpanElement | null>(null);
   const lastProgressRef = useRef(-1);
+
+  // Entrance: header heading + copy fade up as the section scrolls into view.
+  const headingReveal = useReveal<HTMLHeadingElement>("fade-up", { threshold: 0.2, duration: 800 });
+  const copyReveal = useReveal<HTMLParagraphElement>("fade-up", { threshold: 0.2, duration: 800, cssDelay: 140 });
   const refreshRafRef = useRef<number | null>(null);
 
   const [isMobile, setIsMobile] = useState(false);
@@ -700,7 +705,7 @@ export default function IndustrySection() {
             min-height: auto;
             height: auto;
             gap: 1.6rem;
-            padding-top: 3.8rem;
+            padding-top: 6.5rem;
             padding-bottom: 3.4rem;
           }
 
@@ -797,8 +802,10 @@ export default function IndustrySection() {
           <div className="industry-header-shell">
             <header className="industry-header">
               <div className="industry-header-main">
-                <h2 className="industry-heading">Industries We Serve.</h2>
-                <p className="industry-copy">
+                <h2 ref={headingReveal.ref} className="industry-heading" style={headingReveal.style}>
+                  Industries We Serve.
+                </h2>
+                <p ref={copyReveal.ref} className="industry-copy" style={copyReveal.style}>
                   Purpose-built systems deployed where reliability, speed, and accountability are
                   non-negotiable — across the sectors that keep the world running.
                 </p>
@@ -824,6 +831,10 @@ export default function IndustrySection() {
                 >
                   {INDUSTRY_CARD_ART[industry.id] ? (
                     <div className="industry-card-media" aria-hidden="true">
+                      {/* Decorative, lazy-loaded card art sized purely by CSS;
+                          next/image's fill/sizing buys nothing here, so a plain
+                          <img> is intentional. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={INDUSTRY_CARD_ART[industry.id]} alt="" loading="lazy" decoding="async" />
                     </div>
                   ) : null}

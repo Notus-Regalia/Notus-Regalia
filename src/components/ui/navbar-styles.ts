@@ -78,7 +78,117 @@ input[type="checkbox"], input[type="radio"], select,
   transition: opacity 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .nav-preview-backdrop.active { opacity: 1; }
-:root.light .nav-preview-backdrop { background: rgba(245,247,250,0.4); }
+:root.light .nav-preview-backdrop { background: rgba(6,6,12,0.34); }
+
+/* ── Hover dropdown panel (Profound-style subtab preview) ──
+   Sits just below the navbar (top: 100% keeps it under the active tab's strip
+   so previewing never collapses it). The panel centres on the hovered tab via
+   an inline left offset; a caret slides to point at that tab. The clip layer owns
+   the box + height morph (height animated in JS, measured per tab); the wrap
+   handles open/close + horizontal slide; the inner block cross-fades on switch. */
+.nav-dropdown-wrap {
+  position: absolute;
+  /* Anchor just below the main bar row (fixed 84px), NOT the whole nav —
+     the nav grows when a subtab strip is open, which would otherwise drop
+     the preview far below the tabs. */
+  top: calc(84px + 7px);
+  left: var(--site-gutter-inline);
+  min-width: 440px;
+  max-width: min(720px, calc(100vw - 28px));
+  z-index: 61;
+  opacity: 0;
+  transform: translateY(-8px);
+  pointer-events: none;
+  transition:
+    opacity 0.26s ease,
+    transform 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+    left 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform, left;
+}
+.nav-dropdown-wrap.open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+/* Caret — a rotated square bridging the gap up to the navbar/tab. */
+.nav-dropdown-arrow {
+  position: absolute;
+  top: -6px;
+  width: 13px; height: 13px;
+  margin-left: -6px;
+  transform: rotate(45deg);
+  background: #0c0c0c;
+  border-left: 1px solid var(--border-color);
+  border-top: 1px solid var(--border-color);
+  border-top-left-radius: 3px;
+  z-index: 1;
+  transition: left 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+}
+:root.light .nav-dropdown-arrow { background: #ffffff; }
+.nav-dropdown-clip {
+  overflow: hidden;
+  border-radius: 16px;
+  background: linear-gradient(160deg, #0c0c0c 0%, #0e0e0e 60%, #090909 100%);
+  border: 1px solid var(--border-color);
+  box-shadow:
+    0 20px 52px rgba(0,0,0,0.5), 0 8px 20px rgba(0,0,0,0.34),
+    inset 0 1px 0 var(--glass-inset-top);
+  transition: height 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: height;
+}
+:root.light .nav-dropdown-clip {
+  background: linear-gradient(160deg, #ffffff 0%, #f6f8fb 100%);
+}
+.nav-dropdown-inner {
+  padding: 14px;
+  transition: opacity 0.18s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nav-dropdown-heading {
+  font-size: 0.7rem; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--content-faint);
+  padding: 4px 10px 12px;
+}
+.nav-dropdown-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px;
+}
+.nav-drop-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px; border-radius: 12px;
+  background: transparent; border: none; text-align: left; cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+.nav-drop-item:hover { background: var(--hover-bg); transform: translateX(2px); }
+.nav-drop-ico {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--hover-bg);
+  color: var(--content-secondary); font-size: 1.02rem;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+.nav-drop-item:hover .nav-drop-ico {
+  background: rgba(255,255,255,0.12); color: var(--content-primary); transform: scale(1.06);
+}
+:root.light .nav-drop-item:hover .nav-drop-ico { background: rgba(0,0,0,0.07); }
+.nav-drop-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nav-drop-title {
+  font-size: 0.91rem; font-weight: 600; color: var(--content-primary);
+  display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap;
+}
+.nav-drop-desc {
+  font-size: 0.78rem; color: var(--content-muted); line-height: 1.35;
+  /* Cap at two lines; anything longer is truncated with an ellipsis. */
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  overflow: hidden; text-overflow: ellipsis;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-dropdown-wrap, .nav-dropdown-inner { transition-duration: 0.01ms; }
+}
+@media (max-width: 900px) { .nav-dropdown-wrap { display: none; } }
 
 /* ── Logo ── */
 .logo-mark {

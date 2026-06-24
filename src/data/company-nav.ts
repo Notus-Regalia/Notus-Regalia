@@ -36,7 +36,6 @@ export const COMPANY_SUBTABS: CompanySubtab[] = [
       { id: 'about-origin',  label: 'Origin' },
       { id: 'about-build',   label: 'What We Build' },
       { id: 'about-operate', label: 'How We Operate' },
-      { id: 'about-explore', label: 'Explore' },
     ],
   },
   {
@@ -50,7 +49,6 @@ export const COMPANY_SUBTABS: CompanySubtab[] = [
     sections: [
       { id: 'direction-vision',  label: 'Vision' },
       { id: 'direction-purpose', label: 'Missions' },
-      { id: 'direction-explore', label: 'Explore' },
     ],
   },
   {
@@ -63,7 +61,6 @@ export const COMPANY_SUBTABS: CompanySubtab[] = [
     },
     sections: [
       { id: 'executives-leadership', label: 'Leadership' },
-      { id: 'executives-explore',    label: 'Explore' },
     ],
   },
   {
@@ -77,7 +74,6 @@ export const COMPANY_SUBTABS: CompanySubtab[] = [
     sections: [
       { id: 'investors-overview', label: 'Overview' },
       { id: 'investors-capital',  label: 'Capital' },
-      { id: 'investors-explore',  label: 'Explore' },
     ],
   },
 ];

@@ -1,8 +1,11 @@
 "use client";
-import { useState, useRef, useEffect, useCallback, useMemo, useId } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo, useId } from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import { cn } from '@/utils/cn';
 import { type SectionItem, searchSections } from '@/data/search-index';
+import { Search as AnimatedSearch } from '@/components/animate-ui/icons/search';
+import { SlidersHorizontal as AnimatedSliders } from '@/components/animate-ui/icons/sliders-horizontal';
+import SettingsPanel from '@/components/ui/SettingsPanel';
 
 // Rotating hints typed out in the placeholder while the field is empty.
 const SEARCH_HINTS = ['founders', 'executives', 'investor relations', 'careers', 'privacy policy', 'technologies', 'releases'];
@@ -10,6 +13,15 @@ const SEARCH_HINTS = ['founders', 'executives', 'investor relations', 'careers',
 // Draggable FAB: edge margin + clamp helper.
 const FAB_MARGIN = 24;
 const clampNum = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
+
+// Left-edge icon rail tabs — each switches the panel body view. `group` decides
+// whether the cell sits in the top cluster or is pushed to the bottom of the rail.
+type TabId = 'search' | 'settings' | 'about';
+const RAIL_TABS: { id: TabId; icon: string; label: string; group: 'top' | 'bottom' }[] = [
+  { id: 'search',   icon: 'bi-search',       label: 'Sefirah',  group: 'top' },
+  { id: 'about',    icon: 'bi-info-circle',  label: 'About',    group: 'bottom' },
+  { id: 'settings', icon: 'bi-sliders',      label: 'Settings', group: 'bottom' },
+];
 
 // Curated quick-access suggestions shown when the field is empty.
 const SUGGESTIONS: SectionItem[] = [
@@ -71,6 +83,16 @@ export default function SefirahAssistant() {
   const [value, setValue] = useState('');
   const [placeholder, setPlaceholder] = useState('Search');
   const [navLocked, setNavLocked] = useState(false);
+  const [tab, setTab] = useState<TabId>('search');
+
+  // Rail active-indicator: measured from the active cell so it works even though
+  // the cells are split into top/bottom clusters (non-contiguous).
+  const railRef = useRef<HTMLDivElement>(null);
+  const [indStyle, setIndStyle] = useState<{ top: number; height: number }>({ top: 0, height: 64 });
+  useLayoutEffect(() => {
+    const el = railRef.current?.querySelector<HTMLElement>('.sefirah-rail-tab.is-active');
+    if (el) setIndStyle({ top: el.offsetTop, height: el.offsetHeight });
+  }, [tab, open]);
 
   // Draggable FAB with magnetic edge-snap.
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -257,6 +279,31 @@ export default function SefirahAssistant() {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
+  // One rail cell. Only the active tab's icon animates.
+  const renderRailTab = (t: (typeof RAIL_TABS)[number]) => {
+    const active = tab === t.id;
+    return (
+      <button
+        key={t.id}
+        type="button"
+        className={cn('sefirah-rail-tab', active && 'is-active')}
+        onClick={() => setTab(t.id)}
+        aria-label={t.label}
+        aria-current={active ? 'page' : undefined}
+        title={t.label}
+      >
+        {t.id === 'search' ? (
+          <AnimatedSearch className="sefirah-rail-icon" size={18} animate={active} loop loopDelay={1400} />
+        ) : t.id === 'settings' ? (
+          <AnimatedSliders className="sefirah-rail-icon" size={18} animate={active} loop loopDelay={1400} />
+        ) : (
+          <i className={`bi ${t.icon}`} />
+        )}
+        <span className="sefirah-rail-tip">{t.label}</span>
+      </button>
+    );
+  };
+
   return (
     <>
       {/* Floating assistant button (draggable, edge-magnetic) */}
@@ -298,99 +345,143 @@ export default function SefirahAssistant() {
         aria-modal="true"
         aria-label="Sefirah assistant"
       >
-        <div className="sefirah-panel-head">
-          <div className="sefirah-panel-title">
-            <SefirahIcon className="sefirah-title-icon" />
-            <span>Sefirah</span>
-          </div>
-          <button className="sefirah-close" onClick={() => setOpen(false)} aria-label="Close Sefirah">
-            <i className="bi bi-x-lg" />
-          </button>
-        </div>
-
-        <div className="sefirah-panel-body">
-          <h2 className="sefirah-greeting">How can I help?</h2>
-
-          {/* Quick settings — pill row above the search */}
-          <div className="sefirah-actions">
-            <button type="button" className="sefirah-action" onClick={toggleTheme}>
-              <i className={`bi ${isDark ? 'bi-sun' : 'bi-moon'}`} />
-              <span>Switch theme</span>
-            </button>
-            <button
-              type="button"
-              className={cn('sefirah-action', navLocked && 'is-on')}
-              onClick={toggleNavLock}
-              aria-pressed={navLocked}
-            >
-              <i className={`bi ${navLocked ? 'bi-lock-fill' : 'bi-unlock'}`} />
-              <span>{navLocked ? 'Navigation locked' : 'Lock navigation'}</span>
-            </button>
-            <button type="button" className="sefirah-action" title="Coming soon">
-              <i className="bi bi-translate" />
-              <span>Language</span>
-            </button>
-          </div>
-
-          {/* Input field — doubles as the search bar */}
-          <div className="sefirah-input-box">
-            <textarea
-              ref={textareaRef}
-              value={value}
-              onChange={(e) => { setValue(e.target.value); adjustHeight(); }}
-              onKeyDown={handleKeyDown}
-              placeholder={placeholder}
-              className="sefirah-textarea"
+        {/* Left-edge icon-tab rail */}
+        <nav className="sefirah-rail" aria-label="Sefirah sections">
+          <div className="sefirah-rail-tabs" ref={railRef}>
+            {/* Single indicator that slides to the measured position of the active cell */}
+            <span
+              className="sefirah-rail-ind"
+              aria-hidden
+              style={{ transform: `translateY(${indStyle.top}px)`, height: indStyle.height }}
             />
+            {RAIL_TABS.filter((t) => t.group === 'top').map((t) => renderRailTab(t))}
+            {/* Spacer pushes the bottom cluster (About, Settings) to the rail floor */}
+            <div className="sefirah-rail-spacer" />
+            {RAIL_TABS.filter((t) => t.group === 'bottom').map((t) => renderRailTab(t))}
+          </div>
+        </nav>
+
+        <div className="sefirah-main">
+          <div className="sefirah-panel-head">
+            <div className="sefirah-panel-title">
+              <SefirahIcon className="sefirah-title-icon" />
+              <span>{RAIL_TABS.find((t) => t.id === tab)?.label ?? 'Sefirah'}</span>
+            </div>
+            <button className="sefirah-close" onClick={() => setOpen(false)} aria-label="Close Sefirah">
+              <i className="bi bi-x-lg" />
+            </button>
           </div>
 
-          {/* While typing: live results (mirrors the ⌘K search).
-              When empty: suggested destinations. */}
-          {value.trim() ? (
-            <div className="sefirah-results">
-              {results.length === 0 ? (
-                <div className="sefirah-empty">No results found</div>
-              ) : (
-                <>
-                <div className="sefirah-suggested-head">Results</div>
-                {results.map((item) => (
-                  <button
-                    key={`${item.tabId}-${item.subtabId || ''}-${item.label}`}
-                    type="button"
-                    className="sefirah-result"
-                    onClick={() => navigate(item)}
-                  >
-                    <i className={`bi ${item.icon}`} />
-                    <span className="sefirah-result-text">
-                      <span className="sefirah-result-label">{item.label}</span>
-                      {item.aka && <span className="sefirah-result-aka">{item.aka}</span>}
+          <div className="sefirah-panel-body">
+            {/* Keyed wrapper: remounts on tab change so the enter animation replays */}
+            <div className="sefirah-view" key={tab}>
+            {tab === 'search' && (
+              <>
+                <h2 className="sefirah-greeting">How can I help?</h2>
+
+                {/* Quick settings — pill row above the search */}
+                <div className="sefirah-actions">
+                  <button type="button" className="sefirah-action" onClick={toggleTheme}>
+                    <i className={`bi ${isDark ? 'bi-sun' : 'bi-moon'}`} />
+                    <span className="sefirah-action-label">
+                      <span className="sefirah-action-sizer" aria-hidden>Light Theme</span>
+                      <span className="sefirah-action-live">{isDark ? 'Light Theme' : 'Dark Theme'}</span>
                     </span>
-                    {item.external && <i className="bi bi-box-arrow-up-right sefirah-result-ext" />}
                   </button>
-                ))}
-                </>
-              )}
+                  <button
+                    type="button"
+                    className={cn('sefirah-action', navLocked && 'is-on')}
+                    onClick={toggleNavLock}
+                    aria-pressed={navLocked}
+                  >
+                    <i className={`bi ${navLocked ? 'bi-lock-fill' : 'bi-unlock'}`} />
+                    <span className="sefirah-action-label">
+                      <span className="sefirah-action-sizer" aria-hidden>Navigation locked</span>
+                      <span className="sefirah-action-live">{navLocked ? 'Navigation locked' : 'Lock navigation'}</span>
+                    </span>
+                  </button>
+                  <button type="button" className="sefirah-action" title="Coming soon">
+                    <i className="bi bi-translate" />
+                    <span>Language</span>
+                  </button>
+                </div>
+
+                {/* Input field — doubles as the search bar */}
+                <div className="sefirah-input-box">
+                  <textarea
+                    ref={textareaRef}
+                    value={value}
+                    onChange={(e) => { setValue(e.target.value); adjustHeight(); }}
+                    onKeyDown={handleKeyDown}
+                    placeholder={placeholder}
+                    className="sefirah-textarea"
+                  />
+                </div>
+
+                {/* While typing: live results (mirrors the ⌘K search).
+                    When empty: suggested destinations. */}
+                {value.trim() ? (
+                  <div className="sefirah-results">
+                    {results.length === 0 ? (
+                      <div className="sefirah-empty">No results found</div>
+                    ) : (
+                      <>
+                      <div className="sefirah-suggested-head">Results</div>
+                      {results.map((item) => (
+                        <button
+                          key={`${item.tabId}-${item.subtabId || ''}-${item.label}`}
+                          type="button"
+                          className="sefirah-result"
+                          onClick={() => navigate(item)}
+                        >
+                          <i className={`bi ${item.icon}`} />
+                          <span className="sefirah-result-text">
+                            <span className="sefirah-result-label">{item.label}</span>
+                            {item.aka && <span className="sefirah-result-aka">{item.aka}</span>}
+                          </span>
+                          {item.external && <i className="bi bi-box-arrow-up-right sefirah-result-ext" />}
+                        </button>
+                      ))}
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <div className="sefirah-results sefirah-suggested">
+                    <div className="sefirah-suggested-head">Suggestions</div>
+                    {SUGGESTIONS.map((item) => (
+                      <button
+                        key={`sug-${item.tabId}-${item.subtabId || ''}-${item.label}`}
+                        type="button"
+                        className="sefirah-result"
+                        onClick={() => navigate(item)}
+                      >
+                        <i className={`bi ${item.icon}`} />
+                        <span className="sefirah-result-text">
+                          <span className="sefirah-result-label">{item.label}</span>
+                          {item.aka && <span className="sefirah-result-aka">{item.aka}</span>}
+                        </span>
+                        {item.external && <i className="bi bi-box-arrow-up-right sefirah-result-ext" />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {tab === 'settings' && <SettingsPanel />}
+
+            {tab === 'about' && (
+              <div className="sefirah-about">
+                <SefirahIcon className="sefirah-about-icon" />
+                <h2 className="sefirah-greeting">Sefirah</h2>
+                <p className="sefirah-about-text">
+                  Your guide across Notus Regalia. Search the site, jump between
+                  sections, and tune your experience — all from one place.
+                </p>
+              </div>
+            )}
             </div>
-          ) : (
-            <div className="sefirah-results sefirah-suggested">
-              <div className="sefirah-suggested-head">Suggestions</div>
-              {SUGGESTIONS.map((item) => (
-                <button
-                  key={`sug-${item.tabId}-${item.subtabId || ''}-${item.label}`}
-                  type="button"
-                  className="sefirah-result"
-                  onClick={() => navigate(item)}
-                >
-                  <i className={`bi ${item.icon}`} />
-                  <span className="sefirah-result-text">
-                    <span className="sefirah-result-label">{item.label}</span>
-                    {item.aka && <span className="sefirah-result-aka">{item.aka}</span>}
-                  </span>
-                  {item.external && <i className="bi bi-box-arrow-up-right sefirah-result-ext" />}
-                </button>
-              ))}
-            </div>
-          )}
+          </div>
         </div>
       </aside>
 
@@ -497,6 +588,7 @@ const SEFIRAH_CSS = `
   --surface-secondary: rgb(10, 10, 10);
   --surface-card: #0f0f0f;
   --content-primary: #ffffff;
+  --content-secondary: rgba(255, 255, 255, 0.85);
   --content-muted: rgb(163, 163, 163);
   --content-faint: rgba(255, 255, 255, 0.6);
   --border-color: rgba(255, 255, 255, 0.1);
@@ -506,8 +598,8 @@ const SEFIRAH_CSS = `
   --hover-bg-strong: rgba(255, 255, 255, 0.08);
 
   position: fixed; top: 0; right: 0; bottom: 0; z-index: 80;
-  width: min(440px, 92vw);
-  display: flex; flex-direction: column;
+  width: min(600px, 96vw);
+  display: flex; flex-direction: row;
   background: var(--surface-secondary);
   border-left: 1px solid var(--border-color);
   box-shadow: -16px 0 48px rgba(0,0,0,0.4);
@@ -516,9 +608,71 @@ const SEFIRAH_CSS = `
 }
 .sefirah-panel.open { transform: translateX(0); }
 
+/* ── Left-edge icon-tab rail — styled as a vertical grid strip, mirroring the
+   subtab strip in the navbar (bordered grid cells + pulsing corner indicator). ── */
+.sefirah-rail {
+  flex-shrink: 0; width: 76px;
+  display: flex; flex-direction: column;
+  background: var(--surface-secondary);
+  border-right: 1px solid var(--border-color);
+}
+.sefirah-rail-tabs { position: relative; flex: 1; display: flex; flex-direction: column; width: 100%; }
+/* Flexible gap between the top and bottom clusters */
+.sefirah-rail-spacer { flex: 1; }
+.sefirah-rail-tab {
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  /* Every cell is the exact size of the first (search) cell — never shrinks. */
+  width: 100%; height: 64px; flex: 0 0 64px; box-sizing: border-box;
+  border: none; background: transparent;
+  color: var(--content-muted); font-size: 1.05rem;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
+  transition: color 0.22s ease;
+  z-index: 1;
+}
+/* First cell of each cluster gets a top border so both clusters read as enclosed
+   grids (top cluster follows the indicator span, bottom follows the spacer). */
+.sefirah-rail-ind + .sefirah-rail-tab,
+.sefirah-rail-spacer + .sefirah-rail-tab { border-top: 1px solid var(--border-color); }
+.sefirah-rail-tab > i,
+.sefirah-rail-tab > .sefirah-rail-icon { position: relative; z-index: 1; }
+.sefirah-rail-tab:hover { color: var(--content-primary); }
+.sefirah-rail-tab.is-active { color: var(--content-primary); }
+
+/* Single sliding active indicator — glides vertically between cells */
+.sefirah-rail-ind {
+  position: absolute; top: 0; left: 0; right: 0; height: 64px;
+  pointer-events: none; z-index: 0;
+  background: rgba(255,255,255,0.06);
+  box-shadow: inset 2px 0 0 0 var(--content-primary);
+  transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+:root.light .sefirah-rail-ind { background: rgba(0,0,0,0.065); }
+@media (prefers-reduced-motion: reduce) {
+  .sefirah-rail-ind { transition: none; }
+}
+/* Hover tooltip */
+.sefirah-rail-tip {
+  position: absolute; left: calc(100% + 10px); top: 50%; transform: translateY(-50%);
+  padding: 4px 8px; border-radius: 7px; white-space: nowrap;
+  background: var(--surface-card); border: 1px solid var(--border-color);
+  color: var(--content-primary); font-size: 0.72rem; font-weight: 500;
+  opacity: 0; pointer-events: none; transition: opacity 0.15s ease;
+  z-index: 2;
+}
+.sefirah-rail-tab:hover .sefirah-rail-tip { opacity: 1; }
+
+/* Main column to the right of the rail */
+.sefirah-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
 .sefirah-panel-head {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 18px 20px; border-bottom: 1px solid var(--border-subtle); flex-shrink: 0;
+  height: 64px; box-sizing: border-box; flex-shrink: 0;
+  padding: 0 24px 0 38px;
+  /* Match the rail cell height + border so this line meets the first tab's */
+  border-bottom: 1px solid var(--border-color);
 }
 .sefirah-panel-title { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 1.05rem; color: var(--content-primary); }
 .sefirah-title-icon { width: 24px; height: 24px; color: var(--content-primary); }
@@ -530,7 +684,17 @@ const SEFIRAH_CSS = `
 }
 .sefirah-close:hover { color: var(--content-primary); background: var(--hover-bg); }
 
-.sefirah-panel-body { flex: 1; overflow-y: auto; padding: 24px 20px; display: flex; flex-direction: column; gap: 22px; }
+.sefirah-panel-body { flex: 1; overflow-y: auto; padding: 36px 38px; }
+/* Keyed per-tab wrapper — carries the column layout and replays on switch */
+.sefirah-view { display: flex; flex-direction: column; gap: 26px; }
+.sefirah-view { animation: sefirahViewIn 0.34s cubic-bezier(0.22, 1, 0.36, 1) both; }
+@keyframes sefirahViewIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sefirah-view { animation: none; }
+}
 .sefirah-greeting { font-size: 1.4rem; font-weight: 700; text-align: center; color: var(--content-primary); margin-top: 6px; }
 
 /* ── Input box (prompt / search) ── */
@@ -551,6 +715,11 @@ const SEFIRAH_CSS = `
 
 /* ── Quick settings — small rounded pills, single row ── */
 .sefirah-actions { display: flex; flex-wrap: nowrap; gap: 6px; justify-content: center; }
+
+/* ── About view ── */
+.sefirah-about { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 18px 6px; }
+.sefirah-about-icon { width: 64px; height: 64px; color: var(--content-primary); }
+.sefirah-about-text { font-size: 0.9rem; line-height: 1.6; color: var(--content-faint); max-width: 30ch; }
 .sefirah-action {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 6px 10px; border-radius: 999px;
@@ -562,6 +731,10 @@ const SEFIRAH_CSS = `
 .sefirah-action:hover { color: var(--content-primary); background: var(--hover-bg-strong); border-color: var(--content-faint); }
 .sefirah-action:active { transform: scale(0.96); }
 .sefirah-action i { font-size: 0.8rem; }
+/* Reserve width for the longest label so toggling text doesn't reflow the row. */
+.sefirah-action-label { display: inline-grid; text-align: center; }
+.sefirah-action-label > span { grid-area: 1 / 1; }
+.sefirah-action-sizer { visibility: hidden; }
 /* Active/locked state — green accent so the lock toggle reads as "on". */
 .sefirah-action.is-on {
   color: #04140e; background: rgba(0,255,166,0.92);

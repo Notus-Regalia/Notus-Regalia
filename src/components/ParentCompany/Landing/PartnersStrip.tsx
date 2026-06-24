@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import { InfiniteSlider } from "@/components/ui/infinite-slider";
+import { useReveal } from "@/hooks/useScrollReveal";
 
 /* ─────────────────────────────────────────────────────────────
    Principles strip — sits directly below the video hero.
@@ -26,6 +27,8 @@ const PRINCIPLES = [
 ];
 
 const PartnersStrip = memo(() => {
+  const reveal = useReveal("fade-up", { threshold: 0.25, duration: 800 });
+
   return (
     <section
       className="relative w-full overflow-hidden"
@@ -83,10 +86,12 @@ const PartnersStrip = memo(() => {
       />
 
       <div
+        ref={reveal.ref}
         className="relative z-10"
         style={{
           width: "100%",
           padding: "clamp(4rem, 11vh, 7.5rem) 0",
+          ...reveal.style,
         }}
       >
         {/* Marquee — full-bleed, spans the entire viewport width.

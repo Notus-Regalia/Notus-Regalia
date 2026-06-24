@@ -149,8 +149,14 @@ const Threads: React.FC<ThreadsProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const animationFrameId = useRef<number>(0);
-  // Stabilize color array reference to prevent WebGL context recreation
-  const stableColor = useMemo(() => color, [color[0], color[1], color[2]]);
+  // Stabilize color array reference to prevent WebGL context recreation.
+  // Depend on the scalar components (not the array identity) so a new [r,g,b]
+  // literal with the same values doesn't tear down and rebuild the GL context.
+  const [colorR, colorG, colorB] = color;
+  const stableColor = useMemo<[number, number, number]>(
+    () => [colorR, colorG, colorB],
+    [colorR, colorG, colorB],
+  );
 
   useEffect(() => {
     if (!containerRef.current) return;

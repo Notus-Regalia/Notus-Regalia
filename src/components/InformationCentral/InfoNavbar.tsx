@@ -5,7 +5,44 @@ import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { NAVBAR_CSS } from '@/components/ui/navbar-styles';
 import SearchModal from '@/components/ui/SearchModal';
+import NavDropdown, { type DropItem } from '@/components/ui/NavDropdown';
 import { INFO_TABS, SUBTAB_SUBPAGES, type InfoTab, type InfoSubtab } from './data';
+
+// Per-subtab icon + blurb shown in the hover dropdown panel (keyed by subtab id).
+const INFO_SUBTAB_META: Record<string, { icon: string; desc: string }> = {
+  // Newsroom
+  releases:      { icon: 'bi-megaphone',     desc: 'Official product and company announcements, straight from the source' },
+  announcements: { icon: 'bi-bell',          desc: 'Timely notices, updates, and milestones worth knowing about' },
+  media:         { icon: 'bi-camera-video',  desc: 'Press coverage, interviews, and downloadable media features' },
+  careers:       { icon: 'bi-briefcase',     desc: 'Open roles, our culture, and how the hiring process works' },
+  // Investors
+  news:          { icon: 'bi-newspaper',     desc: 'Latest investor news, disclosures, and shareholder updates' },
+  events:        { icon: 'bi-calendar-event',desc: 'Upcoming earnings calls, presentations, and investor events' },
+  financials:    { icon: 'bi-bar-chart',     desc: 'Earnings reports, filings, and detailed financial statements' },
+  governance:    { icon: 'bi-bank',          desc: 'Board structure, leadership oversight, and governance policies' },
+  resources:     { icon: 'bi-folder2-open',  desc: 'Fact sheets, FAQs, and key resources for shareholders' },
+  // Research
+  'case-studies':      { icon: 'bi-clipboard-data',     desc: 'Real-world deployments and the measurable outcomes they drove' },
+  'technical-reports': { icon: 'bi-file-earmark-text',  desc: 'In-depth research, methodology, and technical findings' },
+  documentations:      { icon: 'bi-journal-text',       desc: 'Product guides, API references, and integration docs' },
+  'field-testing':     { icon: 'bi-clipboard-check',    desc: 'Field trials, pilot programs, and validated results' },
+  'open-source':       { icon: 'bi-github',             desc: 'Open-source projects, libraries, and community contributions' },
+  // Legals
+  policies:                  { icon: 'bi-file-earmark-ruled', desc: 'Corporate policies governing how we operate and conduct business' },
+  'human-rights':            { icon: 'bi-people',             desc: 'Our commitments to human rights across operations and supply chains' },
+  privacy:                   { icon: 'bi-shield-lock',        desc: 'How we collect, use, and protect your personal data' },
+  'cookie-policy':           { icon: 'bi-file-earmark-text',  desc: 'The cookies we use and how to manage your preferences' },
+  terms:                     { icon: 'bi-file-earmark-check', desc: 'The terms and conditions governing use of our services' },
+  'acceptable-use':          { icon: 'bi-hand-thumbs-up',     desc: 'Rules and limits for acceptable use of our platforms' },
+  'vulnerability-disclosure':{ icon: 'bi-bug',                desc: 'How to responsibly report a security vulnerability to us' },
+  licenses:                  { icon: 'bi-card-checklist',     desc: 'Software licenses and third-party attributions we rely on' },
+  // Documents
+  'docs-governance':    { icon: 'bi-bank',   desc: 'Charters, bylaws, and corporate governance documents' },
+  'docs-social':        { icon: 'bi-people',  desc: 'Social impact, community, and workforce disclosures' },
+  'docs-environmental': { icon: 'bi-tree',    desc: 'Sustainability reports and environmental commitments' },
+  'media-assets':       { icon: 'bi-images',  desc: 'Logos, imagery, and approved media assets for download' },
+  'brand-guidelines':   { icon: 'bi-palette', desc: 'How to use our brand, identity, and visual standards' },
+};
 
 /* ── GSAP-aware scroll helpers (mirrors main Navbar) ───────────── */
 const gsapScrollToTop = (smooth = true) => {
@@ -217,8 +254,10 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
   const [navCollapsed, setNavCollapsed] = useState(false);
   const [navLocked, setNavLocked] = useState(false);
 
-  // ── Hover preview: peek a tab's subtab strip and blur the page behind ──
+  // ── Hover preview: peek a tab's subtabs in the dropdown panel ──
   const [previewTab, setPreviewTab] = useState<string | null>(null);
+  // Viewport-x of the hovered tab's centre, so the panel + caret align to it.
+  const [previewX, setPreviewX] = useState<number | null>(null);
   const previewCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const navContainerRef = useRef<HTMLDivElement>(null);
@@ -376,6 +415,25 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
     onSubtabClick(tabId, sub.id);
   }, [onSubtabClick, clearPreview]);
 
+  // ── Hover dropdown panel: data + click routing ──
+  const dropGetItems = useCallback((tabId: string): DropItem[] => {
+    const tab = INFO_TABS.find(t => t.id === tabId);
+    return (tab?.subtabs ?? []).map(s => ({
+      id: s.id,
+      label: s.label,
+      external: s.external,
+      icon: INFO_SUBTAB_META[s.id]?.icon ?? 'bi-dot',
+      desc: INFO_SUBTAB_META[s.id]?.desc ?? '',
+    }));
+  }, []);
+  const dropGetHeading = useCallback((tabId: string) =>
+    INFO_TABS.find(t => t.id === tabId)?.label ?? '', []);
+  const dropItemClick = useCallback((tabId: string, item: DropItem) => {
+    const tab = INFO_TABS.find(t => t.id === tabId);
+    const sub = tab?.subtabs.find(s => s.id === item.id);
+    if (sub) handleStripSubtabClick(tabId, sub);
+  }, [handleStripSubtabClick]);
+
   // Breadcrumb anchor on a hidden sub-page → return to its parent subtab.
   const handleSubPageBack = useCallback((tabId: string, parentSubtabId: string) => {
     clearPreview();
@@ -473,10 +531,11 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
 
   const labelFontStyle = useMemo(() => ({ fontSize: isMobile ? '0.84rem' : '0.97rem' }), [isMobile]);
 
-  // While hovering a tab, that tab's strip is the only one shown (peek mode);
-  // otherwise the active tab's strip shows when opened.
+  // The hover preview now lives in the dropdown panel (which drops below the
+  // navbar), so previewing no longer touches the strips — the active tab's strip
+  // stays open the whole time.
   const stripVisibleFor = (id: string) =>
-    previewTab ? previewTab === id : (id === activeTab && stripOpen);
+    id === activeTab && stripOpen;
 
   return (
     <>
@@ -524,7 +583,11 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
                   <div
                     key={item.id}
                     className={`tab-item-border${active ? ' is-active' : ''}`}
-                    onMouseEnter={() => openPreview(item.id)}
+                    onMouseEnter={(e) => {
+                      openPreview(item.id);
+                      const r = e.currentTarget.getBoundingClientRect();
+                      setPreviewX(r.left + r.width / 2);
+                    }}
                     onMouseLeave={closePreviewSoon}
                   >
                     <div className={`tab-item${active ? ' is-active' : ''}`}>
@@ -560,7 +623,18 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
           </div>
         </div>
 
-        {/* ══ SUBTAB STRIPS — active tab, or hover-previewed tab ══ */}
+        {/* ══ HOVER DROPDOWN PANEL — Profound-style subtab preview (desktop) ══ */}
+        <NavDropdown
+          tab={isMobile ? null : previewTab}
+          pointerX={previewX}
+          getItems={dropGetItems}
+          getHeading={dropGetHeading}
+          onItemClick={dropItemClick}
+          onMouseEnter={cancelPreviewClose}
+          onMouseLeave={closePreviewSoon}
+        />
+
+        {/* ══ SUBTAB STRIPS — active tab only (preview handled by the panel) ══ */}
         {INFO_TABS.map((item) => (
           <div
             key={`strip-${item.id}`}

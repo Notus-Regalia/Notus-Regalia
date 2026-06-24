@@ -38,7 +38,7 @@ const GRID_SECTION_CSS = `
 }
 `;
 
-const SubtabView = memo(({ subtabId }: { subtabId: string }) => {
+const SubtabView = memo(({ subtabId, onNavigate }: { subtabId: string; onNavigate?: (tabId: string, subtabId: string) => void }) => {
   const content = SUBTAB_CONTENT[subtabId];
   if (!content) return null;
 
@@ -47,7 +47,7 @@ const SubtabView = memo(({ subtabId }: { subtabId: string }) => {
 
   // Landing pages (e.g. Releases) render full-bleed — each block owns its layout.
   if (content.hideHeader) {
-    return <SubtabBody blocks={content.blocks} flush />;
+    return <SubtabBody blocks={content.blocks} flush onNavigate={onNavigate} />;
   }
 
   return (
@@ -72,6 +72,14 @@ const SubtabView = memo(({ subtabId }: { subtabId: string }) => {
           <>
             <div className="pointer-events-none absolute inset-0 z-0" style={GRID_BG_STYLE} />
             <div className="pointer-events-none absolute inset-0 z-0" style={GRID_VIGNETTE_STYLE} />
+            {/* Ease the grid texture in from black so it meets the hero's bottom
+                fade seamlessly (only under the careers split hero). */}
+            {content.heroHeader && (
+              <div
+                className="pointer-events-none absolute inset-x-0 top-0 z-0 h-40 sm:h-56"
+                style={{ background: 'linear-gradient(to bottom, #000000 0%, transparent 100%)' }}
+              />
+            )}
           </>
         )}
         {/* Horizontal inset = global brand gutter (--site-gutter-inline), so content
@@ -80,13 +88,14 @@ const SubtabView = memo(({ subtabId }: { subtabId: string }) => {
           className="relative z-10 pt-14 sm:pt-20 pb-14 sm:pb-20"
           style={{ paddingLeft: 'var(--site-gutter-inline)', paddingRight: 'var(--site-gutter-inline)' }}
         >
-          {/* Hero/grid pages fill the gutter column edge-to-edge (like the home sections);
-              text-heavy pages keep a readable max-width. Legal docs render justified. */}
+          {/* Section content fills the gutter column edge-to-edge (like the home
+              sections) so its edges line up with the navbar/footer. Only text-heavy
+              legal docs (justify) keep a readable centered max-width. */}
           <div
-            className={content.heroHeader ? '' : 'max-w-6xl mx-auto'}
+            className={content.justify ? 'max-w-6xl mx-auto' : ''}
             style={content.justify ? { textAlign: 'justify', hyphens: 'auto' } : undefined}
           >
-            <SubtabBody blocks={content.blocks} />
+            <SubtabBody blocks={content.blocks} onNavigate={onNavigate} />
           </div>
         </div>
       </div>

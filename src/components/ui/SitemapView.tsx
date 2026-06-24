@@ -138,7 +138,6 @@ const SITES: Site[] = [
       {
         title: "Settings",
         links: [
-          { label: "Preferences", href: "/information/settings/preferences" },
           { label: "Sitemap",     href: "/sitemap" },
           { label: "Status",      href: "/status" },
         ],

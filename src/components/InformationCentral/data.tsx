@@ -53,6 +53,7 @@ export interface PublicationItem {
   readTime?: string;
   excerpt: string;
   href?: string;
+  slug?: string;       // when set, the card opens the in-app article at pub-<slug>
 }
 
 // ── Careers ──────────────────────────────────────────────────
@@ -75,6 +76,40 @@ export const CAREER_PROGRAMS: { id: CareerProgram; label: string }[] = [
   { id: 'sefirah',    label: 'Project Sefirah' },
 ];
 
+// ── Brand guidelines ─────────────────────────────────────────
+// A single brand color swatch. `ink` sets the legible text color painted over
+// the swatch fill.
+export interface SwatchItem {
+  name: string;
+  hex: string;
+  usage?: string;
+  ink?: 'light' | 'dark';
+}
+
+// Each misuse tile distorts the base mark via a preset CSS transform/filter to
+// illustrate a "don't" — mirroring NVIDIA's logo-misuse grid.
+export type MisuseVariant =
+  | 'stretch' | 'squish' | 'rotate' | 'recolor' | 'effects' | 'busy' | 'lowContrast' | 'crop';
+export interface MisuseItem {
+  label: string;
+  variant: MisuseVariant;
+}
+
+// ── Brand guidelines ─────────────────────────────────────────
+// A logo paired across both backgrounds: the black-ink art (`light`) and the
+// white-ink art (`dark`) of the same lockup are shown together so usage is
+// unambiguous. `dark` is omitted for the icon (one mark, no themed variants).
+// `layout` controls how the two panels sit: `side` (left/right) or `stack`
+// (top/bottom — used for wide horizontal lockups). `wide` spans both columns.
+export interface LogoPairItem {
+  title: string;
+  caption?: string;
+  light: string;
+  dark?: string;
+  layout?: 'side' | 'stack';
+  wide?: boolean;
+}
+
 export type ContentBlock =
   | { type: 'text'; heading?: string; paragraphs: string[] }
   | { type: 'releases' }                                          // accordion of `statements`
@@ -87,7 +122,10 @@ export type ContentBlock =
   | { type: 'publicationGrid'; heading?: string; items: PublicationItem[] }
   | { type: 'note'; text: string }
   | { type: 'careers'; roles: RoleItem[] }                        // search + program filter over open roles
-  | { type: 'preferences' };                                      // cookie + user preference toggles
+  | { type: 'logoPairs'; heading?: string; items: LogoPairItem[] }                     // light/dark paired specimens
+  | { type: 'clearspace'; heading?: string; src: string; note?: string }              // clear space / min size
+  | { type: 'palette'; heading?: string; items: SwatchItem[] }    // brand color swatches
+  | { type: 'misuse'; heading?: string; base: string; items: MisuseItem[] };          // logo misuse grid
 
 export interface SubtabContent {
   header: {
@@ -174,16 +212,6 @@ export const INFO_TABS: InfoTab[] = [
       { id: 'brand-guidelines',   label: 'Brand Guidelines' },
     ],
   },
-  {
-    id: 'settings',
-    label: 'Settings',
-    icon: 'bi-gear',
-    subtabs: [
-      { id: 'preferences', label: 'Preferences' },
-      { id: 'sitemap',     label: 'Sitemap', external: '/sitemap' },
-      { id: 'status',      label: 'Status', external: '/status' },
-    ],
-  },
 ];
 
 export const DEFAULT_SUBTAB: Record<string, string> = {
@@ -192,7 +220,6 @@ export const DEFAULT_SUBTAB: Record<string, string> = {
   research:  'case-studies',
   legals:    'policies',
   documents: 'docs-governance',
-  settings:  'preferences',
 };
 
 // ── Hidden sub-pages ─────────────────────────────────────────
@@ -204,7 +231,216 @@ export interface SubPage {
   tabId: string;            // parent tab (drives which strip is active)
   parentSubtabId: string;   // the subtab the breadcrumb anchors back to
   parentSubtabLabel: string;
+  crumbMeta?: string;       // optional secondary crumb text (e.g. a publication date)
 }
+
+// ── Publications (blog / read-more articles) ─────────────────
+// Long-form pieces surfaced on Releases. Each becomes a hidden sub-page at
+// `pub-<slug>` whose breadcrumb reads "Releases › <title>" with the date.
+export interface PublicationArticle extends PublicationItem {
+  slug: string;
+  body: ContentBlock[];     // rendered with the standard block renderer
+}
+
+export const PUB_SUBPAGE_PREFIX = 'pub-';
+export const pubSubpageId = (slug: string) => PUB_SUBPAGE_PREFIX + slug;
+
+export const PUBLICATIONS: PublicationArticle[] = [
+  {
+    slug: 'introducing-project-sefirah',
+    title: 'Building the Foundation First: An Introduction to Project Sefirah',
+    category: 'Editorial',
+    date: 'May 2025',
+    readTime: '9 min read',
+    excerpt: 'Why Notus Regalia is investing in a single infrastructural and technical foundation — Project Sefirah — before anything is built on top of it, and what that foundation is designed to carry.',
+    body: [
+      {
+        type: 'text',
+        paragraphs: [
+          'Most companies build a product and discover the platform later — usually under duress, after the product has outgrown the assumptions it was first shipped on. Notus Regalia is doing the opposite. Before we ship anything to anyone, we are building the foundation that everything else will stand on. We call it Project Sefirah.',
+          'Sefirah is not a feature or an app. It is the company’s infrastructural and technical foundation: the data layer, the service orchestration that ties capabilities together, the security model that governs access to all of it, and the assistant that turns the whole platform into something a person can actually operate.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'Why the foundation comes first',
+        paragraphs: [
+          'The systems we intend to build operate in domains where failure is not an inconvenience — it is a consequence. Foundations laid carelessly there cannot be quietly repaired later. Building Sefirah first lets us make the hard architectural decisions once, deliberately, while the cost of changing our mind is still measured in code rather than in incidents.',
+          'It also means every capability we add inherits a mature backbone from day one: consistent data, auditable access, and a single place where security and governance are enforced rather than reimplemented.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'What we are building toward',
+        paragraphs: [
+          'Over the coming releases we will write about each layer of Sefirah in its own right — the data model, the orchestration core, the security posture, and the assistant. This piece is the frame around those: a statement that the foundation is the product right now, and that getting it right is the work.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'sefirah-architecture',
+    title: 'Inside Sefirah’s Architecture',
+    category: 'Technical',
+    date: 'April 2025',
+    readTime: '12 min read',
+    excerpt: 'The data layer, service orchestration, and assistant that make up the core platform — and the design decisions behind each.',
+    body: [
+      {
+        type: 'text',
+        paragraphs: [
+          'Sefirah is built in layers, each with a single responsibility and a clear contract with the layers above and below it. The discipline is deliberate: a foundation earns trust by being predictable, and predictability comes from boundaries you can reason about.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'The data layer',
+        paragraphs: [
+          'At the bottom sits a data model designed to stay consistent and auditable as the platform grows. Every consequential change is recorded; every read goes through the same access path. We would rather pay a little structure up front than inherit an unaccountable data sprawl later.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'Orchestration',
+        paragraphs: [
+          'Above the data layer, an orchestration core lets new capabilities plug into the platform without rework. Capabilities declare what they need and what they produce; the core handles wiring, sequencing, and failure handling. Adding a capability should feel like extending the system, not patching it.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'The assistant',
+        paragraphs: [
+          'At the surface, the Sefirah assistant turns the platform into something a person operates by intent rather than by menu. It is not bolted on — it speaks the same contracts the rest of the system does, which is what lets it search, navigate, and eventually act on the user’s behalf.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'sefirah-security',
+    title: 'Security as a First Principle',
+    category: 'Technical',
+    date: 'March 2025',
+    readTime: '7 min read',
+    excerpt: 'How Project Sefirah treats access control, auditability, and data protection as foundational requirements rather than later additions.',
+    body: [
+      {
+        type: 'text',
+        paragraphs: [
+          'Security added late is security working against the grain of a system. In Sefirah, the security model is part of the foundation — access control, auditability, and data protection are properties of the platform, not options layered on top of it.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'Access from first principles',
+        paragraphs: [
+          'Every action runs through a single authorization path with role-based rules and recorded outcomes. There is no privileged side door, because side doors are exactly what later become the incident. Consequential actions are logged so that what happened can always be reconstructed.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'Protecting data by default',
+        paragraphs: [
+          'Data is protected in transit and at rest, and access to it is scoped to purpose. The default is least privilege; broad access is the exception that has to be justified, not the convenience that has to be revoked.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'sefirah-assistant',
+    title: 'Designing the Sefirah Assistant',
+    category: 'Product',
+    date: 'February 2025',
+    readTime: '10 min read',
+    excerpt: 'The reasoning behind Sefirah’s conversational surface — search, navigation, and the path toward a unified operating layer.',
+    body: [
+      {
+        type: 'text',
+        paragraphs: [
+          'The assistant is how Sefirah meets a person. Its job is to collapse the distance between intent and action — to let someone ask for what they want and have the platform do the routing, rather than forcing them to learn where everything lives.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'Start with search and navigation',
+        paragraphs: [
+          'We began with the two things people do most: finding and moving. The assistant indexes the platform and can take you to the right place directly. It is a deliberately modest start — earning trust on simple, verifiable tasks before it is given more consequential ones.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'Toward an operating layer',
+        paragraphs: [
+          'Because the assistant speaks the same contracts as the rest of Sefirah, the path from “take me there” to “do this for me” is an evolution rather than a rebuild. Each new capability the platform gains is, almost for free, something the assistant can help you operate.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'governance-without-bureaucracy',
+    title: 'Governance Without Bureaucracy',
+    category: 'Operations',
+    date: 'January 2025',
+    readTime: '6 min read',
+    excerpt: 'Designing oversight that preserves operational speed while enforcing institutional discipline.',
+    body: [
+      {
+        type: 'text',
+        paragraphs: [
+          'Governance has a reputation problem: people assume it means slowing down. Done well, it is the opposite — it is what lets you move quickly without accumulating the kind of risk that eventually forces you to stop.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'Make the rules part of the system',
+        paragraphs: [
+          'Wherever we can, oversight is encoded rather than enforced by meeting. Access rules, audit trails, and approval gates live in Sefirah itself. The result is discipline that is consistent and fast, because it does not depend on someone remembering to apply it.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'Reserve human judgment for what needs it',
+        paragraphs: [
+          'People should spend their attention on the decisions that genuinely require judgment — not on rubber-stamping the routine. Good governance clears the routine out of the way so that the hard calls get the scrutiny they deserve.',
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'building-companies-like-systems',
+    title: 'Building Companies Like Systems',
+    category: 'Essay',
+    date: 'December 2024',
+    readTime: '8 min read',
+    excerpt: 'Why Notus Regalia treats engineering, infrastructure, and governance as one system — and builds the platform before the product.',
+    body: [
+      {
+        type: 'text',
+        paragraphs: [
+          'We treat the company itself as a system to be engineered: its infrastructure, its governance, and its products are not separate concerns but parts of one design. That belief is why our first project is a foundation rather than a feature.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'One system, not three silos',
+        paragraphs: [
+          'Engineering, security, and governance fail when they are owned by separate fiefdoms that meet only at integration time. In Sefirah they share contracts and a single source of truth, so a decision in one is visible to the others by construction.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'Build the platform first',
+        paragraphs: [
+          'Building the foundation before the product is slower to a first demo and far faster to the tenth. Every capability we add lands on mature infrastructure instead of improvising its own — which is the whole point of building a company like a system.',
+        ],
+      },
+    ],
+  },
+];
+
+export const PUBLICATION_BY_SUBPAGE: Record<string, PublicationArticle> = Object.fromEntries(
+  PUBLICATIONS.map((a) => [pubSubpageId(a.slug), a]),
+);
+
 export const SUBTAB_SUBPAGES: Record<string, SubPage> = {
   'recruitment-process': {
     label: 'Recruitment Process',
@@ -212,6 +448,19 @@ export const SUBTAB_SUBPAGES: Record<string, SubPage> = {
     parentSubtabId: 'careers',
     parentSubtabLabel: 'Careers',
   },
+  // Generated: one hidden sub-page per publication, anchored back to Releases.
+  ...Object.fromEntries(
+    PUBLICATIONS.map((a) => [
+      pubSubpageId(a.slug),
+      {
+        label: a.title,
+        tabId: 'newsroom',
+        parentSubtabId: 'releases',
+        parentSubtabLabel: 'Releases',
+        crumbMeta: a.date,
+      } satisfies SubPage,
+    ]),
+  ),
 };
 
 // subtab id → parent tab id (for eyebrow + url integrity). Includes sub-pages.
@@ -231,7 +480,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
   // ══ NEWSROOM ══════════════════════════════════════════════
   announcements: {
     header: {
-      eyebrow: 'Newsroom',
+      eyebrow: '',
       title: 'Announcements',
       description: 'Official statements, notices, and public disclosures issued by Notus Regalia on the development of Project Sefirah.',
     },
@@ -242,48 +491,22 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   releases: {
     header: {
-      eyebrow: 'Newsroom',
+      eyebrow: '',
       title: 'Releases',
       description: 'Long-form publications, research notes, and editorial from the Notus Regalia operating team.',
     },
     hideHeader: true,
     blocks: [
-      {
-        type: 'hero',
-        stories: [
-          {
-            title: 'Building the Foundation First: An Introduction to Project Sefirah',
-            category: 'Editorial',
-            date: 'May 2025',
-            readTime: '9 min read',
-            excerpt: 'Why Notus Regalia is investing in a single infrastructural and technical foundation — Project Sefirah — before anything is built on top of it, and what that foundation is designed to carry.',
-            href: '/documents/introducing-project-sefirah.pdf',
-          },
-          { title: 'Inside Sefirah’s Architecture', category: 'Technical', date: 'April 2025', readTime: '12 min read', excerpt: 'The data layer, service orchestration, and assistant that make up the core platform — and the design decisions behind each.', href: '/documents/sefirah-architecture.pdf' },
-          { title: 'Security as a First Principle', category: 'Technical', date: 'March 2025', readTime: '7 min read', excerpt: 'How Project Sefirah treats access control, auditability, and data protection as foundational requirements rather than later additions.', href: '/documents/sefirah-security.pdf' },
-          { title: 'Designing the Sefirah Assistant', category: 'Product', date: 'February 2025', readTime: '10 min read', excerpt: 'The reasoning behind Sefirah’s conversational surface — search, navigation, and the path toward a unified operating layer.', href: '/documents/sefirah-assistant.pdf' },
-          { title: 'Governance Without Bureaucracy', category: 'Operations', date: 'January 2025', readTime: '6 min read', excerpt: 'Designing oversight that preserves operational speed while enforcing institutional discipline.', href: '/documents/governance-without-bureaucracy.pdf' },
-          { title: 'Building Companies Like Systems', category: 'Essay', date: 'December 2024', readTime: '8 min read', excerpt: 'Why Notus Regalia treats engineering, infrastructure, and governance as one system — and builds the platform before the product.', href: '/documents/building-companies-like-systems.pdf' },
-        ],
-      },
-      {
-        type: 'publicationGrid',
-        heading: 'Latest Publications',
-        items: [
-          { title: 'Inside Sefirah’s Architecture', category: 'Technical', date: 'April 2025', readTime: '12 min read', excerpt: 'The data layer, service orchestration, and assistant that make up the core platform — and the design decisions behind each.', href: '/documents/sefirah-architecture.pdf' },
-          { title: 'Security as a First Principle', category: 'Technical', date: 'March 2025', readTime: '7 min read', excerpt: 'How Project Sefirah treats access control, auditability, and data protection as foundational requirements rather than later additions.', href: '/documents/sefirah-security.pdf' },
-          { title: 'Designing the Sefirah Assistant', category: 'Product', date: 'February 2025', readTime: '10 min read', excerpt: 'The reasoning behind Sefirah’s conversational surface — search, navigation, and the path toward a unified operating layer.', href: '/documents/sefirah-assistant.pdf' },
-          { title: 'Governance Without Bureaucracy', category: 'Operations', date: 'January 2025', readTime: '6 min read', excerpt: 'Designing oversight that preserves operational speed while enforcing institutional discipline.', href: '/documents/governance-without-bureaucracy.pdf' },
-          { title: 'Building Companies Like Systems', category: 'Essay', date: 'December 2024', readTime: '8 min read', excerpt: 'Why Notus Regalia treats engineering, infrastructure, and governance as one system — and builds the platform before the product.', href: '/documents/building-companies-like-systems.pdf' },
-          { title: 'Building the Foundation First: An Introduction to Project Sefirah', category: 'Editorial', date: 'May 2025', readTime: '9 min read', excerpt: 'Why Notus Regalia is investing in a single infrastructural and technical foundation before anything is built on top of it.', href: '/documents/introducing-project-sefirah.pdf' },
-        ],
-      },
+      // Hero + grid are driven by the PUBLICATIONS registry, so each card links
+      // to its in-app article (pub-<slug>) instead of a static PDF.
+      { type: 'hero', stories: PUBLICATIONS },
+      { type: 'publicationGrid', heading: 'Latest Publications', items: PUBLICATIONS },
     ],
   },
 
   media: {
     header: {
-      eyebrow: 'Newsroom',
+      eyebrow: '',
       title: 'Media',
       description: 'Press coverage, brand mentions, interviews, and resources for journalists covering Notus Regalia.',
     },
@@ -343,7 +566,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
   // Hidden sub-page of Careers — reached via the careers hero CTA.
   'recruitment-process': {
     header: {
-      eyebrow: 'Careers',
+      eyebrow: '',
       title: 'Recruitment Process',
       description: 'How we evaluate and hire — a candid, paid, and fast process designed to respect your time and show you how we actually work.',
     },
@@ -376,7 +599,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
   // ══ INVESTORS ═════════════════════════════════════════════
   news: {
     header: {
-      eyebrow: 'Investors',
+      eyebrow: '',
       title: 'Investor News',
       description: 'Project milestones, capital updates, and disclosures relevant to current and prospective investors.',
     },
@@ -401,7 +624,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   events: {
     header: {
-      eyebrow: 'Investors',
+      eyebrow: '',
       title: 'Events & Presentation',
       description: 'Upcoming briefings, earnings-style updates, and downloadable investor presentations.',
     },
@@ -434,7 +657,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   financials: {
     header: {
-      eyebrow: 'Investors',
+      eyebrow: '',
       title: 'Financial Info',
       description: 'Financial highlights, capital-allocation summaries, and periodic reports for the investor community.',
     },
@@ -476,7 +699,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   governance: {
     header: {
-      eyebrow: 'Investors',
+      eyebrow: '',
       title: 'Governance',
       description: 'How Notus Regalia is governed — board structure, committees, and the principles that guide oversight.',
     },
@@ -513,7 +736,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   resources: {
     header: {
-      eyebrow: 'Investors',
+      eyebrow: '',
       title: 'Investor Resources',
       description: 'Financial disclosures, due-diligence materials, and the contacts you need as an investor.',
     },
@@ -549,7 +772,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
   // ══ RESEARCH ══════════════════════════════════════════════
   'case-studies': {
     header: {
-      eyebrow: 'Research',
+      eyebrow: '',
       title: 'Case Studies',
       description: 'Engineering deep-dives and design notes from the build of Project Sefirah.',
     },
@@ -570,7 +793,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   'technical-reports': {
     header: {
-      eyebrow: 'Research',
+      eyebrow: '',
       title: 'Technical Reports',
       description: 'In-depth technical reports, benchmarks, and methodology papers from our research programs.',
     },
@@ -593,7 +816,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   documentations: {
     header: {
-      eyebrow: 'Research',
+      eyebrow: '',
       title: 'Documentations',
       description: 'Developer guides, API references, and integration documentation for our platform and tools.',
     },
@@ -623,7 +846,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   'field-testing': {
     header: {
-      eyebrow: 'Research',
+      eyebrow: '',
       title: 'Field Testing',
       description: 'Internal testing and validation of Project Sefirah as it is built toward production readiness.',
     },
@@ -658,7 +881,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   'open-source': {
     header: {
-      eyebrow: 'Research',
+      eyebrow: '',
       title: 'Open Source',
       description: 'Tools, libraries, and components we share back with the community.',
     },
@@ -689,7 +912,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
   // ══ LEGALS ════════════════════════════════════════════════
   licenses: {
     header: {
-      eyebrow: 'Legals',
+      eyebrow: '',
       title: 'Licenses',
       description: 'Software and content licensing terms governing Notus Regalia products and third-party components.',
     },
@@ -715,7 +938,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   'human-rights': {
     header: {
-      eyebrow: 'Legals',
+      eyebrow: '',
       title: 'NR Human Rights Policy',
       description: 'Our commitment to upholding human rights across our operations, products, and partnerships.',
     },
@@ -851,7 +1074,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   privacy: {
     header: {
-      eyebrow: 'Legals',
+      eyebrow: '',
       title: 'Privacy Policy',
       description: 'How we collect, use, and protect personal data, and the rights you have over your information.',
     },
@@ -898,7 +1121,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: '5. Cookies and Similar Technologies',
         paragraphs: [
           'Our use of cookies and similar technologies — including browser local storage and analytics scripts — is governed in detail by our [Cookie Policy](/information/legals/cookie-policy), which forms part of this Privacy Policy, inventories every technology we use, and states the legal basis for each. In summary: strictly necessary technologies run without consent because the site cannot function or honor your choices without them; preference and analytics technologies run only as described there, and analytics only with your consent; and we use no advertising, targeting, or cross-site tracking technologies of any kind.',
-          'You can make or change your choices through the cookie banner shown on your first visit, at any time in the [Preferences page](/information/settings/preferences) of this Information Central, and through your browser settings. Declining non-essential technologies does not affect your ability to use the site.',
+          'You can make or change your choices through the cookie banner shown on your first visit, at any time in the Settings panel of the Sefirah assistant, and through your browser settings. Declining non-essential technologies does not affect your ability to use the site.',
         ],
       },
       {
@@ -1004,7 +1227,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   'cookie-policy': {
     header: {
-      eyebrow: 'Legals',
+      eyebrow: '',
       title: 'Cookie Policy',
       description: 'The cookies and similar technologies we use, why we use them, and how you control them.',
     },
@@ -1050,7 +1273,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
         heading: '5. Consent and Withdrawal',
         paragraphs: [
           'On your first visit, our cookie banner asks for your choice before any non-essential technology runs. Consent under this Policy means what the Data Privacy Act requires it to mean: a freely given, specific, informed indication of will. You may decline non-essential technologies entirely, and declining does not degrade your access to any part of the site.',
-          'You can change or withdraw your choice at any time — with effect for the future — through the [Preferences page](/information/settings/preferences) of this Information Central, which also documents what each toggle controls. Withdrawal is as easy as the original consent, as the law requires.',
+          'You can change or withdraw your choice at any time — with effect for the future — through the Settings panel of the Sefirah assistant, which also documents what each toggle controls. Withdrawal is as easy as the original consent, as the law requires.',
         ],
       },
       {
@@ -1090,7 +1313,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   terms: {
     header: {
-      eyebrow: 'Legals',
+      eyebrow: '',
       title: 'Terms of Service',
       description: 'The terms and conditions governing your use of Notus Regalia websites, products, and services.',
     },
@@ -1239,7 +1462,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   'acceptable-use': {
     header: {
-      eyebrow: 'Legals',
+      eyebrow: '',
       title: 'Acceptable Use Policy',
       description: 'The binding rules governing how our websites and services may — and may not — be used.',
     },
@@ -1345,7 +1568,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   'vulnerability-disclosure': {
     header: {
-      eyebrow: 'Legals',
+      eyebrow: '',
       title: 'Vulnerability Disclosure Policy',
       description: 'How to report security vulnerabilities to us safely — scope, rules of engagement, safe harbor, and bug bounty rules.',
     },
@@ -1445,7 +1668,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   policies: {
     header: {
-      eyebrow: 'Legals',
+      eyebrow: '',
       title: 'Corporate Policies',
       description: 'Acceptable use, conduct, and the operating policies that govern how we work and serve our users.',
     },
@@ -1485,42 +1708,116 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
   // ══ DOCUMENTS ═════════════════════════════════════════════
   'brand-guidelines': {
     header: {
-      eyebrow: 'Documents',
-      title: 'Brand Guidelines',
-      description: 'How to use the Notus Regalia name, logo, and visual identity correctly.',
+      eyebrow: 'Brand',
+      title: 'Logo & Brand Usage',
+      description: 'The Notus Regalia logo, color, and identity — and the rules for using them correctly across media, partnerships, and publications.',
     },
     blocks: [
       {
         type: 'text',
-        heading: 'Using Our Brand',
+        heading: 'Our Brand',
         paragraphs: [
-          'The Notus Regalia name, logo, and marks are protected assets. These guidelines ensure the brand is represented consistently and correctly across media, partnerships, and publications.',
-          'For editorial and partnership use, please follow the rules below and use only the approved assets from our Media Assets library.',
+          'The Notus Regalia name, logo, and marks are protected assets. Use only the approved, unmodified artwork below — every file is a transparent PNG, so it drops cleanly onto any layout.',
+          'Pick the lockup that fits your space, and the ink color that contrasts with your background: black-ink art for light surfaces, white-ink art for dark surfaces. Never recolor, redraw, or otherwise alter the marks.',
+        ],
+      },
+      {
+        type: 'logoPairs',
+        heading: 'Logo Lockups',
+        items: [
+          {
+            title: 'Horizontal · with tagline',
+            caption: 'The full primary lockup — symbol, wordmark, and tagline. Use it wherever space allows.',
+            light: '/Notus Regalia Brand Logo/Horizontal, Title, Tagline, Black Text.png',
+            dark: '/Notus Regalia Brand Logo/Horizontal, Title, Tagline, White Text.png',
+            layout: 'stack',
+            wide: true,
+          },
+          {
+            title: 'Horizontal',
+            caption: 'Compact horizontal lockup without the tagline.',
+            light: '/Notus Regalia Brand Logo/Horizontal, Title, Black Text.png',
+            dark: '/Notus Regalia Brand Logo/Horizontal, Title, White Text.png',
+            layout: 'stack',
+            wide: true,
+          },
+          {
+            title: 'Vertical · with tagline',
+            caption: 'Stacked lockup for square and centered layouts.',
+            light: '/Notus Regalia Brand Logo/Vertical, Title, Tagline, Black Text.png',
+            dark: '/Notus Regalia Brand Logo/Vertical, Title, Tagline, White Text.png',
+            layout: 'side',
+          },
+          {
+            title: 'Vertical',
+            caption: 'Compact stacked lockup without the tagline.',
+            light: '/Notus Regalia Brand Logo/Vertical, Title, Black Text.png',
+            dark: '/Notus Regalia Brand Logo/Vertical, Title, White Text.png',
+            layout: 'side',
+          },
+          {
+            title: 'Symbol',
+            caption: 'The standalone mark for avatars, app icons, and favicons. One mark — no themed variants.',
+            light: '/Notus Regalia Brand Logo/Square Icon.png',
+          },
+        ],
+      },
+      {
+        type: 'clearspace',
+        heading: 'Clear Space & Minimum Size',
+        src: '/Notus Regalia Brand Logo/Square Icon.png',
+        note: 'Always preserve clear space around the logo equal to at least the width of the central core (X). Never crowd the mark with text, imagery, or other logos. Do not reproduce the symbol smaller than 24 px or the full lockup smaller than 120 px wide.',
+      },
+      {
+        type: 'palette',
+        heading: 'Color',
+        items: [
+          { name: 'Regalia Crimson', hex: '#EB1143', usage: 'Primary brand color. The core, accents, and the “REGALIA” wordmark.', ink: 'light' },
+          { name: 'Core Black', hex: '#0A0A0A', usage: 'Primary ink on light surfaces and dark-mode backgrounds.', ink: 'light' },
+          { name: 'Pure White', hex: '#FFFFFF', usage: 'Logo ink and type on dark surfaces.', ink: 'dark' },
+          { name: 'Operations Grey', hex: '#6B7280', usage: 'Supporting tone for the tagline and secondary text.', ink: 'light' },
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'Typography',
+        paragraphs: [
+          'The wordmark is a fixed piece of artwork — never re-typeset “NOTUS REGALIA” in another font, and never alter its letterspacing, weight, or color split.',
+          'For surrounding communications, headlines, and body copy, use Inter (or the closest available system sans-serif). Set the tagline “AT THE CORE OF CRITICAL OPERATIONS” in uppercase with wide tracking, in Operations Grey, exactly as it appears in the supplied lockups.',
+        ],
+      },
+      {
+        type: 'misuse',
+        heading: 'Logo Misuse',
+        base: '/Notus Regalia Brand Logo/Square Icon.png',
+        items: [
+          { variant: 'stretch', label: 'Don’t stretch or distort the proportions.' },
+          { variant: 'squish', label: 'Don’t compress or condense the mark.' },
+          { variant: 'rotate', label: 'Don’t rotate or tilt the logo.' },
+          { variant: 'recolor', label: 'Don’t recolor the mark or its core.' },
+          { variant: 'effects', label: 'Don’t add shadows, glows, or other effects.' },
+          { variant: 'busy', label: 'Don’t place the logo on busy or low-contrast backgrounds.' },
         ],
       },
       {
         type: 'cards',
-        heading: 'Core Rules',
-        columns: 3,
+        heading: 'Get the Assets',
+        columns: 2,
         items: [
-          { icon: 'bi-vector-pen', title: 'Logo Usage', body: 'Use the approved marks only. Do not alter, recolor, rotate, or distort the logo.' },
-          { icon: 'bi-palette', title: 'Color', body: 'Primary crimson is #EB1143 on dark or light neutral backgrounds. Maintain contrast.' },
-          { icon: 'bi-fonts', title: 'Typography', body: 'Use the system wordmark styling. Do not substitute decorative fonts for the name.' },
-          { icon: 'bi-arrows-fullscreen', title: 'Clear Space', body: 'Preserve clear space around the logo equal to the height of the mark.' },
-          { icon: 'bi-ban', title: 'Don\'ts', body: 'No drop shadows, gradients, outlines, or busy backgrounds behind the mark.' },
-          { icon: 'bi-images', title: 'Get Assets', body: 'Download approved logos and the press kit from Media Assets.', cta: 'Open Media Assets', href: '/information/documents/media-assets' },
+          { icon: 'bi-images', title: 'Media Assets Library', body: 'Logos, the press kit, executive photography, and approved company facts.', cta: 'Open Media Assets', href: '/information/documents/media-assets' },
+          { icon: 'bi-envelope', title: 'Brand Permissions', body: 'Co-branding, partnership lockups, or anything not covered here.', cta: 'Email info@notusregalia.tech', href: 'mailto:info@notusregalia.tech' },
         ],
       },
       {
         type: 'note',
-        text: 'Questions about brand usage or permissions? Contact info@notusregalia.tech.',
+        text: 'These marks are provided for editorial and approved partnership use only. Do not imply endorsement or affiliation. Questions about brand usage or permissions? Contact info@notusregalia.tech.',
       },
     ],
   },
 
   'docs-governance': {
     header: {
-      eyebrow: 'Documents',
+      eyebrow: '',
       title: 'Governance Documents',
       description: 'Formation records, charters, and the governing documents of Notus Regalia.',
     },
@@ -1551,7 +1848,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   'docs-social': {
     header: {
-      eyebrow: 'Documents',
+      eyebrow: '',
       title: 'Social',
       description: 'Our commitments to people, communities, and responsible operations.',
     },
@@ -1580,7 +1877,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   'docs-environmental': {
     header: {
-      eyebrow: 'Documents',
+      eyebrow: '',
       title: 'Environmental',
       description: 'Environmental commitments and the sustainability principles behind how we build and operate.',
     },
@@ -1606,7 +1903,7 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 
   'media-assets': {
     header: {
-      eyebrow: 'Documents',
+      eyebrow: '',
       title: 'Media Assets',
       description: 'Brand assets, logos, and press materials for approved use by media and partners.',
     },
@@ -1639,16 +1936,19 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
     ],
   },
 
-  // ══ SETTINGS ══════════════════════════════════════════════
-  preferences: {
-    header: {
-      eyebrow: 'Settings',
-      title: 'Preferences',
-      description: 'Manage your cookie consent, privacy choices, and how Notus Regalia experiences behave for you.',
-    },
-    blocks: [
-      { type: 'preferences' },
-    ],
-  },
-
 };
+
+// Generate a read-more article page for every publication. Each reuses the
+// standard header + block renderer; the eyebrow carries the category, date, and
+// read time, and the navbar shows the "Releases › <title>" breadcrumb.
+for (const article of PUBLICATIONS) {
+  SUBTAB_CONTENT[pubSubpageId(article.slug)] = {
+    header: {
+      eyebrow: [article.category, article.date, article.readTime].filter(Boolean).join('  ·  '),
+      title: article.title,
+      description: article.excerpt,
+    },
+    justify: true,
+    blocks: article.body,
+  };
+}

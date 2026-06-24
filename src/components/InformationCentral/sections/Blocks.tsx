@@ -5,12 +5,35 @@ import { statements, type Statement } from '@/data/information-data';
 import styles from '@/styles/ui.module.css';
 import type {
   ContentBlock, CardItem, DocItem, StatItem, PersonItem, PublicationItem, RoleItem,
+  SwatchItem, MisuseItem, MisuseVariant, LogoPairItem,
 } from '../data';
-import { CAREER_PROGRAMS } from '../data';
-import {
-  getConsent, setConsent, getPreferences, setPreferences,
-  clearConsent, clearPreferences, clearSiteCache, clearSefirahTutorial,
-} from '@/utils/consent';
+import { CAREER_PROGRAMS, pubSubpageId } from '../data';
+import { infoHref } from '@/utils/routes';
+
+// In-app navigation passed down from the Information Central shell.
+export type NavigateFn = (tabId: string, subtabId: string) => void;
+
+// Link props for a publication card: when the item has a `slug` it opens the
+// in-app article (real href for middle-click/SEO, SPA nav on plain click);
+// otherwise it falls back to the static href (e.g. a PDF) in a new tab.
+const pubLinkProps = (
+  item: { slug?: string; href?: string },
+  onNavigate?: NavigateFn,
+): React.AnchorHTMLAttributes<HTMLAnchorElement> | null => {
+  if (item.slug) {
+    const subtabId = pubSubpageId(item.slug);
+    return {
+      href: infoHref('newsroom', subtabId),
+      onClick: (e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return; // let new-tab gestures through
+        e.preventDefault();
+        onNavigate?.('newsroom', subtabId);
+      },
+    };
+  }
+  if (item.href) return { href: item.href, target: '_blank', rel: 'noopener noreferrer' };
+  return null;
+};
 
 // ─────────────────────────────────────────────────────────────
 //  Shared block heading
@@ -354,7 +377,7 @@ const PubMeta = ({ pub }: { pub: PublicationItem }) => (
   </div>
 );
 
-const PublicationsBlock = ({ featured, items }: { featured: PublicationItem; items: PublicationItem[] }) => {
+const PublicationsBlock = ({ featured, items, onNavigate }: { featured: PublicationItem; items: PublicationItem[]; onNavigate?: NavigateFn }) => {
   const featuredInner = (
     <div
       className="grid grid-cols-1 lg:grid-cols-2 rounded-3xl overflow-hidden transition-all duration-300 hover:-translate-y-1"
@@ -395,10 +418,11 @@ const PublicationsBlock = ({ featured, items }: { featured: PublicationItem; ite
     </div>
   );
 
+  const featuredLink = pubLinkProps(featured, onNavigate);
   return (
     <div className="space-y-10 sm:space-y-12">
-      {featured.href ? (
-        <a href={featured.href} target="_blank" rel="noopener noreferrer" className="block">{featuredInner}</a>
+      {featuredLink ? (
+        <a {...featuredLink} className="block">{featuredInner}</a>
       ) : featuredInner}
 
       <div>
@@ -426,8 +450,9 @@ const PublicationsBlock = ({ featured, items }: { featured: PublicationItem; ite
                 </div>
               </article>
             );
-            return pub.href ? (
-              <a key={i} href={pub.href} target="_blank" rel="noopener noreferrer" className="block">{card}</a>
+            const link = pubLinkProps(pub, onNavigate);
+            return link ? (
+              <a key={i} {...link} className="block">{card}</a>
             ) : <div key={i}>{card}</div>;
           })}
         </div>
@@ -543,12 +568,13 @@ const handleBtnMouseMove = (e: React.MouseEvent<HTMLElement>) => {
 // ─────────────────────────────────────────────────────────────
 //  Hero — full-screen featured publication with a story selector
 // ─────────────────────────────────────────────────────────────
-const HeroFeature = ({ stories }: { stories: PublicationItem[] }) => {
+const HeroFeature = ({ stories, onNavigate }: { stories: PublicationItem[]; onNavigate?: NavigateFn }) => {
   const [active, setActive] = useState(0);
   const s = stories[active] ?? stories[0];
   if (!s) return null;
 
   const EASE = [0.4, 0, 0.2, 1] as const;
+  const readLink = pubLinkProps(s, onNavigate);
 
   return (
     <section
@@ -590,7 +616,7 @@ const HeroFeature = ({ stories }: { stories: PublicationItem[] }) => {
           Horizontal inset = global brand gutter so the text edge lines up with
           the navbar logo, the footer, and the rest of the site. */}
       <div
-        className="relative z-10 flex-1 flex items-center pt-28 lg:pt-24 pb-10"
+        className="relative z-10 flex-1 flex items-center pt-40 sm:pt-36 lg:pt-24 pb-10"
         style={{ paddingLeft: 'var(--site-gutter-inline)', paddingRight: 'var(--site-gutter-inline)' }}
       >
         <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center lg:h-[460px]">
@@ -617,11 +643,9 @@ const HeroFeature = ({ stories }: { stories: PublicationItem[] }) => {
                 <p className="mt-5 text-base sm:text-lg leading-relaxed max-w-xl" style={{ color: 'var(--content-muted)' }}>
                   {s.excerpt}
                 </p>
-                {s.href && (
+                {readLink && (
                   <a
-                    href={s.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    {...readLink}
                     className="nr-brand-btn mt-8"
                     onMouseMove={handleBtnMouseMove}
                   >
@@ -685,9 +709,10 @@ const HeroFeature = ({ stories }: { stories: PublicationItem[] }) => {
           line up with the hero text above. */}
       <div className="relative z-10 w-full" style={{ borderTop: '1px solid var(--border-color)' }}>
         <div
-          className="flex gap-3 sm:gap-4 overflow-x-auto py-5 sm:py-6"
+          className="flex gap-3 sm:gap-4 overflow-x-auto py-5 sm:py-6 snap-x snap-mandatory"
           style={{
             scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch',
             paddingLeft: 'var(--site-gutter-inline)',
             paddingRight: 'var(--site-gutter-inline)',
           }}
@@ -698,9 +723,9 @@ const HeroFeature = ({ stories }: { stories: PublicationItem[] }) => {
               <button
                 key={i}
                 onClick={() => setActive(i)}
-                className="relative flex-shrink-0 lg:flex-1 text-left px-5 py-4 overflow-hidden transition-all duration-200"
+                aria-pressed={isActive}
+                className="relative flex-shrink-0 lg:flex-1 text-left px-5 py-5 sm:py-4 overflow-hidden transition-all duration-200 rounded-lg snap-start min-w-[78vw] sm:min-w-[200px]"
                 style={{
-                  minWidth: '200px',
                   borderTop: `1px solid ${isActive ? 'transparent' : 'var(--border-color)'}`,
                   background: isActive ? 'var(--hover-bg)' : 'transparent',
                 }}
@@ -731,7 +756,7 @@ const HeroFeature = ({ stories }: { stories: PublicationItem[] }) => {
 // ─────────────────────────────────────────────────────────────
 //  Publication grid — self-contained "Latest Publications" section
 // ─────────────────────────────────────────────────────────────
-const PublicationGridBlock = ({ heading, items }: { heading?: string; items: PublicationItem[] }) => (
+const PublicationGridBlock = ({ heading, items, onNavigate }: { heading?: string; items: PublicationItem[]; onNavigate?: NavigateFn }) => (
   <section
     className="py-16 sm:py-24"
     style={{
@@ -775,13 +800,183 @@ const PublicationGridBlock = ({ heading, items }: { heading?: string; items: Pub
               </div>
             </article>
           );
-          return pub.href ? (
-            <a key={i} href={pub.href} target="_blank" rel="noopener noreferrer" className="block">{card}</a>
+          const link = pubLinkProps(pub, onNavigate);
+          return link ? (
+            <a key={i} {...link} className="block">{card}</a>
           ) : <div key={i}>{card}</div>;
         })}
       </div>
     </div>
   </section>
+);
+
+// ─────────────────────────────────────────────────────────────
+//  Brand guidelines — paired logo specimens (light + dark)
+// ─────────────────────────────────────────────────────────────
+// One panel per background: black-ink art on a near-white panel, white-ink art
+// on near-black. The artwork is never recolored. A small download pill sits in
+// the corner of each panel so the exact transparent PNG is one click away.
+const LogoPanel = ({ src, dark, label, tall }: { src: string; dark?: boolean; label: string; tall?: boolean }) => (
+  <div
+    className="relative flex items-center justify-center p-3 sm:p-4"
+    style={{ background: dark ? '#0a0a0a' : '#f6f7f9', minHeight: tall ? 300 : 260 }}
+  >
+    <span
+      className="absolute top-3 left-3 text-[0.6rem] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full"
+      style={{
+        background: dark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+        color: dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.55)',
+      }}
+    >
+      {label}
+    </span>
+    <a
+      href={encodeURI(src)}
+      download
+      className="absolute top-2.5 right-3 inline-flex items-center justify-center w-7 h-7 rounded-full opacity-60 hover:opacity-100 transition-opacity"
+      style={{ color: dark ? '#fff' : '#0a0a0a', background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)' }}
+      aria-label={`Download ${label.toLowerCase()} PNG`}
+    >
+      <i className="bi bi-download text-xs" />
+    </a>
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    <img src={encodeURI(src)} alt="" className="w-auto object-contain" style={{ maxHeight: tall ? 280 : 240, maxWidth: '96%' }} />
+  </div>
+);
+
+const LogoPairCard = ({ item }: { item: LogoPairItem }) => {
+  const single = !item.dark;
+  const stack = item.layout === 'stack';
+  const divider = stack
+    ? { borderBottom: '1px solid var(--border-color)' }
+    : { borderRight: '1px solid var(--border-color)' };
+
+  return (
+    <div
+      className={`h-full rounded-2xl overflow-hidden flex flex-col ${item.wide ? 'lg:col-span-2' : ''}`}
+      style={{ background: 'var(--surface-elevated)', border: '1px solid var(--border-color)' }}
+    >
+      <div className={single ? '' : stack ? 'flex flex-col' : 'grid grid-cols-2'}>
+        <div style={single ? undefined : divider}>
+          <LogoPanel src={item.light} label="Light" tall={item.wide} />
+        </div>
+        {!single && <LogoPanel src={item.dark!} dark label="Dark" tall={item.wide} />}
+      </div>
+      <div className="p-5 mt-auto">
+        <h4 className="font-semibold text-sm sm:text-base leading-snug" style={{ color: 'var(--content-primary)' }}>{item.title}</h4>
+        {item.caption && (
+          <p className="mt-1.5 text-xs sm:text-sm leading-relaxed" style={{ color: 'var(--content-muted)' }}>{item.caption}</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const LogoPairsBlock = ({ heading, items }: { heading?: string; items: LogoPairItem[] }) => (
+  <div>
+    {heading && <BlockHeading>{heading}</BlockHeading>}
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+      {items.map((item, i) => <LogoPairCard key={i} item={item} />)}
+    </div>
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────────
+//  Brand guidelines — clear space & minimum size
+// ─────────────────────────────────────────────────────────────
+const ClearspaceBlock = ({ heading, src, note }: { heading?: string; src: string; note?: string }) => (
+  <div>
+    {heading && <BlockHeading>{heading}</BlockHeading>}
+    <div
+      className="rounded-2xl p-8 sm:p-12 flex flex-col items-center"
+      style={{ background: '#0a0a0a', border: '1px solid var(--border-color)' }}
+    >
+      {/* dashed frame = clear-space margin; inner solid frame = logo bounds */}
+      <div className="relative" style={{ padding: 56 }}>
+        <span className="pointer-events-none absolute inset-0 rounded-lg" style={{ border: '1px dashed rgba(255,255,255,0.28)' }} />
+        <span className="absolute top-1.5 left-2 text-[0.6rem] font-bold tracking-widest" style={{ color: 'rgba(255,255,255,0.45)' }}>X</span>
+        <span className="absolute bottom-1.5 right-2 text-[0.6rem] font-bold tracking-widest" style={{ color: 'rgba(255,255,255,0.45)' }}>X</span>
+        <div className="relative" style={{ outline: '1px solid rgba(255,255,255,0.14)' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={encodeURI(src)} alt="Logo clear space" className="block w-36 h-36 sm:w-44 sm:h-44 object-contain" />
+        </div>
+      </div>
+      {note && (
+        <p className="mt-7 text-xs sm:text-sm leading-relaxed text-center max-w-xl" style={{ color: 'rgba(255,255,255,0.62)' }}>{note}</p>
+      )}
+    </div>
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────────
+//  Brand guidelines — color palette
+// ─────────────────────────────────────────────────────────────
+const PaletteBlock = ({ heading, items }: { heading?: string; items: SwatchItem[] }) => (
+  <div>
+    {heading && <BlockHeading>{heading}</BlockHeading>}
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      {items.map((sw, i) => (
+        <div key={i} className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border-color)' }}>
+          <div className="h-28 sm:h-32 flex items-end p-4" style={{ background: sw.hex }}>
+            <span
+              className="text-xs font-semibold tracking-wide"
+              style={{ color: sw.ink === 'dark' ? 'rgba(0,0,0,0.72)' : 'rgba(255,255,255,0.92)' }}
+            >
+              {sw.hex.toUpperCase()}
+            </span>
+          </div>
+          <div className="p-4" style={{ background: 'var(--surface-elevated)' }}>
+            <div className="font-semibold text-sm" style={{ color: 'var(--content-primary)' }}>{sw.name}</div>
+            {sw.usage && <p className="mt-1 text-xs leading-relaxed" style={{ color: 'var(--content-muted)' }}>{sw.usage}</p>}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────────
+//  Brand guidelines — logo misuse grid
+// ─────────────────────────────────────────────────────────────
+// Each preset distorts the base mark to demonstrate a prohibited treatment.
+const MISUSE_STYLE: Record<MisuseVariant, React.CSSProperties> = {
+  stretch:     { transform: 'scaleX(1.7)' },
+  squish:      { transform: 'scaleY(1.7)' },
+  rotate:      { transform: 'rotate(22deg)' },
+  recolor:     { filter: 'grayscale(1) brightness(2.2)' },
+  effects:     { filter: 'drop-shadow(0 6px 9px rgba(0,0,0,0.95)) drop-shadow(0 0 16px rgba(235,17,67,0.85))' },
+  lowContrast: { opacity: 0.16 },
+  crop:        { transform: 'scale(1.95)' },
+  busy:        {},
+};
+const MISUSE_CARD_BG: Partial<Record<MisuseVariant, string>> = {
+  busy: 'repeating-linear-gradient(45deg, #4b4b52 0 14px, #8a8a93 14px 28px)',
+};
+
+const MisuseBlock = ({ heading, base, items }: { heading?: string; base: string; items: MisuseItem[] }) => (
+  <div>
+    {heading && <BlockHeading>{heading}</BlockHeading>}
+    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+      {items.map((m, i) => (
+        <div key={i} className="rounded-2xl overflow-hidden" style={{ border: '1px solid var(--border-color)' }}>
+          <div
+            className="relative h-48 sm:h-56 flex items-center justify-center overflow-hidden"
+            style={{ background: MISUSE_CARD_BG[m.variant] ?? '#f6f7f9' }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={encodeURI(base)} alt="" aria-hidden className="w-28 h-28 sm:w-32 sm:h-32 object-contain" style={MISUSE_STYLE[m.variant]} />
+            <span className="absolute top-3 right-3 inline-flex items-center justify-center w-7 h-7 rounded-full" style={{ background: '#EB1143', color: '#fff' }}>
+              <i className="bi bi-x-lg text-xs" />
+            </span>
+          </div>
+          <div className="p-4 flex items-start gap-2" style={{ background: 'var(--surface-elevated)' }}>
+            <i className="bi bi-x-circle-fill mt-0.5 flex-shrink-0" style={{ color: '#EB1143' }} />
+            <span className="text-xs sm:text-sm leading-relaxed" style={{ color: 'var(--content-muted)' }}>{m.label}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
 );
 
 // ─────────────────────────────────────────────────────────────
@@ -796,246 +991,6 @@ const NoteBlock = ({ text }: { text: string }) => (
     <p className="text-sm sm:text-base leading-relaxed" style={{ color: 'var(--content-muted)' }}>{renderInline(text)}</p>
   </div>
 );
-
-// ─────────────────────────────────────────────────────────────
-//  Preferences — cookie consent + user preference toggles
-// ─────────────────────────────────────────────────────────────
-const Toggle = ({ on, locked, onChange }: { on: boolean; locked?: boolean; onChange?: () => void }) => (
-  <button
-    type="button"
-    role="switch"
-    aria-checked={on}
-    disabled={locked}
-    onClick={locked ? undefined : onChange}
-    className="relative flex-shrink-0 rounded-full transition-colors"
-    style={{
-      width: 42, height: 24,
-      background: on ? '#E31B54' : 'var(--hover-bg-strong, rgba(120,120,130,0.3))',
-      border: '1px solid var(--border-color)',
-      cursor: locked ? 'not-allowed' : 'pointer',
-      opacity: locked ? 0.55 : 1,
-    }}
-  >
-    <span
-      className="absolute top-1/2 rounded-full transition-all"
-      style={{
-        width: 18, height: 18,
-        left: on ? 21 : 3,
-        transform: 'translateY(-50%)',
-        background: '#fff',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.35)',
-      }}
-    />
-  </button>
-);
-
-type PrefRow = { id: string; title: string; desc: string; locked?: boolean; default: boolean };
-type PrefGroup = { heading: string; rows: PrefRow[] };
-
-const PREF_GROUPS: PrefGroup[] = [
-  {
-    heading: 'Cookie Settings',
-    rows: [
-      { id: 'essential',     title: 'Strictly Necessary', desc: 'Required for the site to function. Always on.', locked: true, default: true },
-      { id: 'analytics',     title: 'Analytics',          desc: 'Helps us understand usage to improve the experience.', default: true },
-      { id: 'personalization', title: 'Personalization',  desc: 'Remembers your choices to tailor content.', default: true },
-      { id: 'marketing',     title: 'Marketing',          desc: 'Used to measure and deliver relevant campaigns.', default: false },
-    ],
-  },
-  {
-    heading: 'User Preferences',
-    rows: [
-      { id: 'emails',        title: 'Product & Release Emails', desc: 'Occasional updates about new releases and research.', default: false },
-      { id: 'reducedMotion', title: 'Reduced Motion',           desc: 'Minimize animations and motion effects.', default: false },
-      { id: 'highContrast',  title: 'High Contrast',            desc: 'Increase contrast for improved readability.', default: false },
-    ],
-  },
-];
-
-// Small secondary action button used by the Data & Cache controls.
-const ActionButton = ({
-  onClick, disabled, danger, children,
-}: {
-  onClick: () => void; disabled?: boolean; danger?: boolean; children: React.ReactNode;
-}) => (
-  <button
-    type="button"
-    onClick={onClick}
-    disabled={disabled}
-    className="flex-shrink-0 rounded-xl font-semibold transition-colors"
-    style={{
-      padding: '0.6rem 1.15rem',
-      fontSize: '0.85rem',
-      whiteSpace: 'nowrap',
-      cursor: disabled ? 'not-allowed' : 'pointer',
-      opacity: disabled ? 0.55 : 1,
-      border: `1px solid ${danger ? 'rgba(227,27,84,0.5)' : 'var(--border-color)'}`,
-      background: 'var(--hover-bg)',
-      color: danger ? '#E31B54' : 'var(--content-secondary)',
-    }}
-  >
-    {children}
-  </button>
-);
-
-const PreferencesBlock = () => {
-  const [state, setState] = useState<Record<string, boolean>>(() => {
-    const init: Record<string, boolean> = {};
-    PREF_GROUPS.forEach((g) => g.rows.forEach((r) => { init[r.id] = r.default; }));
-    return init;
-  });
-  const [saved, setSaved] = useState(false);
-  const [clearing, setClearing] = useState(false);
-  const [cacheMsg, setCacheMsg] = useState<string | null>(null);
-
-  // Hydrate from the shared stores so this page reflects the banner's choice.
-  useEffect(() => {
-    const c = getConsent();
-    const p = getPreferences();
-    setState((s) => ({
-      ...s,
-      essential: true,
-      analytics: c.analytics,
-      personalization: c.personalization,
-      marketing: c.marketing,
-      emails: p.emails,
-      reducedMotion: p.reducedMotion,
-      highContrast: p.highContrast,
-    }));
-  }, []);
-
-  const toggle = (id: string) => {
-    setState((s) => ({ ...s, [id]: !s[id] }));
-    setSaved(false);
-  };
-
-  const handleSave = () => {
-    setConsent({
-      analytics: !!state.analytics,
-      personalization: !!state.personalization,
-      marketing: !!state.marketing,
-    });
-    setPreferences({
-      emails: !!state.emails,
-      reducedMotion: !!state.reducedMotion,
-      highContrast: !!state.highContrast,
-    });
-    setSaved(true);
-  };
-
-  const handleClearCache = async () => {
-    setClearing(true);
-    setCacheMsg(null);
-    await clearSiteCache();
-    setClearing(false);
-    setCacheMsg('Cached data cleared — reloading…');
-    setTimeout(() => window.location.reload(), 900);
-  };
-
-  const handleResetConsent = () => {
-    clearConsent();
-    clearPreferences();
-    clearSefirahTutorial();
-    setState((s) => {
-      const next = { ...s };
-      PREF_GROUPS.forEach((g) => g.rows.forEach((r) => { next[r.id] = r.default; }));
-      next.essential = true;
-      return next;
-    });
-    setSaved(false);
-    setCacheMsg('Cookie and site preferences reset. The cookie banner and Sefirah tutorial will reappear on the main site.');
-  };
-
-  return (
-    <div className="space-y-10">
-      {PREF_GROUPS.map((group) => (
-        <div key={group.heading}>
-          <BlockHeading>{group.heading}</BlockHeading>
-          <div className="space-y-3">
-            {group.rows.map((row) => (
-              <div
-                key={row.id}
-                className="flex items-center justify-between gap-5 rounded-2xl p-4 sm:p-5"
-                style={{ background: 'var(--hover-bg)', border: '1px solid var(--border-color)' }}
-              >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-sm sm:text-base" style={{ color: 'var(--content-secondary)' }}>{row.title}</span>
-                    {row.locked && (
-                      <span className="text-[0.6rem] uppercase tracking-wider px-1.5 py-0.5 rounded" style={{ background: 'var(--hover-bg-strong, rgba(120,120,130,0.18))', color: 'var(--content-muted)' }}>Required</span>
-                    )}
-                  </div>
-                  <p className="text-xs sm:text-sm mt-1 leading-relaxed" style={{ color: 'var(--content-muted)' }}>{row.desc}</p>
-                </div>
-                <Toggle on={state[row.id]} locked={row.locked} onChange={() => toggle(row.id)} />
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-
-      <div className="flex flex-wrap items-center gap-3 pt-2">
-        <button
-          type="button"
-          onClick={handleSave}
-          className="brand-btn"
-          onMouseMove={(e) => {
-            const r = e.currentTarget.getBoundingClientRect();
-            e.currentTarget.style.setProperty('--mouse-x', `${e.clientX - r.left}px`);
-            e.currentTarget.style.setProperty('--mouse-y', `${e.clientY - r.top}px`);
-          }}
-        >
-          Save preferences
-        </button>
-        {saved && (
-          <span className="text-sm inline-flex items-center gap-1.5" style={{ color: 'var(--content-muted)' }}>
-            <i className="bi bi-check-circle-fill" style={{ color: '#22c55e' }} /> Preferences saved
-          </span>
-        )}
-      </div>
-
-      {/* ── Data & Cache ── */}
-      <div>
-        <BlockHeading>Data &amp; Cache</BlockHeading>
-        <div className="space-y-3">
-          <div
-            className="flex items-center justify-between gap-5 rounded-2xl p-4 sm:p-5"
-            style={{ background: 'var(--hover-bg)', border: '1px solid var(--border-color)' }}
-          >
-            <div className="min-w-0">
-              <span className="font-semibold text-sm sm:text-base" style={{ color: 'var(--content-secondary)' }}>Clear cached data</span>
-              <p className="text-xs sm:text-sm mt-1 leading-relaxed" style={{ color: 'var(--content-muted)' }}>
-                Remove locally cached files and temporary session data, then reload with a fresh copy of the site.
-              </p>
-            </div>
-            <ActionButton onClick={handleClearCache} disabled={clearing}>
-              {clearing ? 'Clearing…' : 'Clear cache'}
-            </ActionButton>
-          </div>
-
-          <div
-            className="flex items-center justify-between gap-5 rounded-2xl p-4 sm:p-5"
-            style={{ background: 'var(--hover-bg)', border: '1px solid var(--border-color)' }}
-          >
-            <div className="min-w-0">
-              <span className="font-semibold text-sm sm:text-base" style={{ color: 'var(--content-secondary)' }}>Reset cookie &amp; site preferences</span>
-              <p className="text-xs sm:text-sm mt-1 leading-relaxed" style={{ color: 'var(--content-muted)' }}>
-                Forget your consent and preference choices. The cookie banner will appear again on your next visit.
-              </p>
-            </div>
-            <ActionButton onClick={handleResetConsent} danger>Reset</ActionButton>
-          </div>
-        </div>
-
-        {cacheMsg && (
-          <span className="text-sm inline-flex items-center gap-1.5 mt-3" style={{ color: 'var(--content-muted)' }}>
-            <i className="bi bi-info-circle-fill" style={{ color: '#22c55e' }} /> {cacheMsg}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-};
 
 // ─────────────────────────────────────────────────────────────
 //  Careers — search + program filter over a single column of roles
@@ -1172,7 +1127,7 @@ const CareersBlock = ({ roles }: { roles: RoleItem[] }) => {
 // ─────────────────────────────────────────────────────────────
 //  Dispatcher
 // ─────────────────────────────────────────────────────────────
-const BlockRenderer = ({ block }: { block: ContentBlock }) => {
+const BlockRenderer = ({ block, onNavigate }: { block: ContentBlock; onNavigate?: NavigateFn }) => {
   switch (block.type) {
     case 'releases':  return <ReleasesBlock />;
     case 'text':      return <TextBlock heading={block.heading} paragraphs={block.paragraphs} />;
@@ -1180,26 +1135,29 @@ const BlockRenderer = ({ block }: { block: ContentBlock }) => {
     case 'cards':     return <CardsBlock heading={block.heading} columns={block.columns} items={block.items} />;
     case 'documents': return <DocumentsBlock heading={block.heading} items={block.items} />;
     case 'people':    return <PeopleBlock heading={block.heading} items={block.items} />;
-    case 'publications': return <PublicationsBlock featured={block.featured} items={block.items} />;
-    case 'hero':      return <HeroFeature stories={block.stories} />;
-    case 'publicationGrid': return <PublicationGridBlock heading={block.heading} items={block.items} />;
+    case 'publications': return <PublicationsBlock featured={block.featured} items={block.items} onNavigate={onNavigate} />;
+    case 'hero':      return <HeroFeature stories={block.stories} onNavigate={onNavigate} />;
+    case 'publicationGrid': return <PublicationGridBlock heading={block.heading} items={block.items} onNavigate={onNavigate} />;
     case 'note':      return <NoteBlock text={block.text} />;
     case 'careers':   return <CareersBlock roles={block.roles} />;
-    case 'preferences': return <PreferencesBlock />;
+    case 'logoPairs': return <LogoPairsBlock heading={block.heading} items={block.items} />;
+    case 'clearspace': return <ClearspaceBlock heading={block.heading} src={block.src} note={block.note} />;
+    case 'palette':   return <PaletteBlock heading={block.heading} items={block.items} />;
+    case 'misuse':    return <MisuseBlock heading={block.heading} base={block.base} items={block.items} />;
     default:          return null;
   }
 };
 
-export const SubtabBody = memo(({ blocks, flush = false }: { blocks: ContentBlock[]; flush?: boolean }) => {
+export const SubtabBody = memo(({ blocks, flush = false, onNavigate }: { blocks: ContentBlock[]; flush?: boolean; onNavigate?: NavigateFn }) => {
   // `flush` renders self-contained, full-bleed sections (landing pages) with no
   // inter-block spacing so sections sit seamlessly against each other.
   if (flush) {
-    return <>{blocks.map((block, i) => <BlockRenderer key={i} block={block} />)}</>;
+    return <>{blocks.map((block, i) => <BlockRenderer key={i} block={block} onNavigate={onNavigate} />)}</>;
   }
   return (
     <div className="space-y-12 sm:space-y-16">
       {blocks.map((block, i) => (
-        <BlockRenderer key={i} block={block} />
+        <BlockRenderer key={i} block={block} onNavigate={onNavigate} />
       ))}
     </div>
   );
