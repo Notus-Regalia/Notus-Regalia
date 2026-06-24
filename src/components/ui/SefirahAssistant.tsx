@@ -1,4 +1,5 @@
 "use client";
+import Link from 'next/link';
 import { useState, useRef, useEffect, useLayoutEffect, useCallback, useMemo, useId } from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import { cn } from '@/utils/cn';
@@ -475,14 +476,14 @@ export default function SefirahAssistant() {
                   sections, and tune your experience — all from one place.
                 </p>
                 <div className="sefirah-about-links">
-                  <a className="sefirah-about-link" href="/sitemap">
+                  <Link className="sefirah-about-link" href="/sitemap">
                     <i className="bi bi-diagram-3" />
                     <span>Sitemap</span>
-                  </a>
-                  <a className="sefirah-about-link" href="/status">
+                  </Link>
+                  <Link className="sefirah-about-link" href="/status">
                     <i className="bi bi-activity" />
                     <span>Status</span>
-                  </a>
+                  </Link>
                 </div>
               </div>
             )}
