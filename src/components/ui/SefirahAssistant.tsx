@@ -19,8 +19,8 @@ const clampNum = (v: number, min: number, max: number) => Math.max(min, Math.min
 type TabId = 'search' | 'settings' | 'about';
 const RAIL_TABS: { id: TabId; icon: string; label: string; group: 'top' | 'bottom' }[] = [
   { id: 'search',   icon: 'bi-search',       label: 'Sefirah',  group: 'top' },
-  { id: 'about',    icon: 'bi-info-circle',  label: 'About',    group: 'bottom' },
   { id: 'settings', icon: 'bi-sliders',      label: 'Settings', group: 'bottom' },
+  { id: 'about',    icon: 'bi-info-circle',  label: 'About',    group: 'bottom' },
 ];
 
 // Curated quick-access suggestions shown when the field is empty.
@@ -474,6 +474,16 @@ export default function SefirahAssistant() {
                   Your guide across Notus Regalia. Search the site, jump between
                   sections, and tune your experience — all from one place.
                 </p>
+                <div className="sefirah-about-links">
+                  <a className="sefirah-about-link" href="/sitemap">
+                    <i className="bi bi-diagram-3" />
+                    <span>Sitemap</span>
+                  </a>
+                  <a className="sefirah-about-link" href="/status">
+                    <i className="bi bi-activity" />
+                    <span>Status</span>
+                  </a>
+                </div>
               </div>
             )}
             </div>
@@ -716,6 +726,15 @@ const SEFIRAH_CSS = `
 .sefirah-about { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 18px 6px; }
 .sefirah-about-icon { width: 64px; height: 64px; color: var(--content-primary); }
 .sefirah-about-text { font-size: 0.9rem; line-height: 1.6; color: var(--content-faint); max-width: 30ch; }
+.sefirah-about-links { display: flex; gap: 10px; margin-top: 6px; }
+.sefirah-about-link {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 14px; border-radius: 10px;
+  border: 1px solid var(--border-color); background: var(--surface-card);
+  color: var(--content-secondary); font-size: 0.85rem; font-weight: 500;
+  text-decoration: none; transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.sefirah-about-link:hover { color: var(--content-primary); border-color: var(--content-faint); background: var(--hover-bg); }
 .sefirah-action {
   display: inline-flex; align-items: center; gap: 5px;
   padding: 6px 10px; border-radius: 999px;

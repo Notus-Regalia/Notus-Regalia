@@ -92,20 +92,10 @@ export default function ReleasesSection() {
           font-size: 0.95rem; line-height: 1.6;
           color: var(--content-secondary, rgba(255,255,255,0.5));
         }
-        :root.light .releases-sub { color: rgba(0,0,0,0.55); }
-        .releases-all {
-          display: inline-flex; align-items: center; gap: 0.5rem;
-          padding-bottom: 0.35rem;
-          font-family: ui-monospace, Menlo, monospace;
-          font-size: 0.7rem; font-weight: 600;
-          letter-spacing: 0.16em; text-transform: uppercase;
-          color: var(--content-secondary, rgba(255,255,255,0.55));
-          white-space: nowrap;
-          border-bottom: 1px solid transparent;
-          transition: color 0.2s ease, gap 0.2s ease, border-color 0.2s ease;
+        @media(min-width:768px){
+          .releases-sub { margin-top: 0; text-align: right; }
         }
-        :root.light .releases-all { color: rgba(0,0,0,0.55); }
-        .releases-all:hover { color: var(--accent); gap: 0.75rem; border-color: var(--accent); }
+        :root.light .releases-sub { color: rgba(0,0,0,0.55); }
 
         /* ── Shared meta row (date · tag) ── */
         .release-meta {
@@ -244,14 +234,14 @@ export default function ReleasesSection() {
         .release-row-arrow {
           display: inline-flex; align-items: center; justify-content: center;
           width: 38px; height: 38px; border-radius: 50%;
-          border: 1px solid var(--rl-line);
-          color: var(--content-secondary, rgba(255,255,255,0.5));
+          border: 1px solid #000;
+          background: #000;
+          color: #fff;
           flex-shrink: 0;
-          transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+          transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
         }
         .release-row:hover .release-row-arrow {
-          color: #fff; background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.85);
-          box-shadow: 0 0 14px rgba(255,255,255,0.55), 0 0 4px rgba(255,255,255,0.4);
+          color: #000; background: #fff; border-color: #fff;
         }
 
         /* ── Footer CTA → Information Central ── */
@@ -312,19 +302,13 @@ export default function ReleasesSection() {
       >
         <div className="releases-inner">
           <div className="releases-head rl-reveal">
-            <div>
-              <h2 className="releases-title">
-                Latest <em>Releases</em>
-              </h2>
-              <p className="releases-sub">
-                Formation milestones, venture progress, governance, and compliance —
-                straight from the Notus Regalia newsroom.
-              </p>
-            </div>
-            <a className="releases-all" href={INFO_CENTRAL_HREF}>
-              Information Central
-              <Arrow size={14} />
-            </a>
+            <h2 className="releases-title">
+              Latest <em>Releases</em>
+            </h2>
+            <p className="releases-sub">
+              Formation milestones, venture progress, governance, and compliance —
+              straight from the Notus Regalia newsroom.
+            </p>
           </div>
 
           {/* Featured latest release */}

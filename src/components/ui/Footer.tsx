@@ -636,8 +636,9 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
           position: absolute;
           top: 0; bottom: 0; left: -72px; right: 0;
           clip-path: polygon(72px 0, 100% 0, calc(100% - 72px) 100%, 0 100%);
-          background: #070707;
+          background: #000000;
           z-index: 0;
+          overflow: hidden;
         }
 
         .split-panel-ct {
@@ -761,7 +762,7 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
         /* ── Contact emails (always dark) ── */
         .ct-email-list {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
+          grid-template-columns: repeat(2, max-content);
           gap: 2.5rem clamp(1.5rem, 4vw, 10rem);
         }
         .ct-email-row { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
@@ -777,10 +778,8 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
           color: rgba(255,255,255,0.7); font-weight: 500; letter-spacing: 0.01em;
           cursor: pointer; background: none; border: none; padding: 0; text-align: left;
           transition: color 0.2s ease;
-          /* FIX: allow wrapping on small screens instead of overflowing into the seam */
-          white-space: normal;
-          word-break: break-all;
-          overflow-wrap: anywhere;
+          /* Keep the address on a single line */
+          white-space: nowrap;
           min-width: 0;
         }
         .ct-email-btn > span { display: inline; }
@@ -1052,7 +1051,15 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
 
         {/* Left: Contact Us */}
         <div className="split-panel split-panel-nl">
-          <div className="split-panel-nl-bg" ref={nlBgRef} />
+          <div className="split-panel-nl-bg" ref={nlBgRef}>
+            <DotPattern
+              containerRef={nlBgRef}
+              dotSize={1.5} gap={28}
+              baseColor="#1e2a38" glowColor="#EB1143"
+              proximity={110} glowIntensity={0.85} waveSpeed={0.35}
+              baseOpacity={0.99}
+            />
+          </div>
           <div className="split-panel-content">
             <div style={{ textAlign: 'left' }}>
               <h2 className="sp-title">Contact Us</h2>
@@ -1102,7 +1109,7 @@ const Footer = ({ onNavigate, sections: sectionsProp, logoHref = '/#hero', brand
                 <div className="nl-slot-inner">
                   <p className="nl-success">
                     <i className="bi bi-check-circle-fill" />
-                    You&apos;re in. Watch for the first dispatch.
+                    Subscription confirmed. Thank you for joining us.
                   </p>
                 </div>
               ) : (

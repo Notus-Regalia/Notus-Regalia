@@ -132,19 +132,19 @@ const InfoLoadingScreen = ({ duration = 3000, onComplete }: InfoLoadingScreenPro
 
         .nr-loading-tagline {
           font-family: 'Inter', system-ui, sans-serif;
-          font-size: clamp(0.7rem, 1.6vw, 0.95rem);
-          font-weight: 500;
-          letter-spacing: 0.34em;
+          font-size: clamp(0.65rem, 1.5vw, 0.85rem);
+          font-weight: 400;
+          letter-spacing: 0.18em;
           text-transform: uppercase;
           color: rgba(255, 255, 255, 0);
+          margin-top: -0.85rem;
           animation: taglineFade ${duration || 3000}ms ease forwards;
           animation-delay: 0.8s;
-          padding-left: 0.34em;
         }
 
         @keyframes taglineFade {
           0%   { color: rgba(255, 255, 255, 0); }
-          40%  { color: rgba(235, 17, 67, 0.35); }
+          40%  { color: rgba(255, 255, 255, 0.28); }
           100% { color: rgba(255, 255, 255, 0.45); }
         }
       `}</style>

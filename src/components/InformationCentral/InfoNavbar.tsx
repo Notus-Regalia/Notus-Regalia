@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { NAVBAR_CSS } from '@/components/ui/navbar-styles';
 import SearchModal from '@/components/ui/SearchModal';
+import SidebarFooter from '@/components/ui/SidebarFooter';
 import NavDropdown, { type DropItem } from '@/components/ui/NavDropdown';
 import { INFO_TABS, SUBTAB_SUBPAGES, type InfoTab, type InfoSubtab } from './data';
 
@@ -520,7 +521,7 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
   useEffect(() => {
     const SELECTORS = [
       '.tab-item-border', '.tab-label-btn', '.tab-arrow-btn', '.strip-tab', '.strip-collapse',
-      '.logo-mark', '.mob-tab-btn', '.mob-subtab-btn', '.mob-close', '.mob-search',
+      '.logo-mark', '.mob-tab-btn', '.mob-subtab-btn', '.mob-close',
       '.mobile-burger',
     ].join(', ');
     const onPointerDown = (e: PointerEvent) => {
@@ -684,16 +685,23 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
       <div className={`mob-overlay${mobileOpen ? ' open' : ''}`} onClick={closeMobile} />
       <div className={`mob-sidebar${mobileOpen ? ' open' : ''}`}>
         <div className="mob-header">
+          <span className="mob-brand-icon">
+            <Image src="/assets/Notus-Regalia-logo.svg" alt="Notus Regalia" width={34} height={34} priority />
+          </span>
           <span className="mob-header-title">Information Central</span>
           <button className="mob-close" onClick={closeMobile} aria-label="Close menu">
             <i className="bi bi-x-lg" />
           </button>
         </div>
-        <div className="mob-search" onClick={() => { setMobileOpen(false); setSearchOpen(true); }}>
-          <i className="bi bi-search" />
-          <span>Search…</span>
-        </div>
         <div className="mob-nav-list">
+          <button
+            className="mob-tab-btn"
+            onClick={() => { closeMobile(); onLogoClick(); }}
+          >
+            <span className="mob-tab-left">
+              Home
+            </span>
+          </button>
           {INFO_TABS.map(item => {
             const active = activeSet.has(item.id);
             const isTabExpanded = mobileExpandedTab === item.id;
@@ -704,7 +712,6 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
                   onClick={() => toggleMobileTab(item.id)}
                 >
                   <span className="mob-tab-left">
-                    <i className={`bi ${item.icon}`} />
                     {item.label}
                   </span>
                   <i className={`bi bi-chevron-right mob-tab-chevron${isTabExpanded ? ' open' : ''}`} />
@@ -726,11 +733,11 @@ const InfoNavbar = ({ activeTab, activeSubtab, onTabClick, onSubtabClick, onLogo
           })}
           <Link className="mob-tab-btn" href="/">
             <span className="mob-tab-left">
-              <i className="bi bi-arrow-left" />
               Back to Notus Regalia
             </span>
           </Link>
         </div>
+        <SidebarFooter />
       </div>
     </>
   );
