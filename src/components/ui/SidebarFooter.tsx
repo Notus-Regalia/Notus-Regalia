@@ -21,11 +21,11 @@ const SidebarFooter = () => {
 
   return (
     <div className="mob-footer">
-      <span className="mob-footer-copy">© {year} Notus Regalia</span>
       <a className="mob-footer-contact" href="mailto:info@notusregalia.tech">
         <i className="bi bi-envelope" aria-hidden="true" />
         info@notusregalia.tech
       </a>
+      <span className="mob-footer-copy">© {year} Notus Regalia</span>
       <span className="mob-footer-time" suppressHydrationWarning>{stamp}</span>
     </div>
   );

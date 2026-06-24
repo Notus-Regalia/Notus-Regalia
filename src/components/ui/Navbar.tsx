@@ -2,7 +2,7 @@
 import Image from 'next/image';
 import { Fragment, useState, useEffect, useRef, useCallback, useMemo, memo } from 'react';
 import SearchModal from './SearchModal';
-import ThemeToggle from './ThemeToggle';
+import SidebarFooter from './SidebarFooter';
 import NavDropdown, { type DropItem } from './NavDropdown';
 import { NAVBAR_CSS } from './navbar-styles';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
@@ -1148,7 +1148,6 @@ const Navbar = ({
     }
   }, [setActiveTab, onSubtabClick, setNavProgress, syncNavProgressFor]);
 
-  const handleMobileSearch = useCallback(() => { setMobileOpen(false); setSearchOpen(true); }, []);
 
   const onSidebarTouchStart = useCallback((e: React.TouchEvent) => {
     touchRef.current = { startX: e.touches[0].clientX, startY: e.touches[0].clientY };
@@ -1172,7 +1171,7 @@ const Navbar = ({
       '.tab-item-border', '.tab-label-btn', '.tab-arrow-btn',
       '.strip-tab', '.strip-anchor', '.strip-crumb', '.strip-collapse',
       '.logo-mark', '.mob-brand', '.mob-tab-btn', '.mob-subtab-btn',
-      '.mob-close', '.mob-search', '.mobile-burger',
+      '.mob-close', '.mobile-burger',
     ].join(', ');
 
     const onPointerDown = (e: PointerEvent) => {
@@ -1474,16 +1473,17 @@ const Navbar = ({
               Notus <span style={{ color: '#EB1143', fontWeight: 300 }}>Regalia</span>
             </span>
           </button>
-          <ThemeToggle />
           <button className="mob-close" onClick={closeMobile} aria-label="Close menu">
             <i className="bi bi-x-lg" />
           </button>
         </div>
-        <div className="mob-search" onClick={handleMobileSearch}>
-          <i className="bi bi-search" />
-          <span>Search…</span>
-        </div>
         <div className="mob-nav-list">
+          <button
+            className={`mob-tab-btn${activeTab === 'home' ? ' is-active' : ''}`}
+            onClick={() => handleMobileTabClick('home')}
+          >
+            <span className="mob-tab-left">Home</span>
+          </button>
           {NAV_ITEMS.map(item => {
             const active        = activeSet.has(item.id);
             const isTabExpanded = mobileExpandedTab === item.id;
@@ -1504,12 +1504,6 @@ const Navbar = ({
                 </button>
                 {hasSubtabs && (
                   <div className={`mob-subtabs ${isTabExpanded ? 'expanded' : 'collapsed'}`}>
-                    <button
-                      className={`mob-subtab-btn${active && !activeSubtab ? ' is-active' : ''}`}
-                      onClick={() => handleMobileTabClick(item.id)}
-                    >
-                      All {item.label}
-                    </button>
                     {item.subtabs!.map(sub => (
                       <button
                         key={sub.id}
@@ -1526,6 +1520,7 @@ const Navbar = ({
             );
           })}
         </div>
+        <SidebarFooter />
       </div>
     </>
   );

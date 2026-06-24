@@ -400,10 +400,6 @@ export default function SefirahAssistant() {
                       <span className="sefirah-action-live">{navLocked ? 'Navigation locked' : 'Lock navigation'}</span>
                     </span>
                   </button>
-                  <button type="button" className="sefirah-action" title="Coming soon">
-                    <i className="bi bi-translate" />
-                    <span>Language</span>
-                  </button>
                 </div>
 
                 {/* Input field — doubles as the search bar */}
@@ -765,5 +761,10 @@ const SEFIRAH_CSS = `
   .sefirah-fab-wrap { right: 16px; bottom: 16px; }
   .sefirah-fab { width: 52px; height: 52px; }
   .sefirah-fab-icon { width: 27px; height: 27px; }
+  .sefirah-panel-head { padding: 0 14px 0 18px; height: 52px; }
+  .sefirah-panel-body { padding: 20px 18px; }
+  .sefirah-rail { width: 54px; }
+  .sefirah-rail-tab { height: 52px; flex: 0 0 52px; font-size: 0.95rem; }
+  .sefirah-rail-ind { height: 52px; }
 }
 `;
