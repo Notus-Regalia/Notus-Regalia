@@ -103,6 +103,11 @@ const StripRow = memo(({ item, isVisible, activeSubtabId, onSubtabClick, onColla
   const [entering, setEntering] = useState(false);
   const [atEnd, setAtEnd] = useState(false);
 
+  // Retain the last breadcrumb so the crumbs layer keeps its label while it
+  // flips *out* (after navigating off a sub-page `breadcrumb` goes undefined).
+  const [lastCrumb, setLastCrumb] = useState(breadcrumb);
+  useEffect(() => { if (breadcrumb) setLastCrumb(breadcrumb); }, [breadcrumb]);
+
   // Track scroll position to determine arrow direction (mobile overflow)
   const updateScrollState = useCallback(() => {
     const track = trackRef.current;
@@ -163,78 +168,91 @@ const StripRow = memo(({ item, isVisible, activeSubtabId, onSubtabClick, onColla
 
   const arrowIcon = isMobile ? (atEnd ? 'bi-chevron-left' : 'bi-chevron-right') : 'bi-chevron-up';
 
+  // Opening a publication swaps the subtab pills for a breadcrumb. Both layers
+  // are always mounted and card-flip around the horizontal axis (rotateX) — the
+  // exact same flip the main Navbar's Company strip uses for the executives ⟷
+  // show-profile swap (.company-strip / .strip-flip-nav / .strip-flip-crumbs).
+  const showCrumbs = !!breadcrumb;
+  const crumb = breadcrumb ?? lastCrumb;
+  const collapseLabel = isMobile ? `Scroll ${item.label} sections` : `Hide ${item.label} sections`;
+
   return (
     <div className={`subtab-strip-outer${isVisible ? ' strip-visible' : ''}${entering ? ' strip-entering' : ''}`}>
       <div className="subtab-strip-clip">
-        <div className="subtab-strip-inner">
-          <div className="strip-tabs-track" ref={trackRef}>
-            {breadcrumb ? (
-              <>
-                {/* Anchor — returns to the parent subtab page */}
-                <button
-                  className="strip-anchor"
-                  onClick={breadcrumb.onAnchor}
-                  aria-label={`Back to ${breadcrumb.anchorLabel}`}
-                  title={`Back to ${breadcrumb.anchorLabel}`}
-                >
-                  <span className="strip-anchor-burger" aria-hidden>
-                    <span /><span /><span />
-                  </span>
-                  <span className="strip-anchor-label">{breadcrumb.anchorLabel}</span>
-                  <i className="bi bi-x-lg strip-anchor-close" aria-hidden />
-                </button>
-                <span className="strip-crumb-sep" aria-hidden>
-                  <i className="bi bi-chevron-right" />
-                </span>
-                <button className="strip-crumb strip-crumb-active" aria-current="page">
-                  {breadcrumb.crumbLabel}
-                </button>
-              </>
-            ) : item.subtabs.map((sub, idx) => {
-              const isActive = activeSubtabId === sub.id;
-              // External items just open a link, so they stay plain tabs.
-              if (sub.external) {
+        <div className="subtab-strip-inner company-strip" style={{ position: 'relative' }}>
+          {/* Layer A — subtab pills (flips "up" out of view when crumbs show) */}
+          <div className={`strip-crossfade-layer strip-flip-nav ${showCrumbs ? 'strip-layer-hidden' : 'strip-layer-visible'}`}>
+            <div className="strip-tabs-track" ref={trackRef}>
+              {item.subtabs.map((sub, idx) => {
+                const isActive = activeSubtabId === sub.id;
+                // External items just open a link, so they stay plain tabs.
+                if (sub.external) {
+                  return (
+                    <button
+                      key={sub.id}
+                      ref={el => { btnRefs.current[idx] = el; }}
+                      className={`strip-tab strip-tab-external${isActive ? ' strip-tab-active' : ''}`}
+                      style={{ '--si': idx, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' } as React.CSSProperties}
+                      onClick={() => onSubtabClick(sub)}
+                    >
+                      {sub.label}
+                      <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.7rem' }} />
+                    </button>
+                  );
+                }
+                // Same morphing button as the main Navbar's strip: the active page
+                // springs the burger open and expands into the breadcrumb-title
+                // pill. Only a class toggles (the keyed element is reused), so
+                // width/padding/icons animate smoothly as the active page changes.
                 return (
                   <button
                     key={sub.id}
                     ref={el => { btnRefs.current[idx] = el; }}
-                    className={`strip-tab strip-tab-external${isActive ? ' strip-tab-active' : ''}`}
-                    style={{ '--si': idx, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' } as React.CSSProperties}
+                    className={`strip-tab strip-tab-morph${isActive ? ' strip-tab-pill' : ''}`}
+                    style={{ '--si': idx } as React.CSSProperties}
                     onClick={() => onSubtabClick(sub)}
+                    aria-label={sub.label}
                   >
-                    {sub.label}
-                    <i className="bi bi-box-arrow-up-right" style={{ fontSize: '0.7rem' }} />
+                    <span className="strip-morph-burger" aria-hidden>
+                      <span /><span /><span />
+                    </span>
+                    <span className="strip-morph-label">{sub.label}</span>
                   </button>
                 );
-              }
-              // Same morphing button as the main Navbar's strip: the active page
-              // springs the burger open and expands into the breadcrumb-title
-              // pill. Only a class toggles (the keyed element is reused), so
-              // width/padding/icons animate smoothly as the active page changes.
-              return (
-                <button
-                  key={sub.id}
-                  ref={el => { btnRefs.current[idx] = el; }}
-                  className={`strip-tab strip-tab-morph${isActive ? ' strip-tab-pill' : ''}`}
-                  style={{ '--si': idx } as React.CSSProperties}
-                  onClick={() => onSubtabClick(sub)}
-                  aria-label={sub.label}
-                >
-                  <span className="strip-morph-burger" aria-hidden>
-                    <span /><span /><span />
-                  </span>
-                  <span className="strip-morph-label">{sub.label}</span>
-                </button>
-              );
-            })}
+              })}
+            </div>
+            <button className="strip-collapse" onClick={handleArrowClick} aria-label={collapseLabel}>
+              <i className={`bi ${arrowIcon}`} />
+            </button>
           </div>
-          <button
-            className="strip-collapse"
-            onClick={handleArrowClick}
-            aria-label={isMobile ? `Scroll ${item.label} sections` : `Hide ${item.label} sections`}
-          >
-            <i className={`bi ${arrowIcon}`} />
-          </button>
+
+          {/* Layer B — publication breadcrumb (flips "down" into view) */}
+          <div className={`strip-crossfade-layer strip-flip-crumbs ${showCrumbs ? 'strip-layer-visible' : 'strip-layer-hidden'}`}>
+            <div className="strip-tabs-track">
+              {/* Anchor — returns to the parent subtab page */}
+              <button
+                className="strip-anchor"
+                onClick={crumb?.onAnchor}
+                aria-label={crumb ? `Back to ${crumb.anchorLabel}` : undefined}
+                title={crumb ? `Back to ${crumb.anchorLabel}` : undefined}
+              >
+                <span className="strip-anchor-burger" aria-hidden>
+                  <span /><span /><span />
+                </span>
+                <span className="strip-anchor-label">{crumb?.anchorLabel}</span>
+                <i className="bi bi-x-lg strip-anchor-close" aria-hidden />
+              </button>
+              <span className="strip-crumb-sep" aria-hidden>
+                <i className="bi bi-chevron-right" />
+              </span>
+              <button className="strip-crumb strip-crumb-active" aria-current="page">
+                {crumb?.crumbLabel}
+              </button>
+            </div>
+            <button className="strip-collapse" onClick={handleArrowClick} aria-label={collapseLabel}>
+              <i className={`bi ${arrowIcon}`} />
+            </button>
+          </div>
         </div>
       </div>
     </div>

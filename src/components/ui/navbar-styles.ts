@@ -91,7 +91,7 @@ input[type="checkbox"], input[type="radio"], select,
   /* Anchor just below the main bar row (fixed 84px), NOT the whole nav —
      the nav grows when a subtab strip is open, which would otherwise drop
      the preview far below the tabs. */
-  top: calc(84px + 7px);
+  top: 84px;
   left: var(--site-gutter-inline);
   min-width: 440px;
   max-width: min(720px, calc(100vw - 28px));
@@ -118,13 +118,17 @@ input[type="checkbox"], input[type="radio"], select,
   margin-left: -6px;
   transform: rotate(45deg);
   background: #0c0c0c;
-  border-left: 1px solid var(--border-color);
-  border-top: 1px solid var(--border-color);
+  border-left: 1.5px solid rgba(255,255,255,0.28);
+  border-top: 1.5px solid rgba(255,255,255,0.28);
   border-top-left-radius: 3px;
   z-index: 1;
   transition: left 0.36s cubic-bezier(0.22, 1, 0.36, 1);
 }
-:root.light .nav-dropdown-arrow { background: #ffffff; }
+:root.light .nav-dropdown-arrow {
+  background: #ffffff;
+  border-left-color: rgba(0,0,0,0.22);
+  border-top-color: rgba(0,0,0,0.22);
+}
 .nav-dropdown-clip {
   overflow: hidden;
   border-radius: 16px;
