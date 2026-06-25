@@ -61,6 +61,7 @@ const SubtabView = memo(({ subtabId, onNavigate }: { subtabId: string; onNavigat
         link={content.header.link}
         cta={content.header.cta}
         hero={content.heroHeader}
+        staticHeader={content.staticHeader}
       />
       <div
         id={content.heroHeader ? 'careers-open-roles' : undefined}

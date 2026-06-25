@@ -145,6 +145,9 @@ export interface SubtabContent {
   gridBg?: boolean;
   /** When true, the header renders as a split hero (text left · animated bg right). */
   heroHeader?: boolean;
+  /** When true, the header drops the animated shader background for a plain black
+   *  banner with extra top clearance (used for publication article pages). */
+  staticHeader?: boolean;
   blocks: ContentBlock[];
 }
 
@@ -251,29 +254,59 @@ export const PUBLICATIONS: PublicationArticle[] = [
     title: 'Building the Foundation First: An Introduction to Project Sefirah',
     category: 'Editorial',
     date: 'May 2025',
-    readTime: '9 min read',
+    readTime: '14 min read',
     excerpt: 'Why Notus Regalia is investing in a single infrastructural and technical foundation — Project Sefirah — before anything is built on top of it, and what that foundation is designed to carry.',
     body: [
       {
         type: 'text',
         paragraphs: [
-          'Most companies build a product and discover the platform later — usually under duress, after the product has outgrown the assumptions it was first shipped on. Notus Regalia is doing the opposite. Before we ship anything to anyone, we are building the foundation that everything else will stand on. We call it Project Sefirah.',
-          'Sefirah is not a feature or an app. It is the company’s infrastructural and technical foundation: the data layer, the service orchestration that ties capabilities together, the security model that governs access to all of it, and the assistant that turns the whole platform into something a person can actually operate.',
+          'Most companies build a product and discover the platform later — usually under duress, after the product has outgrown the assumptions it was first shipped on. The familiar shape of it: a first version ships quickly, finds some traction, and then every subsequent feature is bolted onto scaffolding that was only ever meant to hold the demo up. By the time anyone admits a platform is needed, there is a live product depending on the very thing that has to be rebuilt. Notus Regalia is doing the opposite. Before we ship anything to anyone, we are building the foundation that everything else will stand on. We call it Project Sefirah.',
+          'Sefirah is not a feature or an app. It is the company’s infrastructural and technical foundation: the data layer that holds the system’s memory, the service orchestration that ties individual capabilities together, the security model that governs access to all of it, and the assistant that turns the whole platform into something a person can actually operate. Each of those is a hard problem in its own right. Treated as one system, with shared contracts and a single source of truth, they become something more than the sum of their parts — a backbone that every future product can stand on without re-litigating the basics.',
+          'This piece is an introduction, not a specification. It is meant to explain why we are spending our earliest, most expensive effort on infrastructure that no customer will ever see directly, and what we expect that discipline to buy us. The short version: the foundation is the product right now, and getting it right is the work.',
         ],
       },
       {
         type: 'text',
         heading: 'Why the foundation comes first',
         paragraphs: [
-          'The systems we intend to build operate in domains where failure is not an inconvenience — it is a consequence. Foundations laid carelessly there cannot be quietly repaired later. Building Sefirah first lets us make the hard architectural decisions once, deliberately, while the cost of changing our mind is still measured in code rather than in incidents.',
-          'It also means every capability we add inherits a mature backbone from day one: consistent data, auditable access, and a single place where security and governance are enforced rather than reimplemented.',
+          'The systems we intend to build operate in domains where failure is not an inconvenience — it is a consequence. In healthcare, finance, and other regulated environments, a mistake is not a bad review; it is a harmed person, a lost record, a breached obligation. Foundations laid carelessly there cannot be quietly repaired later. Building Sefirah first lets us make the hard architectural decisions once, deliberately, while the cost of changing our mind is still measured in code rather than in incidents.',
+          'There is a simple economics to this. Early on, the cost of getting the structure wrong is low — you change a few interfaces and move on. Later, that same change ripples through everything built on top of it, and the bill arrives with interest. By paying down the hardest design questions before there is a product riding on them, we trade a slower first milestone for a far faster tenth. The foundation is slower to a first demo and dramatically cheaper to extend afterward.',
+          'It also means every capability we add inherits a mature backbone from day one: consistent data, auditable access, and a single place where security and governance are enforced rather than reimplemented. A new product team should not have to invent its own way to store records, check permissions, or prove what happened. Those are solved problems inside Sefirah, and solving them once — well — is the entire point.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'The four layers',
+        paragraphs: [
+          'Sefirah is built in layers, each with a single responsibility and a clear contract with the layers above and below it. The discipline is deliberate: a foundation earns trust by being predictable, and predictability comes from boundaries you can reason about. Four layers carry the weight.',
+          'The data layer sits at the bottom. It is designed to stay consistent and auditable as the platform grows — every consequential change recorded, every read travelling the same access path. We would rather pay a little structure up front than inherit an unaccountable data sprawl later, because data is the one thing you cannot casually rebuild.',
+          'Above it, the orchestration core lets new capabilities plug into the platform without rework. Capabilities declare what they need and what they produce; the core handles wiring, sequencing, and failure handling. Adding a capability should feel like extending the system, not patching it.',
+          'The security model runs through all of it rather than sitting beside it. Access control, auditability, and data protection are properties of the foundation, not options layered on at the end — every action passes through a single authorization path, and there is no privileged side door, because side doors are exactly what later become the incident.',
+          'At the surface is the assistant, which turns the platform into something a person operates by intent rather than by menu. Because it speaks the same contracts as everything beneath it, the path from “take me there” to “do this for me” is an evolution rather than a rebuild.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'A system, not a stack of silos',
+        paragraphs: [
+          'It would be easy to read those four layers as four separate projects with four separate owners. That is precisely the failure mode we are designing against. Engineering, security, and governance break down when they are owned by separate fiefdoms that meet only at integration time — each makes locally reasonable decisions that are collectively incoherent, and the seams between them are where things go wrong.',
+          'In Sefirah they share contracts and a single source of truth, so a decision in one layer is visible to the others by construction. Governance is not a committee that reviews the system after the fact; wherever we can, oversight is encoded into the platform itself — access rules, audit trails, and approval gates that apply consistently because they do not depend on anyone remembering to apply them. Human judgment is reserved for the decisions that genuinely need it, not spent rubber-stamping the routine.',
+        ],
+      },
+      {
+        type: 'text',
+        heading: 'What this means for the people who build on it',
+        paragraphs: [
+          'The promise of a foundation-first approach is leverage. When the next venture or product begins, it does not start from an empty repository and a list of solved-everywhere problems to solve again. It starts on infrastructure that already knows how to store data safely, enforce who can see what, record what happened, and present itself through a coherent assistant. The team’s attention goes to the part that is actually novel — the thing only they can build — instead of the plumbing every system needs.',
+          'That is also how we intend to stay capital-efficient without cutting the corners that matter. Discipline at the foundation is not the opposite of speed; it is what makes durable speed possible. Shortcuts taken in the basement are paid for on every floor above.',
         ],
       },
       {
         type: 'text',
         heading: 'What we are building toward',
         paragraphs: [
-          'Over the coming releases we will write about each layer of Sefirah in its own right — the data model, the orchestration core, the security posture, and the assistant. This piece is the frame around those: a statement that the foundation is the product right now, and that getting it right is the work.',
+          'Over the coming releases we will write about each layer of Sefirah in its own right — the data model, the orchestration core, the security posture, and the assistant — and about the operating principles that hold them together. This piece is the frame around those: a statement that the foundation is the product right now, and that getting it right is the work.',
+          'We are in an early, deliberately quiet phase. The work is not glamorous, and much of it will never be visible to the people it ultimately serves. That is fine. The measure of a foundation is not how it looks on the day it is poured — it is everything it lets you build, safely, for years afterward.',
         ],
       },
     ],
@@ -1756,6 +1789,13 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
             layout: 'side',
           },
           {
+            title: 'Monogram',
+            caption: 'The “NR” wordmark for tight, text-only contexts where the full lockup won’t fit.',
+            light: '/Notus Regalia Brand Logo/NR text, black text.png',
+            dark: '/Notus Regalia Brand Logo/NR text, white text.png',
+            layout: 'side',
+          },
+          {
             title: 'Symbol',
             caption: 'The standalone mark for avatars, app icons, and favicons. One mark — no themed variants.',
             light: '/Notus Regalia Brand Logo/Square Icon.png',
@@ -1944,11 +1984,12 @@ export const SUBTAB_CONTENT: Record<string, SubtabContent> = {
 for (const article of PUBLICATIONS) {
   SUBTAB_CONTENT[pubSubpageId(article.slug)] = {
     header: {
-      eyebrow: [article.category, article.date, article.readTime].filter(Boolean).join('  ·  '),
+      eyebrow: [article.date, article.readTime].filter(Boolean).join('  ·  '),
       title: article.title,
       description: article.excerpt,
     },
     justify: true,
+    staticHeader: true,
     blocks: article.body,
   };
 }

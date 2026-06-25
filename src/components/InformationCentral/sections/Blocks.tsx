@@ -134,14 +134,13 @@ const ReleaseItem = memo(({ statement, isOpen, onToggle }: {
 
         <div
           className="overflow-hidden transition-all duration-300"
-          style={{ maxHeight: isOpen ? '480px' : '0', opacity: isOpen ? 1 : 0 }}
+          style={{ maxHeight: isOpen ? '900px' : '0', opacity: isOpen ? 1 : 0 }}
         >
-          <p
-            className="pt-3 text-sm sm:text-base lg:text-lg leading-relaxed"
-            style={{ color: 'var(--content-muted)' }}
-          >
-            {statement.content}
-          </p>
+          <div className="pt-3 space-y-3 text-sm sm:text-base lg:text-lg leading-relaxed" style={{ color: 'var(--content-muted)' }}>
+            {statement.content.split('\n\n').map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
         </div>
       </div>
     </div>

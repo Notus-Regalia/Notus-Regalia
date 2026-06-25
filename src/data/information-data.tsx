@@ -98,67 +98,9 @@ export const statements: Statement[] = [
   {
     id: 'statement-001',
     title: 'Notus Regalia Holdings Announces Formation and Stealth Operating Framework',
-    date: 'January 15, 2025',
-    tags: ['Public Disclosure', 'Recruitment'],
-    content: 'Notus Regalia Holdings has been formally established as a holding and venture-building entity focused on developing, stewarding, and scaling early-stage systems across multiple industries. Operating in a pre-seed, stealth phase, the entity will pursue capital-efficient experimentation and validation through a centralized platform designed for long-term value creation, prioritizing repeatable operating systems, shared infrastructure, and disciplined governance over isolated project execution.',
-    pdfUrl: '/documents/formation-announcement.pdf',
-    linkUrl: 'https://Notus Regalia.com/announcements/formation'
-  },
-  {
-    id: 'statement-002',
-    title: 'Portfolio Development Update: Healthcare and FinTech Ventures Progress to Beta',
-    date: 'December 8, 2024',
-    tags: ['Venture', 'Research & Development', 'Operations'],
-    content: 'Two ventures under the Notus Regalia umbrella—AI Telemedicine Platform and Micro-Lending Blockchain—have successfully transitioned to private beta and beta testing phases respectively. The AI Telemedicine Platform is currently undergoing controlled deployment with select healthcare partners in underserved regions, demonstrating offline diagnostic capabilities and real-time synchronization protocols, while the blockchain-based microfinancing platform has completed smart contract audits and is conducting pilot programs with small business borrowers in three emerging markets.',
-    pdfUrl: '/documents/q4-2024-venture-update.pdf'
-  },
-  {
-    id: 'statement-003',
-    title: 'Governance Framework and Operational Principles Published',
-    date: 'November 22, 2024',
-    tags: ['Governance', 'Compliance', 'Public Disclosure'],
-    content: 'Notus Regalia has formalized its governance framework outlining decision-making protocols, resource allocation methodologies, and venture oversight mechanisms. The framework establishes clear delineation between holding entity responsibilities and individual venture operations, ensuring institutional discipline while maintaining operational flexibility through systems-first thinking, capital efficiency, asymmetric opportunity prioritization, and founder-operator alignment with long-term ownership structures, including standardized processes for venture validation, stage-gate advancement criteria, and risk management protocols across the portfolio.',
-    linkUrl: 'https://Notus Regalia.com/governance/framework'
-  },
-  {
-    id: 'statement-004',
-    title: 'CleanTech Initiative Reaches Pilot Stage with Industrial Partners',
-    date: 'October 30, 2024',
-    tags: ['Venture', 'Research & Development', 'Partnerships'],
-    content: 'The Smart Carbon Capture system has advanced to pilot deployment following successful prototype validation and environmental impact assessment, with three industrial facilities across manufacturing and energy sectors selected as initial pilot sites for IoT-enabled carbon monitoring and capture technology. Preliminary data indicates potential emissions reductions of 40-50% with real-time analytics capabilities significantly exceeding baseline projections, while strategic partnerships with carbon credit verification agencies are in advanced discussions to establish tradeable credit generation protocols.',
-    pdfUrl: '/documents/cleantech-pilot-report.pdf',
-    linkUrl: 'https://Notus Regalia.com/ventures/cleantech'
-  },
-  {
-    id: 'statement-005',
-    title: 'Strategic Infrastructure Investment: Shared Technical Platform Operational',
-    date: 'September 18, 2024',
-    tags: ['Operations', 'Capital', 'Research & Development'],
-    content: 'Notus Regalia has completed development and deployment of centralized technical infrastructure designed to support multiple ventures simultaneously, including shared development environments, API frameworks, data analytics pipelines, and security protocols that compound execution efficiency across the portfolio. This infrastructure investment enables ventures to achieve production readiness 35-40% faster than traditional standalone development approaches, with modular architecture supporting integration that allows new ventures to leverage existing systems while maintaining operational independence where strategically appropriate.'
-  },
-  {
-    id: 'statement-006',
-    title: 'EdTech Platform Enters Testing Phase with Education Partners',
-    date: 'August 12, 2024',
-    tags: ['Venture', 'Partnerships', 'Research & Development'],
-    content: 'The Adaptive STEM Learning platform has commenced testing phase in partnership with educational institutions across three developing regions, with initial cohorts of 500+ students engaging with AI-powered personalized learning paths showing promising engagement and comprehension improvements. Teacher feedback sessions have informed iterative refinements to interface design, content delivery mechanisms, and progress tracking analytics, while platform architecture supports both online and offline learning modes to address connectivity challenges prevalent in target deployment regions.',
-    pdfUrl: '/documents/edtech-testing-report.pdf'
-  },
-  {
-    id: 'statement-007',
-    title: 'Notus Regalia Establishes Advisory Board for Long-Term Strategic Guidance',
-    date: 'July 5, 2024',
-    tags: ['Governance', 'Partnerships', 'Operations'],
-    content: 'An advisory board comprising industry veterans, academic researchers, and operational experts has been established to provide strategic oversight and domain-specific guidance across healthcare technology, financial systems, sustainable infrastructure, and educational innovation. The advisory structure is designed to complement founder-operator decision-making with external perspective while maintaining operational autonomy, with quarterly strategic reviews assessing portfolio performance, validating market assumptions, and informing resource allocation decisions.',
-    linkUrl: 'https://Notus Regalia.com/about/advisory-board'
-  },
-  {
-    id: 'statement-008',
-    title: 'Compliance and Regulatory Framework Certification Achieved',
-    date: 'June 20, 2024',
-    tags: ['Compliance', 'Governance', 'Operations'],
-    content: 'Notus Regalia has completed comprehensive compliance assessments across all active ventures, achieving necessary certifications and regulatory approvals including HIPAA compliance certification for healthcare venture operations ensuring patient data protection and privacy standards, KYC/AML framework implementation for FinTech platform with preliminary regulatory approval in initial deployment markets, and ongoing compliance monitoring systems established to maintain adherence to evolving regulatory requirements across all sectors.',
-    pdfUrl: '/documents/compliance-certification.pdf'
+    date: 'May 04, 2026',
+    tags: ['Public Disclosure'],
+    content: 'Notus Regalia Holdings is currently being organized as a holding and venture-building entity focused on developing, stewarding, and scaling early-stage systems across multiple industries. As the organization prepares for formal incorporation in the Philippines, efforts are centered on building the foundational structures, governance frameworks, and operating systems necessary to support long-term value creation.\n\nOperating in a pre-seed and stealth phase, Notus Regalia will pursue capital-efficient experimentation and validation through a centralized platform model, emphasizing shared infrastructure, repeatable processes, disciplined governance, and strategic resource allocation across its future portfolio of ventures.\n\nThe organization is currently undergoing foundational development, with formal registration and incorporation processes expected to commence in the near future.'
   }
 ];
 

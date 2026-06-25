@@ -13,6 +13,9 @@ interface SubtabHeaderProps {
   cta?: { label: string; href?: string; scrollTo?: string };
   /** When true, render a split hero (text left · animated background right). */
   hero?: boolean;
+  /** When true, drop the animated shader for a plain black banner with extra
+   *  top clearance (used for publication article pages). */
+  staticHeader?: boolean;
 }
 
 const scrollToId = (id: string) => (e: React.MouseEvent) => {
@@ -163,38 +166,49 @@ const HeroHeader = ({ title, description, link, cta }: Omit<SubtabHeaderProps, '
   </section>
 );
 
-const SubtabHeader = memo(({ eyebrow, title, description, icon, link, cta, hero }: SubtabHeaderProps) => {
+const SubtabHeader = memo(({ eyebrow, title, description, icon, link, cta, hero, staticHeader }: SubtabHeaderProps) => {
   if (hero) return <HeroHeader title={title} description={description} link={link} cta={cta} />;
 
   return (
     <section
-      className="relative w-full overflow-hidden flex flex-col justify-center min-h-[380px] sm:min-h-[440px] lg:min-h-[480px]"
+      className={`relative w-full overflow-hidden flex flex-col justify-center ${
+        staticHeader
+          ? 'min-h-[320px] sm:min-h-[360px] lg:min-h-[400px]'
+          : 'min-h-[380px] sm:min-h-[440px] lg:min-h-[480px]'
+      }`}
       style={{
-        background: '#050505',
+        background: '#000000',
         borderBottom: '1px dashed var(--border-dashed)',
       }}
     >
       {/* Animated shader-lines background — wrapped so `contain: paint` keeps the
-          WebGL canvas from leaking past the header during smooth-scroll transforms. */}
-      <div className="absolute inset-0 overflow-hidden" style={{ contain: 'paint' }}>
-        <ShaderAnimation />
-      </div>
+          WebGL canvas from leaking past the header during smooth-scroll transforms.
+          Omitted for static headers (publication pages) which use plain black. */}
+      {!staticHeader && (
+        <>
+          <div className="absolute inset-0 overflow-hidden" style={{ contain: 'paint' }}>
+            <ShaderAnimation />
+          </div>
 
-      {/* Dark overlay for text legibility over the shader */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(ellipse at 50% 40%, rgba(4,5,10,0.35) 0%, rgba(4,5,10,0.72) 70%, rgba(4,5,10,0.92) 100%)',
-        }}
-      />
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
-        style={{ background: 'linear-gradient(to bottom, transparent, #050505)' }}
-      />
+          {/* Dark overlay for text legibility over the shader */}
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                'radial-gradient(ellipse at 50% 40%, rgba(4,5,10,0.35) 0%, rgba(4,5,10,0.72) 70%, rgba(4,5,10,0.92) 100%)',
+            }}
+          />
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 h-24"
+            style={{ background: 'linear-gradient(to bottom, transparent, #050505)' }}
+          />
+        </>
+      )}
 
       <div
-        className="relative z-10 w-full pt-24 sm:pt-28 lg:pt-28 pb-12 sm:pb-14"
+        className={`relative z-10 w-full pb-12 sm:pb-14 ${
+          staticHeader ? 'pt-40 sm:pt-44 lg:pt-44' : 'pt-24 sm:pt-28 lg:pt-28'
+        }`}
         style={{ paddingLeft: 'var(--site-gutter-inline)', paddingRight: 'var(--site-gutter-inline)' }}
       >
         <div className="max-w-5xl mx-auto text-center">
@@ -206,7 +220,7 @@ const SubtabHeader = memo(({ eyebrow, title, description, icon, link, cta, hero 
           >
             {eyebrow && (
               <div className="flex items-center justify-center gap-2 mb-4">
-                {icon && <i className={`bi ${icon} text-sm`} style={{ color: 'rgba(255,255,255,0.65)', textShadow: '0 2px 10px rgba(0,0,0,0.7)' }} />}
+                {icon && !staticHeader && <i className={`bi ${icon} text-sm`} style={{ color: 'rgba(255,255,255,0.65)', textShadow: '0 2px 10px rgba(0,0,0,0.7)' }} />}
                 <span
                   className="text-xs sm:text-sm font-medium uppercase tracking-[0.2em]"
                   style={{ color: 'rgba(255,255,255,0.65)', textShadow: '0 2px 12px rgba(0,0,0,0.7)' }}
