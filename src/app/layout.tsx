@@ -109,9 +109,6 @@ const structuredData = {
       // Source of truth: src/data/Company-data.ts (FOUNDERS).
       founder: [
         { "@type": "Person", name: "Jansen Jekk Tesnado", jobTitle: "Founder & CEO", url: "https://www.linkedin.com/in/jansenjekk", sameAs: ["https://www.linkedin.com/in/jansenjekk"] },
-        { "@type": "Person", name: "Kenneth Tomaniog", jobTitle: "Founder & Lead Engineer" },
-        { "@type": "Person", name: "Alyanna Ricci Evangelista", jobTitle: "Founder & Engineer" },
-        { "@type": "Person", name: "Andrei Brent Bangajo", jobTitle: "Founder & Engineer" },
       ],
       knowsAbout: [
         "Systems engineering",

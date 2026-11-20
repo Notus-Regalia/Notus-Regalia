@@ -100,6 +100,7 @@ export const statements: Statement[] = [
     title: 'Notus Regalia Holdings Announces Formation and Stealth Operating Framework',
     date: 'May 04, 2026',
     tags: ['Public Disclosure'],
+    pdfUrl: '/documents/NR-PM-2026-001.pdf',
     content: 'Notus Regalia Holdings is currently being organized as a holding and venture-building entity focused on developing, stewarding, and scaling early-stage systems across multiple industries. As the organization prepares for formal incorporation in the Philippines, efforts are centered on building the foundational structures, governance frameworks, and operating systems necessary to support long-term value creation.\n\nOperating in a pre-seed and stealth phase, Notus Regalia will pursue capital-efficient experimentation and validation through a centralized platform model, emphasizing shared infrastructure, repeatable processes, disciplined governance, and strategic resource allocation across its future portfolio of ventures.\n\nThe organization is currently undergoing foundational development, with formal registration and incorporation processes expected to commence in the near future.'
   }
 ];

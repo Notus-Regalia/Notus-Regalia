@@ -302,7 +302,7 @@ const Executives = () => {
           background:linear-gradient(135deg,#f1f5f9 0%,rgba(241,245,249,.6) 100%);
           -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
         }
-        .exec-overview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;}
+        .exec-overview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;row-gap:3.5rem;}
         .exec-ov-card{display:block;cursor:pointer;min-width:0;outline:none;text-decoration:none;color:inherit;}
         .exec-ov-portrait{
           position:relative;width:100%;aspect-ratio:3/4;overflow:hidden;
@@ -330,6 +330,13 @@ const Executives = () => {
           text-decoration:underline;text-underline-offset:2px;
           transition:color .25s ease;
         }
+        .exec-ov-soon{cursor:default;}
+        .exec-ov-soon-badge{
+          position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+          font-family:ui-monospace,Menlo,monospace;font-size:.65rem;letter-spacing:.2em;
+          text-transform:uppercase;color:rgba(255,255,255,.45);
+        }
+        :root.light .exec-ov-soon-badge{color:rgba(0,0,0,.45);}
         .exec-ov-card:hover .exec-ov-more,
         .exec-ov-card:focus-visible .exec-ov-more{color:#fff;}
         /* Light mode — overview section follows the page theme
@@ -388,6 +395,17 @@ const Executives = () => {
                   <h3 className="exec-ov-name">{f.name}</h3>
                   <p className="exec-ov-bio">{bioPreview(f.bio)}… <span className="exec-ov-more">Learn more.</span></p>
                 </Link>
+              ))}
+              {/* Placeholder seats for executives not yet announced. */}
+              {Array.from({ length: 7 },(_, i) => (
+                <div key={`coming-soon-${i}`} className="exec-ov-card exec-ov-soon" aria-label="Executive coming soon">
+                  <div className="exec-ov-portrait">
+                    <div className="fc-dot-grid" />
+                    <span className="exec-ov-soon-badge">Coming Soon</span>
+                  </div>
+                  <span className="exec-ov-eyebrow">To Be Announced</span>
+                  <h3 className="exec-ov-name">Coming Soon</h3>
+                </div>
               ))}
             </div>
           </div>
