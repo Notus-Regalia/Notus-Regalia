@@ -101,7 +101,7 @@ export const statements: Statement[] = [
     date: 'January 15, 2025',
     tags: ['Public Disclosure', 'Recruitment'],
     content: 'Notus Regalia Holdings has been formally established as a holding and venture-building entity focused on developing, stewarding, and scaling early-stage systems across multiple industries. Operating in a pre-seed, stealth phase, the entity will pursue capital-efficient experimentation and validation through a centralized platform designed for long-term value creation, prioritizing repeatable operating systems, shared infrastructure, and disciplined governance over isolated project execution.',
-    pdfUrl: '/documents/formation-announcement.pdf',
+    pdfUrl: '/documents/NR-PM-2026-001.pdf',
     linkUrl: 'https://Notus Regalia.com/announcements/formation'
   },
   {

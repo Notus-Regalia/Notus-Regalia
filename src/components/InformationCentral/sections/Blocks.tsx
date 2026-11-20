@@ -109,6 +109,19 @@ const ReleaseItem = memo(({ statement, isOpen, onToggle }: {
                   )}
                 </div>
               )}
+              {statement.pdfUrl && (
+                <a
+                  href={statement.pdfUrl}
+                  onClick={(e) => e.stopPropagation()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="opacity-60 hover:opacity-100 transition-opacity"
+                  style={{ color: 'var(--content-muted)' }}
+                  aria-label="Open PDF in new tab"
+                >
+                  <i className="bi bi-file-earmark-pdf text-sm" />
+                </a>
+              )}
               <i
                 className={`bi bi-chevron-down text-sm transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
                 style={{ color: 'var(--content-muted)' }}
