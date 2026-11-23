@@ -4,6 +4,8 @@ import CursorClickPulse from "@/components/ui/CursorClickPulse";
 import "./globals.css";
 import "@/styles/About.module.css";
 import ConsentRuntime from "@/components/consent/ConsentRuntime";
+import AutopilotBridge from "@/components/ui/AutopilotBridge";
+import { getFrameOrigins } from "@/lib/frame-ancestors";
 import { SITE_URL, SITE_NAME } from "@/utils/site";
 import { serializeJsonLd } from "@/components/seo/JsonLd";
 
@@ -171,6 +173,8 @@ export default function RootLayout({
           {children}
         </ThemeProvider>
         <ConsentRuntime />
+        {/* Lets a portfolio in PORTFOLIO_ORIGINS demo the site live in its frame. */}
+        <AutopilotBridge origins={getFrameOrigins()} />
       </body>
     </html>
   );
