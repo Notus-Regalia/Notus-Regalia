@@ -10,7 +10,9 @@ import SefirahTutorial from './SefirahTutorial';
 import SmoothScroller from './SmoothScroller';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { DEFAULT_SUBTABS, isRootTab, parseRootPath, rootHref, type RootTab } from '@/utils/routes';
-import { hasConsentDecision, CONSENT_EVENT, SEFIRAH_TUTORIAL_KEY } from '@/utils/consent';
+import {
+  hasConsentDecision, isFramed, CONSENT_EVENT, SEFIRAH_TUTORIAL_KEY, SEFIRAH_TUTORIAL_OPEN_EVENT,
+} from '@/utils/consent';
 
 const gsapScrollToTop = (smooth = true) => {
   const sm = typeof window !== 'undefined' ? ScrollSmoother.get?.() : null;
@@ -32,8 +34,12 @@ const ClientWrapper = () => {
 
   // First-time visitors get the guided Sefirah intro — but only after loading
   // finishes AND the cookie banner is resolved, so the two never overlap.
+  // When embedded in an iframe, storage is partitioned and the "seen" flag
+  // never persists, so we skip the auto-open there. It stays available from
+  // Sefirah → Settings → "Replay guide tour".
   useEffect(() => {
     if (loading) return;
+    if (isFramed()) return;
     let seen = false;
     try { seen = localStorage.getItem(SEFIRAH_TUTORIAL_KEY) === '1'; } catch { /* private mode */ }
     if (seen) return;
@@ -55,6 +61,13 @@ const ClientWrapper = () => {
   const dismissTutorial = useCallback(() => {
     setShowTutorial(false);
     try { localStorage.setItem(SEFIRAH_TUTORIAL_KEY, '1'); } catch { /* private mode */ }
+  }, []);
+
+  // Manual entry point (Settings → "Replay guide tour"). Works framed or not.
+  useEffect(() => {
+    const open = () => setShowTutorial(true);
+    window.addEventListener(SEFIRAH_TUTORIAL_OPEN_EVENT, open);
+    return () => window.removeEventListener(SEFIRAH_TUTORIAL_OPEN_EVENT, open);
   }, []);
 
   // Sync state from the current path (initial mount + browser back/forward).

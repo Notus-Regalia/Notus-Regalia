@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { getFrameOrigins } from "./src/lib/frame-ancestors";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -13,10 +14,6 @@ const nextConfig: NextConfig = {
       {
         key: 'X-Content-Type-Options',
         value: 'nosniff',
-      },
-      {
-        key: 'X-Frame-Options',
-        value: 'DENY',
       },
       {
         key: 'Referrer-Policy',
@@ -46,6 +43,22 @@ const nextConfig: NextConfig = {
       // fresh per-request nonce (a static header here can't). See that file.
     ];
 
+    // X-Frame-Options for pages/API is set per request in src/middleware.ts
+    // (DENY, or omitted when PORTFOLIO_ORIGINS allows framing), because a
+    // header set here can't be removed by middleware. Here we only cover the
+    // paths the middleware matcher skips. This is evaluated at build time.
+    // Keep this pattern in sync with `config.matcher` in src/middleware.ts.
+    const frameHeaderRoutes =
+      getFrameOrigins().length === 0
+        ? [
+            {
+              source:
+                '/:path((?:_next/static|_next/image|favicon\\.ico|assets/|robots\\.txt|sitemap\\.xml|world-110m\\.json|google[0-9a-f]+\\.html).*)',
+              headers: [{ key: 'X-Frame-Options', value: 'DENY' }],
+            },
+          ]
+        : [];
+
     // Enable HSTS only after HTTPS is fully configured on your domain.
     if (process.env.ENABLE_HSTS === 'true') {
       securityHeaders.push({
@@ -60,6 +73,7 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         headers: securityHeaders,
       },
+      ...frameHeaderRoutes,
       {
         // Teams route — indexable
         source: '/teams/:path*',

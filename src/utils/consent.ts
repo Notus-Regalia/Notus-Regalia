@@ -130,6 +130,24 @@ export function applyPreferences(prefs: Preferences): void {
 }
 
 // ── Sefirah tutorial ─────────────────────────────────────────
+/** Window event that opens the Sefirah tutorial on demand (e.g. from Settings). */
+export const SEFIRAH_TUTORIAL_OPEN_EVENT = 'nr-sefirah-tutorial-open';
+
+/**
+ * True when the site is rendered inside an <iframe> (e.g. embedded on a
+ * portfolio). Storage is partitioned there, so "seen" flags never stick and
+ * the first-run tutorial would reappear on every visit. Comparing window
+ * references is allowed even cross-origin. The try/catch is defensive.
+ */
+export function isFramed(): boolean {
+  if (!isBrowser()) return false;
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+}
+
 /** Reset the first-run Sefirah tutorial so it plays again on the main site. */
 export function clearSefirahTutorial(): void {
   if (!isBrowser()) return;

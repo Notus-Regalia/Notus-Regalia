@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { frameAncestorsDirective, getFrameOrigins } from '@/lib/frame-ancestors';
 
 type RateBucket = {
   count: number;
@@ -19,12 +20,15 @@ const isDev = process.env.NODE_ENV === 'development';
 // therefore allow inline scripts. 'self' covers Next's /_next/* chunk files;
 // the explicit hosts cover Vercel Analytics/Speed Insights (which inject their
 // own <script src>).
-const buildCsp = () =>
+//
+// frame-ancestors: 'none' by default; when PORTFOLIO_ORIGINS is set, only this
+// site and those origins may embed it (see src/lib/frame-ancestors.ts).
+const buildCsp = (frameOrigins: string[]) =>
   [
     "default-src 'self'",
     "base-uri 'self'",
     "form-action 'self'",
-    "frame-ancestors 'none'",
+    frameAncestorsDirective(frameOrigins),
     "object-src 'none'",
     // Inline scripts must be allowed because static HTML can't carry a
     // per-request nonce. 'unsafe-eval' is only needed by webpack HMR in dev.
@@ -125,9 +129,16 @@ export function middleware(request: NextRequest) {
     logSecurityEvent('large_query_string', request, { ip, queryLength });
   }
 
-  const csp = buildCsp();
+  const frameOrigins = getFrameOrigins();
+  const csp = buildCsp(frameOrigins);
 
   const response = NextResponse.next();
+
+  // X-Frame-Options can't express an allowlist, so with PORTFOLIO_ORIGINS set
+  // it is omitted and CSP frame-ancestors alone governs framing. Without the
+  // allowlist it stays DENY. This middleware is the only source of XFO for
+  // the routes it matches; next.config.ts covers the excluded static paths.
+  if (!frameOrigins.length) response.headers.set('X-Frame-Options', 'DENY');
 
   // Enforce in production; report-only in dev so the dev server (eval, etc.)
   // keeps working while still surfacing violations.
@@ -148,6 +159,8 @@ export const config = {
   // Rate-limit all page and API routes.
   // Static assets (_next/static, images, favicon) are excluded to avoid
   // penalising normal browsing.
+  // Keep the excluded list in sync with the X-Frame-Options route in
+  // next.config.ts, which covers exactly these skipped paths.
   matcher: [
     '/((?!_next/static|_next/image|favicon\\.ico|assets/|robots\\.txt|sitemap\\.xml|world-110m\\.json|google[0-9a-f]+\\.html).*)',
   ],
