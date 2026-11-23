@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import {
   getConsent, setConsent, getPreferences, setPreferences,
   clearConsent, clearPreferences, clearSiteCache, clearSefirahTutorial,
+  SEFIRAH_TUTORIAL_OPEN_EVENT,
 } from '@/utils/consent';
 
 // Cookie consent + user-preference controls. Lives in the Sefirah assistant's
@@ -218,6 +219,21 @@ export default function SettingsPanel() {
               </p>
             </div>
             <ActionButton onClick={handleResetConsent} danger>Reset</ActionButton>
+          </div>
+
+          <div
+            className="flex items-center justify-between gap-4 rounded-2xl p-4"
+            style={{ background: 'var(--hover-bg)', border: '1px solid var(--border-color)' }}
+          >
+            <div className="min-w-0">
+              <span className="font-semibold text-sm" style={{ color: 'var(--content-secondary)' }}>Replay guide tour</span>
+              <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--content-muted)' }}>
+                Walk through the Sefirah introduction again.
+              </p>
+            </div>
+            <ActionButton onClick={() => window.dispatchEvent(new CustomEvent(SEFIRAH_TUTORIAL_OPEN_EVENT))}>
+              Replay
+            </ActionButton>
           </div>
         </div>
 

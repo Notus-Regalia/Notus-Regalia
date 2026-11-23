@@ -7,6 +7,7 @@ import { type SectionItem, searchSections } from '@/data/search-index';
 import { Search as AnimatedSearch } from '@/components/animate-ui/icons/search';
 import { SlidersHorizontal as AnimatedSliders } from '@/components/animate-ui/icons/sliders-horizontal';
 import SettingsPanel from '@/components/ui/SettingsPanel';
+import { SEFIRAH_TUTORIAL_OPEN_EVENT } from '@/utils/consent';
 
 // Rotating hints typed out in the placeholder while the field is empty.
 const SEARCH_HINTS = ['founders', 'executives', 'investor relations', 'careers', 'privacy policy', 'technologies', 'releases'];
@@ -115,6 +116,13 @@ export default function SefirahAssistant() {
     document.body.style.overflow = 'hidden';
     return () => { window.removeEventListener('keydown', onKey); document.body.style.overflow = ''; };
   }, [open]);
+
+  // Close the panel when the guide tour is replayed so it can spotlight the orb.
+  useEffect(() => {
+    const close = () => setOpen(false);
+    window.addEventListener(SEFIRAH_TUTORIAL_OPEN_EVENT, close);
+    return () => window.removeEventListener(SEFIRAH_TUTORIAL_OPEN_EVENT, close);
+  }, []);
 
   // Animated "active suggestion" placeholder — types/erases rotating hints.
   useEffect(() => {
